@@ -132,8 +132,8 @@ class ForwardAnalysis(Runner):
             self.source = source.read()
             self.tree = ast.parse(self.source)
             self.cfg = ast_to_cfg(self.tree)
-
             _, variables, _ = self.variables
+
             r_vars = list()
             for variable in variables:
                 r_vars.append(PyVar(variable.name))

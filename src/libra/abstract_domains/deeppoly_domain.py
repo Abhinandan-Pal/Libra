@@ -443,6 +443,7 @@ class DeepPolyState(State, BoundsDomain):
         for lhs, expr in zip(left, right):
             name = str(lhs)
             rhs = texpr_to_dict(expr)
+
             _inf, inf = deepcopy(rhs), deepcopy(rhs)
             _sup, sup = deepcopy(rhs), deepcopy(rhs)
             self.poly[name] = (_inf, _sup)
