@@ -162,7 +162,7 @@ class ForwardInterpreter(Interpreter):
 
     '''Given a node of a layer expressed in inequality form of x01 and x02. it gives the upper and lower bound
      assuming x0n are in [0,1]'''
-    def get_bounds(self,l1_layer_lte: list[list[float]],l1_layer_gte: list[list[float]],node_num:int , l1_lb = 0,l1_ub = 1):
+    def get_bounds(self,l1_layer_lte: list[list[float]],l1_layer_gte: list[list[float]],node_num:int , l1_lb = -1,l1_ub = 1):
         l1_lte = l1_layer_lte[node_num]
         l1_gte = l1_layer_gte[node_num]
         lb = l1_lte[0]
