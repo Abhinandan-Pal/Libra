@@ -145,10 +145,44 @@ def relu_propagate_l1_GPU(l1_lte,l1_gte):
     l1_relu_gte = cp.asnumpy(d_l1_relu_gte)
     l1_relu_lte = cp.asnumpy(d_l1_relu_lte)
     return l1_relu_lte,l1_relu_gte
+@cuda.jit
+def relu_prop_helper2(l1_lte,l1_gte ,lbs,ubs,l1_relu_lte,l1_relu_gte):
+    idx,idy = cuda.grid(2)
+    if(idx>= len(ubs) or idy>=len(l1_lte[idx])):
+      return
+    if(ubs[idx] < 0):
+          return  # as initialized with zeros
+    if(lbs[idx] > 0):
+        l1_relu_lte[idx][idy] = l1_lte[idx][idy]
+        l1_relu_gte[idx][idy] = l1_gte[idx][idy]
+        return
+    slope = ubs[idx]/(ubs[idx]-lbs[idx])
+    l1_relu_gte[idx][idy] = slope*l1_gte[idx][idy]
+    if(idy == 0):
+        y_coeff = -ubs[idx]*lbs[idx]/(ubs[idx]-lbs[idx])
+        l1_relu_gte[idx][0]+= y_coeff
 
+
+def relu_propagate_l1_GPU2(l1_lte,l1_gte):
+    d_l1_lte = cp.asarray(l1_lte)
+    d_l1_gte = cp.asarray(l1_gte)
+    d_lbs,d_ubs = get_bounds_GPU(d_l1_lte,d_l1_gte)
+    d_l1_relu_lte = cp.zeros(l1_lte.shape)
+    d_l1_relu_gte = cp.zeros(l1_lte.shape)
+    tpb = (min(32,len(l1_lte)),min(32,len(l1_lte[0])))
+    bpg = (int(np.ceil(len(l1_lte)/tpb[0])),int(np.ceil(len(l1_lte[0])/tpb[0])))
+    relu_prop_helper2[bpg,tpb](d_l1_lte,
+        d_l1_gte ,
+        d_lbs,
+        d_ubs,
+        d_l1_relu_lte,
+        d_l1_relu_gte)
+    l1_relu_gte = cp.asnumpy(d_l1_relu_gte)
+    l1_relu_lte = cp.asnumpy(d_l1_relu_lte)
+    return l1_relu_lte,l1_relu_gte
 
 def caller2():
-    MAX_NODES_IN_LAYER =10000
+    MAX_NODES_IN_LAYER =1000
 
     curr_lte = np.random.randn(MAX_NODES_IN_LAYER, MAX_NODES_IN_LAYER+1).astype(np.float32)
     curr_gte  = np.random.randn(MAX_NODES_IN_LAYER, MAX_NODES_IN_LAYER+1).astype(np.float32)
@@ -168,6 +202,12 @@ def caller2():
     print(f"{relu_propagate_l1_GPU(curr_lte, curr_gte )[1][1][1]}")
 
     time_sec = time.time() - time_sec
-    print(f"GPU time: {time_sec}")
+    print(f"GPU1 time: {time_sec}")
+    
+    time_sec = time.time()
+    print(f"{relu_propagate_l1_GPU2(curr_lte, curr_gte )[1][1][1]}")
+
+    time_sec = time.time() - time_sec
+    print(f"GPU1 time: {time_sec}")
 
 caller2()
