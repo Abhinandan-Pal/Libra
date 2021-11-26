@@ -22,6 +22,9 @@ from libra.semantics.forward import DefaultForwardSemantics
 from libra.abstract_domains.state import State
 from libra.core.cfg import Node, Function, Activation
 
+from libra.optimized.deeppoly_gpu import network_condense_GPU
+from libra.optimized.deeppoly_cpu import network_condense_CPU
+
 from apronpy.texpr0 import TexprRtype, TexprRdir, TexprDiscr, TexprOp
 from apronpy.texpr1 import PyTexpr1
 from apronpy.var import PyVar
@@ -487,7 +490,7 @@ class ForwardInterpreter(Interpreter):
 
             print(f"\t\t LAYER {i} Substituted")
             for j in range(1, len(ineq_lte[0])):
-                print(f"\tNode {i}")
+                print(f"\tNode {j}")
                 print(f" eq LTE L1: {self.ineq_str(ineq_lte[i][j], i, j, '>=', 0)}")
                 print(f" eq GTE L1: {self.ineq_str(ineq_gte[i][j], i, j, '<=', 0)}")
                 print(
@@ -497,7 +500,7 @@ class ForwardInterpreter(Interpreter):
                 ineq_relu_lte[i], ineq_relu_gte[i] = self.relu_propagate_l1_GPU(ineq_lte[i], ineq_gte[i])
                 print(f"\t RELU-LAYER {i}")
                 for j in range(1, len(ineq_lte[0])):
-                    print(f"\tNode {i}")
+                    print(f"\tNode {j}")
                     print(f" Relu eq LTE L1: {self.ineq_str(ineq_relu_lte[i][j], i, j, '>=', 0)}")
                     print(f" Relu eq GTE L1: {self.ineq_str(ineq_relu_gte[i][j], i, j, '<=', 0)}")
                     print(f"Relu eq (LB,UB): {self.get_bounds_single(ineq_relu_lte[i], ineq_relu_gte[i], j)}")
@@ -524,7 +527,7 @@ class ForwardInterpreter(Interpreter):
         for _, node in self.cfg.nodes.items():
             nodes.append(node)
         self.network_condense_GPU(nodes)
-        self.network_condense(nodes)
+        self.network_condense_CPU(nodes)
         # till here
         while not worklist.empty():
             current: Node = worklist.get()  # retrieve the current node
