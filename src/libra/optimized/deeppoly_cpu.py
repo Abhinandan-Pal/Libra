@@ -26,25 +26,34 @@ def back_propagate_l1( eq_layer: list[list[float]], ineq_prev_lte: list[list[flo
 
 '''If current layer is expressed in inequality form of x01 and x02  relu_propagate_l1 expresses a node of
 	current layer after relu in inequality form of x01 and x02 '''
-def relu_propagate_l1(l1_layer_lte:list[list[float]],l1_layer_gte: list[list[float]],node_num:int):
+
+
+def relu_propagate_l1(l1_layer_lte: list[list[float]], l1_layer_gte: list[list[float]], node_num: int):
 	l1_lte = l1_layer_lte[node_num]
 	l1_gte = l1_layer_gte[node_num]
-	lb,ub = get_bounds_single(l1_layer_lte,l1_layer_gte,node_num)
+	lb, ub = get_bounds_single(l1_layer_lte, l1_layer_gte, node_num)
 	l1_relu_lte = [0] * len(l1_lte)
 	l1_relu_gte = [0] * len(l1_gte)
 	'''Case 1(Strictly Negative)'''
-	if(ub<0):
-		return l1_relu_lte,l1_relu_gte
+	if (ub < 0):
+		return l1_relu_lte, l1_relu_gte
 	'''Case 2(Strictly Positive)'''
-	if(lb > 0):
+	if (lb > 0):
 		return l1_lte, l1_gte
 	'''Case 3(Crossing Relu)'''
-	slope = ub/(ub-lb)
-	y_coeff = -ub*lb/(ub-lb)
+
+	slope = ub / (ub - lb)
+	y_coeff = -ub * lb / (ub - lb)
 	for i in range(len(l1_gte)):
-		l1_relu_gte[i] = slope*l1_gte[i]
-	l1_relu_gte[0]+= y_coeff
-	return l1_relu_lte,l1_relu_gte
+		l1_relu_gte[i] = slope * l1_gte[i]
+	l1_relu_gte[0] += y_coeff
+	b3_area = abs(ub * (ub - lb))
+	c3_area = abs(lb * (ub - lb))
+	print(f"DEBUG ---> b3_area = {b3_area}, c3_area = {c3_area}")
+	if (c3_area < b3_area):
+		for i in range(len(l1_lte)):
+			l1_relu_lte[i] = l1_lte[i]
+	return l1_relu_lte, l1_relu_gte
 
 def network_condense_CPU( nodes):
 	# equation[n1][n2] stores the bias and coeff of nodes of previous layer to form x[n1][n2] in order

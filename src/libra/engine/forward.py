@@ -163,6 +163,7 @@ class ForwardInterpreter(Interpreter):
                     l1_lte[p] += ln_coeff[i] * ineq_prev_lte[i][p]
                     l1_gte[p] += ln_coeff[i] * ineq_prev_gte[i][p]
                 else:
+
                     l1_lte[p] += ln_coeff[i] * ineq_prev_gte[i][p]
                     l1_gte[p] += ln_coeff[i] * ineq_prev_lte[i][p]
 
@@ -247,11 +248,17 @@ class ForwardInterpreter(Interpreter):
         if(lb > 0):
             return l1_lte, l1_gte
         '''Case 3(Crossing Relu)'''
+
         slope = ub/(ub-lb)
         y_coeff = -ub*lb/(ub-lb)
         for i in range(len(l1_gte)):
             l1_relu_gte[i] = slope*l1_gte[i]
         l1_relu_gte[0]+= y_coeff
+        b3_area = abs(ub*(ub-lb))
+        c3_area = abs(lb*(ub-lb))
+        if(c3_area < b3_area):
+            for i in range(len(l1_lte)):
+                l1_relu_lte[i] = l1_lte[i]
         return l1_relu_lte,l1_relu_gte
 
     def get_bounds_GPU(self,d_l1_lte, d_l1_gte, l1_lb=-1, l1_ub=1):
@@ -260,13 +267,13 @@ class ForwardInterpreter(Interpreter):
             id = cuda.grid(1)
             if (id >= len(lbs)):
                 return
-            lbs[id] = l1_lte[id][0]
+            lbs[id] = l1_lte[id,0]
             for coeff in l1_lte[id, 1:]:
                 if (coeff < 0):
                     lbs[id] += coeff * l1_ub[0]
                 else:
                     lbs[id] += coeff * l1_lb[0]
-            ubs[id] = l1_gte[id][0]
+            ubs[id] = l1_gte[id,0]
             for coeff in l1_gte[id, 1:]:
                 if (coeff > 0):
                     ubs[id] += coeff * l1_ub[0]
@@ -304,7 +311,13 @@ class ForwardInterpreter(Interpreter):
             y_coeff = -ubs[id] * lbs[id] / (ubs[id] - lbs[id])
             for j in range(len(l1_lte[id])):
                 l1_relu_gte[id][j] = slope * l1_gte[id][j]
+            b3_area = abs(ubs[id] * (ubs[id] - lbs[id]))
+            c3_area = abs(lbs[id] * (ubs[id] - lbs[id]))
             l1_relu_gte[id][0] += y_coeff
+            if (c3_area < b3_area):
+                for i in range(len(l1_lte)):
+                    l1_relu_lte[id][i] = l1_lte[id][i]
+
 
         d_l1_lte = cp.asarray(l1_lte)
         d_l1_gte = cp.asarray(l1_gte)
@@ -323,6 +336,7 @@ class ForwardInterpreter(Interpreter):
         l1_relu_lte = cp.asnumpy(d_l1_relu_lte)
         return l1_relu_lte, l1_relu_gte
 
+    '''Add Case-3 and perform speed test. Might be significantly slower now'''
     def relu_propagate_l1_GPU2(self,l1_lte, l1_gte):
         @cuda.jit
         def relu_prop_helper2(l1_lte, l1_gte, lbs, ubs, l1_relu_lte, l1_relu_gte):
@@ -340,6 +354,10 @@ class ForwardInterpreter(Interpreter):
             if (idy == 0):
                 y_coeff = -ubs[idx] * lbs[idx] / (ubs[idx] - lbs[idx])
                 l1_relu_gte[idx][0] += y_coeff
+            b3_area = abs(ubs[idx] * (ubs[idx] - lbs[idx]))
+            c3_area = abs(lbs[idx] * (ubs[idx] - lbs[idx]))
+            if (c3_area < b3_area):
+                l1_relu_lte[idx][idy] = l1_lte[idx][idy]
 
         d_l1_lte = cp.asarray(l1_lte)
         d_l1_gte = cp.asarray(l1_gte)
@@ -373,7 +391,7 @@ class ForwardInterpreter(Interpreter):
         return str_ineq
 
 
-    def network_condense(self, nodes):
+    def network_condense_CPU(self, nodes):
         # equation[n1][n2] stores the bias and coeff of nodes of previous layer to form x[n1][n2] in order
         # if_activation[n1][n2] stores if there is an activation on x[n1][n2] (only relu considered for now)
         ineq_lte: list[list[list[float]]] = []
@@ -423,7 +441,8 @@ class ForwardInterpreter(Interpreter):
         print(f'{ineq_lte}')
         for i in range(1, len(ineq_lte)):
             for j in range(1, len(ineq_lte[0])):
-                print(f"\t\tX{i}{j}\n if_activation: {if_activation[i][j]}\n eq: {self.ineq_str(ineq_lte[i][j],i,j,'=',i-1)} ")
+                print(f"\t\tX{i}{j}")
+                print(f" if_activation: {if_activation[i][j]}\n eq: {self.ineq_str(ineq_lte[i][j],i,j,'=',i-1)} ")
                 if(i != 1):
                     ineq_lte[i][j],ineq_gte[i][j] = self.back_propagate_l1(ineq_lte[i],ineq_relu_lte[i-1],ineq_relu_gte[i-1], j)
                 else:
@@ -479,8 +498,8 @@ class ForwardInterpreter(Interpreter):
 
             print(f"\t\t LAYER {i} Input Equations")
             for j in range(1, len(ineq_lte[0])):
-                print(
-                    f"Node: {j} -> if_activation: {if_activation[i, j]}\n eq: {self.ineq_str(ineq_lte[i, j], i, j, '=', i - 1)} ")
+                pass
+                print(f"Node: {j} -> if_activation: {if_activation[i, j]}\n eq: {self.ineq_str(ineq_lte[i, j], i, j, '=', i - 1)} ")
 
             if (i != 1):
                 ineq_lte[i], ineq_gte[i] = self.back_propagate_l1_GPU(ineq_lte[i], ineq_relu_lte[i - 1],
@@ -497,7 +516,7 @@ class ForwardInterpreter(Interpreter):
                     f" eq (LB,UB): {self.get_bounds_single(ineq_lte[i], ineq_gte[i], j)}")  # Performing the whole debug-print segment in CPU will be removed later.
 
             if (if_activation[i,1]==1):  # assuming if first node in a layer has activation then all do
-                ineq_relu_lte[i], ineq_relu_gte[i] = self.relu_propagate_l1_GPU(ineq_lte[i], ineq_gte[i])
+                ineq_relu_lte[i], ineq_relu_gte[i] = self.relu_propagate_l1_GPU2(ineq_lte[i], ineq_gte[i])
                 print(f"\t RELU-LAYER {i}")
                 for j in range(1, len(ineq_lte[0])):
                     print(f"\tNode {j}")
@@ -527,7 +546,7 @@ class ForwardInterpreter(Interpreter):
         for _, node in self.cfg.nodes.items():
             nodes.append(node)
         self.network_condense_GPU(nodes)
-        self.network_condense_CPU(nodes)
+        #self.network_condense_CPU(nodes)
         # till here
         while not worklist.empty():
             current: Node = worklist.get()  # retrieve the current node

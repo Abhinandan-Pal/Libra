@@ -5,7 +5,7 @@ from libra.optimized.commons import texpr_to_dict,get_bounds_single,ineq_str
 from libra.core.cfg import Node, Function, Activation
 import copy
 
-def back_propagate_l1_GPU(self,ln_coeff, ineq_prev_lte,
+def back_propagate_l1_GPU(ln_coeff, ineq_prev_lte,
                           ineq_prev_gte):
     @cuda.jit
     def back_propagate_helper(l1_lte, l1_gte, coeff, ineq_prev_lte_i, ineq_prev_gte_i):
@@ -22,7 +22,7 @@ def back_propagate_l1_GPU(self,ln_coeff, ineq_prev_lte,
 
     l1_lte = np.zeros((len(ln_coeff), len(ineq_prev_lte[1])))
     l1_gte = np.zeros((len(ln_coeff), len(ineq_prev_lte[1])))
-    l1_lte[:, 0] = ln_coeff[:, 0]
+    l1_lte[:, 0] = ln_coeff[:, 0]           
     l1_gte[:, 0] = ln_coeff[:, 0]
     d_l1_lte = cp.array(l1_lte)
     d_l1_gte = cp.array(l1_gte)
