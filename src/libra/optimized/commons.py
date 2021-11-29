@@ -78,9 +78,13 @@ def ineq_str(ineq:list[float],layer_lhs,node_num,op,layer_rhs):
 
 '''Given a node of a layer expressed in inequality form of x01 and x02. it gives the upper and lower bound
  assuming x0n are in [0,1]'''
-def get_bounds_single(l1_layer_lte: list[list[float]],l1_layer_gte: list[list[float]],node_num:int , l1_lb = -1,l1_ub = 1):
-    l1_lte = l1_layer_lte[node_num]
-    l1_gte = l1_layer_gte[node_num]
+def get_bounds_single(l1_layer_lte,l1_layer_gte,node_num:int , l1_lb = -1,l1_ub = 1,relu_val=[1,0,1,0]):
+    l1_lte = l1_layer_lte[node_num]*relu_val[0]
+
+    l1_lte[0] += relu_val[1]
+
+    l1_gte = l1_layer_gte[node_num]*relu_val[2]
+    l1_gte[0] += relu_val[3]
     lb = l1_lte[0]
     for coeff in l1_lte[1:]:
         if (coeff < 0):

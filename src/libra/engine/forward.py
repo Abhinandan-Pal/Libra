@@ -261,7 +261,7 @@ class ForwardInterpreter(Interpreter):
                 l1_relu_lte[i] = l1_lte[i]
         return l1_relu_lte,l1_relu_gte
 
-    def get_bounds_GPU(self,d_l1_lte, d_l1_gte, l1_lb=-1, l1_ub=1):
+    def get_bounds_GPU(self,d_l1_lte, d_l1_gte, l1_lb=0, l1_ub=1):
         @cuda.jit
         def bound_helper(l1_lte, l1_gte, l1_lb, l1_ub, lbs, ubs):
             id = cuda.grid(1)
@@ -545,8 +545,8 @@ class ForwardInterpreter(Interpreter):
         nodes = []
         for _, node in self.cfg.nodes.items():
             nodes.append(node)
-        self.network_condense_GPU(nodes)
-        #self.network_condense_CPU(nodes)
+        #self.network_condense_GPU(nodes)
+        network_condense_CPU(nodes)
         # till here
         while not worklist.empty():
             current: Node = worklist.get()  # retrieve the current node

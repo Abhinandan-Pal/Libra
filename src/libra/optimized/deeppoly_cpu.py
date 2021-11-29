@@ -4,88 +4,123 @@ from libra.optimized.commons import texpr_to_dict,get_bounds_single,ineq_str
 from libra.core.cfg import Node, Function, Activation
 import copy
 
-'''lte stores equation < Xn gte store equation > Xn'''
-'''If Previous layer is expressed in inequality form of x01 and x02  back_propagate_l1 expresses a node of 
-current layer in inequality form of x01 and x02 '''
-def back_propagate_l1( eq_layer: list[list[float]], ineq_prev_lte: list[list[float]],
-					   ineq_prev_gte: list[list[float]], node_num: int) -> tuple[list[float],list[float]]:
-	ln_coeff = eq_layer[node_num]  # store the bias term
-	l1_lte = [0] * len(ineq_prev_lte[1])
-	l1_gte = [0] * len(ineq_prev_lte[1])
-	l1_lte[0] = ln_coeff[0]
-	l1_gte[0] = ln_coeff[0]
-	for i in range(1, len(l1_lte)):
-		for p in range(0, len(ineq_prev_lte[1])):
-			if(ln_coeff[i]>0):
-				l1_lte[p] += ln_coeff[i] * ineq_prev_lte[i][p]
-				l1_gte[p] += ln_coeff[i] * ineq_prev_gte[i][p]
+def back_propagate(affine,relu,layer:int,if_activation):
+	ln_coeff_lte = affine[layer].copy()
+	ln_coeff_gte = affine[layer].copy()
+
+	def back_affine(ineq_prev_lte,ineq_prev_gte,ln_coeff_lte,ln_coeff_gte):
+		l1_lte = np.zeros(affine[layer].shape)
+		l1_gte = np.zeros(affine[layer].shape)
+		l1_lte[:,0] = ln_coeff_lte[:,0]
+		l1_gte[:,0] = ln_coeff_gte[:,0]
+		for i in range(1, len(l1_lte)):		#loop through each coeff of a node of current layer and nodes of previous layer
+			for k in range(0,len(l1_lte)):	#loop through all nodes
+				for p in range(0, len(ineq_prev_lte[1])):	#loop thorugh coeffients of a node of previous layer.
+					if(ln_coeff_lte[k][i]>0):
+						l1_lte[k][p] += ln_coeff_lte[k][i] * ineq_prev_lte[i][p]            #should it be i or i-1?
+					else:
+						l1_lte[k][p] += ln_coeff_lte[k][i] * ineq_prev_gte[i][p]
+					if(ln_coeff_gte[k][i]>0):
+						l1_gte[k][p] += ln_coeff_gte[k][i] * ineq_prev_gte[i][p]
+					else:
+						l1_gte[k][p] += ln_coeff_gte[k][i] * ineq_prev_lte[i][p]
+		return l1_lte,l1_gte
+	def back_relu(relu_layer,ln_coeff_lte,ln_coeff_gte):
+		for i in range(1,len(ln_coeff_lte)):
+			for j in range(1,len(relu_layer)):
+				if(ln_coeff_lte[i][j]>0):
+					ln_coeff_lte[i][j] = relu_layer[i][0]*ln_coeff_lte[i][j]			#[1:] to make sure base term is not affected
+					ln_coeff_lte[i][0] += relu_layer[i][1]*ln_coeff_lte[i][j]
+				else:
+					ln_coeff_lte[i][j] = relu_layer[i][2] * ln_coeff_lte[i][j]
+					ln_coeff_lte[i][0] += relu_layer[i][3] * ln_coeff_lte[i][j]
+				if(ln_coeff_gte[i][j]>0):
+					ln_coeff_gte[i][j] = relu_layer[i][2] * ln_coeff_gte[i][j]
+					ln_coeff_gte[i][0] += relu_layer[i][3] * ln_coeff_gte[i][j]
+				else:
+					ln_coeff_gte[i][j] = relu_layer[i][0] * ln_coeff_gte[i][j]
+					ln_coeff_gte[i][0] += relu_layer[i][1] * ln_coeff_gte[i][j]
+
+	while(layer!= 1):	#layer zero is input and layer one is in already in terms of input
+		#First relu of previous layer
+		if(if_activation[layer-1][1]==True):
+			print(f"DEBUG--->relu:{relu[layer-1]}; ln_gte={ln_coeff_gte}")
+			back_relu(relu[layer-1],ln_coeff_lte,ln_coeff_gte)
+			print(f"DEBUG---> ln_lte AFTER ={ln_coeff_gte}")
+
+		#Then affine of previous layer
+		ineq_prev_gte = affine[layer-1]
+		ineq_prev_lte = affine[layer-1]
+		ln_coeff_lte,ln_coeff_gte = back_affine(ineq_prev_lte,ineq_prev_gte,ln_coeff_lte,ln_coeff_gte)
+		layer -= 1
+	if(if_activation[layer][1]==1):
+		#print("DEBUG --> PERFORM RELU")
+		relu[layer],active_pattern = relu_propagate_l1_CPU2(ln_coeff_lte,ln_coeff_gte)
+	else:
+		pass
+		#print("DEBUG --> DONT PERFORM RELU")
+	#return active_pattern
+
+	#Different return for debug purposes
+	return ln_coeff_lte,ln_coeff_gte
+
+
+def get_bounds_CPU2(l1_lte,l1_gte , l1_lb = -1,l1_ub = 1):
+	lbs = np.zeros(l1_lte.shape[0])
+	ubs = np.zeros(l1_lte.shape[0])
+	for i in range(len(l1_lte)):
+		lbs[i] = l1_lte[i][0]
+		for coeff in l1_lte[i][1:]:
+			if (coeff < 0):
+				lbs[i] += coeff * l1_ub
 			else:
-				l1_lte[p] += ln_coeff[i] * ineq_prev_gte[i][p]
-				l1_gte[p] += ln_coeff[i] * ineq_prev_lte[i][p]
-	return l1_lte, l1_gte
+				lbs[i] += coeff* l1_lb
+		ubs[i] = l1_gte[i][0]
+		for coeff in l1_gte[i][1:]:
+			if (coeff > 0):
+				ubs[i] += coeff * l1_ub
+			else:
+				ubs[i] += coeff* l1_lb
+	return lbs, ubs
 
-'''If current layer is expressed in inequality form of x01 and x02  relu_propagate_l1 expresses a node of
-	current layer after relu in inequality form of x01 and x02 '''
+def relu_propagate_l1_CPU2(l1_lte,l1_gte):
+	lbs,ubs = get_bounds_CPU2(l1_lte,l1_gte)
+	relu_layer = np.zeros((len(l1_lte),4))
+	active_pattern = np.zeros(l1_lte.shape[0])
+	for i in range(len(l1_lte)):
+		if(ubs[i] < 0):
+			relu_layer[i] = [0,0,0,0]
+			active_pattern[i] = 0
+			continue
+		elif(lbs[i] > 0):
+			relu_layer[i] = [1,0,1,0]
+			active_pattern[i] = 1
+		else:
+			active_pattern[i] = 2
+			slope = ubs[i]/(ubs[i]-lbs[i])
+			y_coeff = -ubs[i]*lbs[i]/(ubs[i]-lbs[i])
+			relu_layer[i] = [0, 0, slope, y_coeff]
+			b3_area = abs(ubs[i]*(ubs[i]-lbs[i]))
+			c3_area = abs(lbs[i]*(ubs[i]-lbs[i]))
+			if(c3_area < b3_area):
+				relu_layer[i] = [1, 0, slope, y_coeff]
+	return relu_layer,active_pattern
 
 
-def relu_propagate_l1(l1_layer_lte: list[list[float]], l1_layer_gte: list[list[float]], node_num: int):
-	l1_lte = l1_layer_lte[node_num]
-	l1_gte = l1_layer_gte[node_num]
-	lb, ub = get_bounds_single(l1_layer_lte, l1_layer_gte, node_num)
-	l1_relu_lte = [0] * len(l1_lte)
-	l1_relu_gte = [0] * len(l1_gte)
-	'''Case 1(Strictly Negative)'''
-	if (ub < 0):
-		return l1_relu_lte, l1_relu_gte
-	'''Case 2(Strictly Positive)'''
-	if (lb > 0):
-		return l1_lte, l1_gte
-	'''Case 3(Crossing Relu)'''
-
-	slope = ub / (ub - lb)
-	y_coeff = -ub * lb / (ub - lb)
-	for i in range(len(l1_gte)):
-		l1_relu_gte[i] = slope * l1_gte[i]
-	l1_relu_gte[0] += y_coeff
-	b3_area = abs(ub * (ub - lb))
-	c3_area = abs(lb * (ub - lb))
-	print(f"DEBUG ---> b3_area = {b3_area}, c3_area = {c3_area}")
-	if (c3_area < b3_area):
-		for i in range(len(l1_lte)):
-			l1_relu_lte[i] = l1_lte[i]
-	return l1_relu_lte, l1_relu_gte
-
-def network_condense_CPU( nodes):
+def network_condense_CPU(nodes):
 	# equation[n1][n2] stores the bias and coeff of nodes of previous layer to form x[n1][n2] in order
 	# if_activation[n1][n2] stores if there is an activation on x[n1][n2] (only relu considered for now)
-	ineq_lte: list[list[list[float]]] = []
-	ineq_gte: list[list[list[float]]] = []
-	ineq_relu_lte: list[list[list[float]]] = []
-	ineq_relu_gte: list[list[list[float]]] = []
-	if_activation: list[list[bool]] = []                    #TO-DO: can make the assumption if one node in a layer has relu then all do
-	for i in range(3 + 1):  # NO OF LAYERS +1 as start from X11
-		ineq1 = []
-		ineq2 = []
-		ineq3 = []
-		ineq4 = []
-
-		if_act = []
-		for j in range(2 + 1):  # Max no of nodes in a layer +1 as start from X11
-			ineq1.append([0.0])
-			ineq2.append([0.0])
-			ineq3.append([0.0])
-			ineq4.append([0.0])
-			if_act.append(False)
-		ineq_lte.append(ineq1)
-		ineq_gte.append(ineq2)
-		ineq_relu_lte.append(ineq3)
-		ineq_relu_gte.append(ineq4)
-		if_activation.append(if_act)
+	NO_OF_LAYERS = 3
+	MAX_NODES_IN_LAYER = 2
+	affine = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1, MAX_NODES_IN_LAYER + 1))
+	relu = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1, 4))
+	if_activation = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1))
+	# The 4 in relu is for lessThan(slope,y-coeff);greaterThan(slope,y-coeff)
+	# TO-DO: can make the assumption if one node in a layer has relu then all do
 	for current in nodes:
 		if isinstance(current, Function):
 			for (node, eq) in zip(current.stmts[0], current.stmts[1]):
-				size_of_previous_layer = 2 + 1  # TO-DO: get the actual value from cfg +1 for bias
-				coeffs = [0] * size_of_previous_layer
+				coeffs = np.zeros((MAX_NODES_IN_LAYER + 1,))
 				eq = texpr_to_dict(eq)
 				for var, val in eq.items():
 					if var != '_':
@@ -94,31 +129,38 @@ def network_condense_CPU( nodes):
 						coeffs[var] = val
 					else:
 						coeffs[0] = val
-				ineq_lte[int(str(node)[1])][int(str(node)[2])]= coeffs  # TO-DO: do something more general than assume format X[N][N] for var name
+				affine[int(str(node)[1]), int(str(node)[2]),:] = coeffs  # TO-DO: do something more general than assume format X[N][N] for var name
 		elif isinstance(current, Activation):
-			if_activation[int(str(current.stmts)[1])][int(str(current.stmts)[2])] = True
+			if_activation[int(str(current.stmts)[1]), int(str(current.stmts)[2])] = True
 		else:
-			pass
-			'''     What to do here
+			'''What to do here
 			for stmt in reversed(current.stmts):
 			state = semantics.assume_call_semantics(stmt, state, manager)'''
-	print(f'{ineq_lte}')
-	for i in range(1, len(ineq_lte)):
-		for j in range(1, len(ineq_lte[0])):
-			print(f"\t\tX{i}{j}\n if_activation: {if_activation[i][j]}\n eq: {ineq_str(ineq_lte[i][j],i,j,'=',i-1)} ")
-			if(i != 1):
-				ineq_lte[i][j],ineq_gte[i][j] = back_propagate_l1(ineq_lte[i],ineq_relu_lte[i-1],ineq_relu_gte[i-1], j)
-			else:
-				ineq_gte[i][j] = copy.deepcopy(ineq_lte[i][j])
-			print(f" eq LTE L1: {ineq_str(ineq_lte[i][j],i,j,'>=',0)}")                                #Use deep copy or on relu values are changing
-			print(f" eq GTE L1: {ineq_str(ineq_gte[i][j], i, j, '<=', 0)}")
-			print(f"eq (LB,UB): {get_bounds_single(ineq_lte[i],ineq_gte[i],j)}")
+			continue
+	# can remove layer 0 as it has no inequations
+	# All these print are for debug mode. Actual will only activation pattern.
+	for i in range(1, len(affine)):
 
-			if(if_activation[i][j]):
-				ineq_relu_lte[i][j], ineq_relu_gte[i][j] = relu_propagate_l1(ineq_lte[i],ineq_gte[i],j)
-			else:
-				ineq_relu_lte[i][j], ineq_relu_gte[i][j] = ineq_lte[i][j], ineq_gte[i][j]
+		print(f"\t\t LAYER {i} Input Equations")
+		for j in range(1, len(affine[0])):
+			print(f"Node: {j} -> if_activation: {if_activation[i, j]}\n eq: {ineq_str(affine[i, j], i, j, '=', i - 1)} ")
 
-			print(f" Relu eq LTE L1: {ineq_str(ineq_relu_lte[i][j], i, j, '>=', 0)}")
-			print(f" Relu eq GTE L1: {ineq_str(ineq_relu_gte[i][j], i, j, '<=', 0)}")
-			print(f"Relu eq (LB,UB): {get_bounds_single(ineq_relu_lte[i], ineq_relu_gte[i], j)}")
+		ineq_lte, ineq_gte = back_propagate(affine,relu,i,if_activation)
+
+		print(f"\t\t LAYER {i} Substituted")
+		for j in range(1, len(affine[0])):
+			print(f"\tNode {j}")
+			print(f" eq LTE L1: {ineq_str(ineq_lte[j], i, j, '>=', 0)}")
+			print(f" eq GTE L1: {ineq_str(ineq_gte[j], i, j, '<=', 0)}")
+			print(f" eq (LB,UB): {get_bounds_single(ineq_lte, ineq_gte, j)}")  # Performing the whole debug-print segment in CPU will be removed later.
+
+		if (if_activation[i,1]==1):  # assuming if first node in a layer has activation then all do
+			print(f"\t RELU-LAYER {i}")
+			for j in range(1, len(affine[0])):
+				print(f"\tNode {j}")
+				print(f" Relu eq LTE: Slope: {relu[i][j][0]}, Y-Coeff: {relu[i][j][1]}")
+				print(f" Relu eq GTE: Slope: {relu[i][j][2]}, Y-Coeff: {relu[i][j][3]}")
+				print(f"Relu eq (LB,UB): {get_bounds_single(ineq_lte, ineq_gte, j,relu_val=relu[i][j])}")
+			# print stuff
+		else:
+			print(f"\t\t NO RELU ON LAYER {i}")
