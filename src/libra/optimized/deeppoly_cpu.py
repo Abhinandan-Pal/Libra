@@ -29,33 +29,35 @@ def back_propagate(affine,relu,layer:int,if_activation):
 		for i in range(1,len(ln_coeff_lte)):
 			for j in range(1,len(relu_layer)):
 				if(ln_coeff_lte[i][j]>0):
+					ln_coeff_lte[i][0] += relu_layer[i][1] * ln_coeff_lte[i][j]
 					ln_coeff_lte[i][j] = relu_layer[i][0]*ln_coeff_lte[i][j]			#[1:] to make sure base term is not affected
-					ln_coeff_lte[i][0] += relu_layer[i][1]*ln_coeff_lte[i][j]
 				else:
-					ln_coeff_lte[i][j] = relu_layer[i][2] * ln_coeff_lte[i][j]
 					ln_coeff_lte[i][0] += relu_layer[i][3] * ln_coeff_lte[i][j]
+					ln_coeff_lte[i][j] = relu_layer[i][2] * ln_coeff_lte[i][j]
 				if(ln_coeff_gte[i][j]>0):
-					ln_coeff_gte[i][j] = relu_layer[i][2] * ln_coeff_gte[i][j]
 					ln_coeff_gte[i][0] += relu_layer[i][3] * ln_coeff_gte[i][j]
+					ln_coeff_gte[i][j] = relu_layer[i][2] * ln_coeff_gte[i][j]
 				else:
-					ln_coeff_gte[i][j] = relu_layer[i][0] * ln_coeff_gte[i][j]
 					ln_coeff_gte[i][0] += relu_layer[i][1] * ln_coeff_gte[i][j]
+					ln_coeff_gte[i][j] = relu_layer[i][0] * ln_coeff_gte[i][j]
 
+	layer_t = layer
 	while(layer!= 1):	#layer zero is input and layer one is in already in terms of input
 		#First relu of previous layer
 		if(if_activation[layer-1][1]==True):
-			print(f"DEBUG--->relu:{relu[layer-1]}; ln_gte={ln_coeff_gte}")
+			#print(f"DEBUG--->relu:{relu[layer-1]}; ln_gte={ln_coeff_gte}")
 			back_relu(relu[layer-1],ln_coeff_lte,ln_coeff_gte)
-			print(f"DEBUG---> ln_lte AFTER ={ln_coeff_gte}")
+			#print(f"DEBUG---> ln_lte AFTER ={ln_coeff_gte}")
 
 		#Then affine of previous layer
 		ineq_prev_gte = affine[layer-1]
 		ineq_prev_lte = affine[layer-1]
 		ln_coeff_lte,ln_coeff_gte = back_affine(ineq_prev_lte,ineq_prev_gte,ln_coeff_lte,ln_coeff_gte)
 		layer -= 1
-	if(if_activation[layer][1]==1):
+	if(if_activation[layer_t][1]==1):
 		#print("DEBUG --> PERFORM RELU")
-		relu[layer],active_pattern = relu_propagate_l1_CPU2(ln_coeff_lte,ln_coeff_gte)
+		relu[layer_t],active_pattern = relu_propagate_l1_CPU2(ln_coeff_lte,ln_coeff_gte)
+		print(f"DEBUG RELU layer: {layer_t} ---> {relu[layer_t]}")
 	else:
 		pass
 		#print("DEBUG --> DONT PERFORM RELU")
@@ -97,8 +99,10 @@ def relu_propagate_l1_CPU2(l1_lte,l1_gte):
 			active_pattern[i] = 1
 		else:
 			active_pattern[i] = 2
+			#print(f"DEBUG ----> ubs: {ubs[i]};lbs {lbs[i]}")
 			slope = ubs[i]/(ubs[i]-lbs[i])
 			y_coeff = -ubs[i]*lbs[i]/(ubs[i]-lbs[i])
+			#print(f"DEBUG ----> slope: {slope};y_coeff {y_coeff}")
 			relu_layer[i] = [0, 0, slope, y_coeff]
 			b3_area = abs(ubs[i]*(ubs[i]-lbs[i]))
 			c3_area = abs(lbs[i]*(ubs[i]-lbs[i]))
