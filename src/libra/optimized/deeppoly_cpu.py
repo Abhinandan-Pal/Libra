@@ -29,35 +29,51 @@ def back_propagate(affine,relu,layer:int,if_activation):
 		for i in range(1,len(ln_coeff_lte)):
 			for j in range(1,len(relu_layer)):
 				if(ln_coeff_lte[i][j]>0):
-					ln_coeff_lte[i][0] += relu_layer[i][1] * ln_coeff_lte[i][j]
-					ln_coeff_lte[i][j] = relu_layer[i][0]*ln_coeff_lte[i][j]			#[1:] to make sure base term is not affected
+					t = ln_coeff_lte[i][j].copy()
+					ln_coeff_lte[i][0] += relu_layer[j][1] * ln_coeff_lte[i][j]
+					ln_coeff_lte[i][j] = relu_layer[j][0]* t			#[1:] to make sure base term is not affected
 				else:
-					ln_coeff_lte[i][0] += relu_layer[i][3] * ln_coeff_lte[i][j]
-					ln_coeff_lte[i][j] = relu_layer[i][2] * ln_coeff_lte[i][j]
+					t = ln_coeff_lte[i][j].copy()
+					ln_coeff_lte[i][0] += relu_layer[j][3] * ln_coeff_lte[i][j]
+					ln_coeff_lte[i][j] = relu_layer[j][2] * t
 				if(ln_coeff_gte[i][j]>0):
-					ln_coeff_gte[i][0] += relu_layer[i][3] * ln_coeff_gte[i][j]
-					ln_coeff_gte[i][j] = relu_layer[i][2] * ln_coeff_gte[i][j]
+					#print(f"DEBUG REV ---> i:{i} ; j:{j} ; coeff: {ln_coeff_gte[i][j]}")
+					t = ln_coeff_gte[i][j].copy()
+					ln_coeff_gte[i][0] += relu_layer[j][3] * ln_coeff_gte[i][j]
+					ln_coeff_gte[i][j] = relu_layer[j][2] * t
 				else:
-					ln_coeff_gte[i][0] += relu_layer[i][1] * ln_coeff_gte[i][j]
-					ln_coeff_gte[i][j] = relu_layer[i][0] * ln_coeff_gte[i][j]
+					#print(f"DEBUG REV ---> i:{i} ; j:{j} ; coeff: {ln_coeff_gte[i][j]}")
+					t = ln_coeff_gte[i][j].copy()
+					ln_coeff_gte[i][0] += relu_layer[j][1] * ln_coeff_gte[i][j]
+					ln_coeff_gte[i][j] = relu_layer[j][0] * t
 
 	layer_t = layer
 	while(layer!= 1):	#layer zero is input and layer one is in already in terms of input
 		#First relu of previous layer
 		if(if_activation[layer-1][1]==True):
-			#print(f"DEBUG--->relu:{relu[layer-1]}; ln_gte={ln_coeff_gte}")
+			#print(f"DEBUG--->relu{layer-1}:{relu[layer-1]}; ln_gte={ln_coeff_gte}")
 			back_relu(relu[layer-1],ln_coeff_lte,ln_coeff_gte)
 			#print(f"DEBUG---> ln_lte AFTER ={ln_coeff_gte}")
-
+		'''for j in range(1, len(affine[0])):
+			print(f"\tNode {j}")
+			print(f" eq RELU LTE L{layer}: {ineq_str(ln_coeff_lte[j], layer_t, j, '>=', layer-2)}")
+			print(f" eq RELU GTE L{layer}: {ineq_str(ln_coeff_lte[j], layer_t, j, '<=', layer-2)}")
+		'''
 		#Then affine of previous layer
 		ineq_prev_gte = affine[layer-1]
 		ineq_prev_lte = affine[layer-1]
 		ln_coeff_lte,ln_coeff_gte = back_affine(ineq_prev_lte,ineq_prev_gte,ln_coeff_lte,ln_coeff_gte)
+		'''
+		for j in range(1, len(affine[0])):
+			print(f"\tNode {j}")
+			print(f" eq LTE L{layer}: {ineq_str(ln_coeff_lte[j], layer_t, j, '>=', layer-2)}")
+			print(f" eq GTE L{layer}: {ineq_str(ln_coeff_lte[j], layer_t, j, '<=', layer-2)}")
+		'''
 		layer -= 1
 	if(if_activation[layer_t][1]==1):
 		#print("DEBUG --> PERFORM RELU")
 		relu[layer_t],active_pattern = relu_propagate_l1_CPU2(ln_coeff_lte,ln_coeff_gte)
-		print(f"DEBUG RELU layer: {layer_t} ---> {relu[layer_t]}")
+		#print(f"DEBUG RELU layer: {layer_t} ---> {relu[layer_t]}")
 	else:
 		pass
 		#print("DEBUG --> DONT PERFORM RELU")
@@ -67,7 +83,7 @@ def back_propagate(affine,relu,layer:int,if_activation):
 	return ln_coeff_lte,ln_coeff_gte
 
 
-def get_bounds_CPU2(l1_lte,l1_gte , l1_lb = -1,l1_ub = 1):
+def get_bounds_CPU2(l1_lte,l1_gte , l1_lb = 0,l1_ub = 1):
 	lbs = np.zeros(l1_lte.shape[0])
 	ubs = np.zeros(l1_lte.shape[0])
 	for i in range(len(l1_lte)):
