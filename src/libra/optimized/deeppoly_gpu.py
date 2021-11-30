@@ -1,52 +1,10 @@
 import numpy as np
 import cupy as cp
 from numba import cuda
-from libra.optimized.commons import texpr_to_dict,get_bounds_single,ineq_str
+from libra.optimized.commons import texpr_to_dict, get_bounds_single, ineq_str
 from libra.core.cfg import Node, Function, Activation
 import copy
 
-def back_propagate_l1_GPU(ln_coeff, ineq_prev_lte,
-                          ineq_prev_gte):
-    @cuda.jit
-    def back_propagate_helper(l1_lte, l1_gte, coeff, ineq_prev_lte_i, ineq_prev_gte_i):
-        k, p = cuda.grid(2)
-        if (k >= len(coeff) or k >= len(l1_lte) or k >= len(l1_gte) or p >= len(ineq_prev_lte_i) or p >= len(
-                ineq_prev_gte_i)):
-            return
-        if (coeff[k] > 0):  # add check if k and p are valid
-            l1_lte[k][p] += coeff[k] * ineq_prev_lte_i[p]  # should it be i or i-1?
-            l1_gte[k][p] += coeff[k] * ineq_prev_gte_i[p]
-        else:
-            l1_lte[k][p] += coeff[k] * ineq_prev_gte_i[p]
-            l1_gte[k][p] += coeff[k] * ineq_prev_lte_i[p]
-
-    l1_lte = np.zeros((len(ln_coeff), len(ineq_prev_lte[1])))
-    l1_gte = np.zeros((len(ln_coeff), len(ineq_prev_lte[1])))
-    l1_lte[:, 0] = ln_coeff[:, 0]           
-    l1_gte[:, 0] = ln_coeff[:, 0]
-    d_l1_lte = cp.array(l1_lte)
-    d_l1_gte = cp.array(l1_gte)
-
-    cuda_iters = (len(ln_coeff), len(ineq_prev_lte[1]))
-    tpb = (min(32, cuda_iters[0]), min(32, cuda_iters[1]))
-    bpg = (int(np.ceil(cuda_iters[0] / tpb[0])), int(np.ceil(cuda_iters[1] / tpb[1])))
-    #print(f"tpb = {tpb}, bpg = {bpg}")
-    for i in range(1, len(d_l1_lte)):
-        d_coeff = cp.array(ln_coeff[:, i])
-
-        d_ineq_prev_lte_i = cp.asarray(ineq_prev_lte[i])  # only load whats needed now to prevent out of memory
-
-        d_ineq_prev_gte_i = cp.asarray(ineq_prev_gte[i])
-
-        back_propagate_helper[bpg, tpb](d_l1_lte,
-                                        d_l1_gte,
-                                        d_coeff,
-                                        d_ineq_prev_lte_i,
-                                        d_ineq_prev_gte_i, )
-        # pycuda.driver.Context.synchronize();
-        l1_gte = cp.asnumpy(d_l1_gte)
-        l1_lte = cp.asnumpy(d_l1_lte)
-        return l1_lte, l1_gte
 
 def get_bounds_GPU(d_l1_lte, d_l1_gte, l1_lb=-1, l1_ub=1):
     @cuda.jit
@@ -54,13 +12,13 @@ def get_bounds_GPU(d_l1_lte, d_l1_gte, l1_lb=-1, l1_ub=1):
         id = cuda.grid(1)
         if (id >= len(lbs)):
             return
-        lbs[id] = l1_lte[id][0]
+        lbs[id] = l1_lte[id, 0]
         for coeff in l1_lte[id, 1:]:
             if (coeff < 0):
                 lbs[id] += coeff * l1_ub[0]
             else:
                 lbs[id] += coeff * l1_lb[0]
-        ubs[id] = l1_gte[id][0]
+        ubs[id] = l1_gte[id, 0]
         for coeff in l1_gte[id, 1:]:
             if (coeff > 0):
                 ubs[id] += coeff * l1_ub[0]
@@ -81,92 +39,173 @@ def get_bounds_GPU(d_l1_lte, d_l1_gte, l1_lb=-1, l1_ub=1):
                            d_ubs)
     return d_lbs, d_ubs
 
-def relu_propagate_l1_GPU(l1_lte, l1_gte):
+
+def relu_compute_GPU(d_l1_lte, d_l1_gte, d_relu_layer, d_active_pattern):
     @cuda.jit
-    def relu_prop_helper(l1_lte, l1_gte, lbs, ubs, l1_relu_lte, l1_relu_gte):
+    def relu_compute_helper(lbs, ubs, relu_layer, active_pattern):
         id = cuda.grid(1)
         if (id >= len(ubs)):
             return
         if (ubs[id] < 0):
+            relu_layer[id] = (0.0, 0.0, 0.0, 0.0)
+            active_pattern[id] = 0
             return  # as initialized with zeros
         if (lbs[id] > 0):
-            for i in range(len(l1_lte[id])):
-                l1_relu_lte[id][i] = l1_lte[id][i]
-                l1_relu_gte[id][i] = l1_gte[id][i]
+            relu_layer[id] = (1.0, 0.0, 1.0, 0.0)
+            active_pattern[id] = 1
             return
+        active_pattern[id] = 2
         slope = ubs[id] / (ubs[id] - lbs[id])
         y_coeff = -ubs[id] * lbs[id] / (ubs[id] - lbs[id])
-        for j in range(len(l1_lte[id])):
-            l1_relu_gte[id][j] = slope * l1_gte[id][j]
-        l1_relu_gte[id][0] += y_coeff
+        relu_layer[id] = (0.0, 0.0, slope, y_coeff)
+        b3_area = abs(ubs[id] * (ubs[id] - lbs[id]))
+        c3_area = abs(lbs[id] * (ubs[id] - lbs[id]))
+        if (c3_area < b3_area):
+            relu_layer[id] = (1.0, 0.0, slope, y_coeff)
 
-    d_l1_lte = cp.asarray(l1_lte)
-    d_l1_gte = cp.asarray(l1_gte)
     d_lbs, d_ubs = get_bounds_GPU(d_l1_lte, d_l1_gte)
-    d_l1_relu_lte = cp.zeros(l1_lte.shape)
-    d_l1_relu_gte = cp.zeros(l1_lte.shape)
-    tpb = (min(1024, len(l1_lte)),)
-    bpg = (int(np.ceil(len(l1_lte) / tpb[0])),)
-    relu_prop_helper[bpg, tpb](d_l1_lte,
-                               d_l1_gte,
-                               d_lbs,
-                               d_ubs,
-                               d_l1_relu_lte,
-                               d_l1_relu_gte)
-    l1_relu_gte = cp.asnumpy(d_l1_relu_gte)
-    l1_relu_lte = cp.asnumpy(d_l1_relu_lte)
-    return l1_relu_lte, l1_relu_gte
+    tpb = (min(1024, len(d_l1_lte)),)
+    bpg = (int(np.ceil(len(d_l1_lte) / tpb[0])),)
+    relu_compute_helper[bpg, tpb](d_lbs,
+                                  d_ubs,
+                                  d_relu_layer,
+                                  d_active_pattern)
+    return d_relu_layer, d_active_pattern
 
-def relu_propagate_l1_GPU2(l1_lte, l1_gte):
+
+def back_propagate_GPU(d_affine, d_relu, layer: int, if_activation, d_active_pattern):
+    # shift the CP creation to caller.
+    d_ln_coeff_lte = d_affine[layer].copy().astype('float32')               #Need to create copies
+    d_ln_coeff_gte = d_affine[layer].copy().astype('float32')
+
     @cuda.jit
-    def relu_prop_helper2(l1_lte, l1_gte, lbs, ubs, l1_relu_lte, l1_relu_gte):
-        idx, idy = cuda.grid(2)
-        if (idx >= len(ubs) or idy >= len(l1_lte[idx])):
+    def back_affine_helper(i, l1_lte, l1_gte, ln_coeff_lte, ln_coeff_gte, ineq_prev_lte, ineq_prev_gte):
+        k, p = cuda.grid(2)
+        i = i[0]
+        if (k >= len(l1_lte) or p >= len(ineq_prev_lte[i])):
             return
-        if (ubs[idx] < 0):
-            return  # as initialized with zeros
-        if (lbs[idx] > 0):
-            l1_relu_lte[idx][idy] = l1_lte[idx][idy]
-            l1_relu_gte[idx][idy] = l1_gte[idx][idy]
+        if (ln_coeff_lte[k][i] > 0):
+            l1_lte[k][p] += ln_coeff_lte[k][i] * ineq_prev_lte[i][p]  # should it be i or i-1?
+        else:
+            l1_lte[k][p] += ln_coeff_lte[k][i] * ineq_prev_gte[i][p]
+        if (ln_coeff_gte[k][i] > 0):
+            l1_gte[k][p] += ln_coeff_gte[k][i] * ineq_prev_gte[i][p]
+        else:
+            l1_gte[k][p] += ln_coeff_gte[k][i] * ineq_prev_lte[i][p]
+
+    def back_affine_GPU(d_ineq_prev_lte, d_ineq_prev_gte, d_ln_coeff_lte, d_ln_coeff_gte):
+        d_l1_lte = cp.zeros(d_affine[layer].shape)
+        d_l1_gte = cp.zeros(d_affine[layer].shape)
+        #for i in range(len(d_l1_lte)):
+        d_l1_lte[:, 0] = d_ln_coeff_lte[:, 0]  # The more optimal syntax doesnt work in few cupy versions
+        d_l1_gte[:, 0] = d_ln_coeff_gte[:, 0]
+
+        cuda_iters = (len(d_l1_lte), len(d_ineq_prev_lte[1]))
+        tpb = (min(32, cuda_iters[0]), min(32, cuda_iters[1]))
+        bpg = (int(np.ceil(cuda_iters[0] / tpb[0])), int(np.ceil(cuda_iters[1] / tpb[1])))
+
+        for i in range(1, len(d_l1_lte)):
+            d_i = cp.array([i])
+            # d_coeff_lte = cp.array(d_ln_coeff_lte[:, i])
+            # d_coeff_gte = cp.array(d_ln_coeff_gte[:, i])
+            # d_ineq_prev_lte_i = d_ineq_prev_lte[i]
+            # d_ineq_prev_gte_i = d_ineq_prev_gte[i]
+
+            back_affine_helper[bpg, tpb](d_i, d_l1_lte,
+                                         d_l1_gte,
+                                         d_ln_coeff_lte,
+                                         d_ln_coeff_gte,
+                                         d_ineq_prev_lte,
+                                         d_ineq_prev_gte)
+        return d_l1_lte, d_l1_gte
+
+    @cuda.jit
+    def back_relu_coeff_helper(relu_layer, ln_coeff_lte, ln_coeff_gte):
+        i, j = cuda.grid(2)
+        if (i < 1 or j < 1 or i >= len(ln_coeff_lte) or j >= len(relu_layer)):
             return
-        slope = ubs[idx] / (ubs[idx] - lbs[idx])
-        l1_relu_gte[idx][idy] = slope * l1_gte[idx][idy]
-        if (idy == 0):
-            y_coeff = -ubs[idx] * lbs[idx] / (ubs[idx] - lbs[idx])
-            l1_relu_gte[idx][0] += y_coeff
+        if (ln_coeff_lte[i][j] > 0):
+            ln_coeff_lte[i][j] = relu_layer[j][0] * ln_coeff_lte[i][j]
+        else:
+            ln_coeff_lte[i][j] = relu_layer[j][2] * ln_coeff_lte[i][j]
+        if (ln_coeff_gte[i][j] > 0):
+            ln_coeff_gte[i][j] = relu_layer[j][2] * ln_coeff_gte[i][j]
+        else:
+            ln_coeff_gte[i][j] = relu_layer[j][0] * ln_coeff_gte[i][j]
 
-    d_l1_lte = cp.asarray(l1_lte)
-    d_l1_gte = cp.asarray(l1_gte)
-    d_lbs, d_ubs = get_bounds_GPU(d_l1_lte, d_l1_gte)
-    d_l1_relu_lte = cp.zeros(l1_lte.shape)
-    d_l1_relu_gte = cp.zeros(l1_lte.shape)
-    tpb = (min(32, len(l1_lte)), min(32, len(l1_lte[0])))
-    bpg = (int(np.ceil(len(l1_lte) / tpb[0])), int(np.ceil(len(l1_lte[0]) / tpb[0])))
-    relu_prop_helper2[bpg, tpb](d_l1_lte,
-                                d_l1_gte,
-                                d_lbs,
-                                d_ubs,
-                                d_l1_relu_lte,
-                                d_l1_relu_gte)
-    l1_relu_gte = cp.asnumpy(d_l1_relu_gte)
-    l1_relu_lte = cp.asnumpy(d_l1_relu_lte)
-    return l1_relu_lte, l1_relu_gte
+    @cuda.jit
+    def back_relu_base_helper(relu_layer, ln_coeff_lte, ln_coeff_gte):
+        i = cuda.grid(1)
+        if (i < 1 or i >= len(ln_coeff_lte)):
+            return
+        for j in range(1, len(relu_layer)):
+            if (ln_coeff_lte[i][j] > 0):
+                ln_coeff_lte[i][0] += relu_layer[j][1] * ln_coeff_lte[i][j]
+            else:
+                ln_coeff_lte[i][0] += relu_layer[j][3] * ln_coeff_lte[i][j]
+            if (ln_coeff_gte[i][j] > 0):
+                ln_coeff_gte[i][0] += relu_layer[j][3] * ln_coeff_gte[i][j]
+            else:
+                ln_coeff_gte[i][0] += relu_layer[j][1] * ln_coeff_gte[i][j]
 
-def network_condense_GPU( nodes):
+    def back_relu_GPU(d_relu_layer, d_ln_coeff_lte, d_ln_coeff_gte):
+        cuda_iters1 = (len(d_ln_coeff_lte),)
+        tpb1 = (min(1024, cuda_iters1[0]),)
+        bpg1 = (int(np.ceil(cuda_iters1[0] / tpb1[0])),)
+        back_relu_base_helper[bpg1, tpb1](d_relu_layer,
+                                          d_ln_coeff_lte,
+                                          d_ln_coeff_gte)
+
+        cuda_iters = (len(d_ln_coeff_lte), len(d_relu_layer))
+        tpb = (min(32, cuda_iters[0]), min(32, cuda_iters[1]))
+        bpg = (int(np.ceil(cuda_iters[0] / tpb[0])), int(np.ceil(cuda_iters[1] / tpb[1])))
+        back_relu_coeff_helper[bpg, tpb](d_relu_layer,
+                                         d_ln_coeff_lte,
+                                         d_ln_coeff_gte)
+
+    layer_t = layer
+    while (layer != 1):  # layer zero is input and layer one is in already in terms of input
+        # First relu of previous layer
+        if (if_activation[layer - 1][1] == True):
+            # print(f"DEBUG--->relu{layer-1}:{relu[layer-1]}; ln_gte={ln_coeff_gte}")
+            back_relu_GPU(d_relu[layer - 1], d_ln_coeff_lte, d_ln_coeff_gte)
+        # print(f"DEBUG---> ln_lte AFTER ={ln_coeff_gte}")
+        # Then affine of previous layer
+        d_ineq_prev_gte = d_affine[layer - 1]
+        d_ineq_prev_lte = d_affine[layer - 1]
+        d_ln_coeff_lte, d_ln_coeff_gte = back_affine_GPU(d_ineq_prev_lte, d_ineq_prev_gte, d_ln_coeff_lte,
+                                                         d_ln_coeff_gte)
+        layer -= 1
+    if (if_activation[layer_t][1] == 1):
+        # print("DEBUG --> PERFORM RELU")
+        #print(f"DEBUG RELU layer: {layer_t} Before ---> {d_relu[layer_t]}")
+        relu_compute_GPU(d_ln_coeff_lte, d_ln_coeff_gte, d_relu[layer_t], d_active_pattern[layer_t])
+        #print(f"DEBUG RELU layer: {layer_t} After ---> {d_relu[layer_t]}")
+    else:
+        pass
+    # print("DEBUG --> DONT PERFORM RELU")
+    # return active_pattern
+    # Different return for debug purposes
+    ln_coeff_gte = cp.asnumpy(d_ln_coeff_gte).astype(np.float32)
+    ln_coeff_lte = cp.asnumpy(d_ln_coeff_lte).astype(np.float32)
+    return ln_coeff_lte, ln_coeff_gte
+
+
+def network_condense_GPU(nodes):
     # equation[n1][n2] stores the bias and coeff of nodes of previous layer to form x[n1][n2] in order
     # if_activation[n1][n2] stores if there is an activation on x[n1][n2] (only relu considered for now)
     NO_OF_LAYERS = 3
     MAX_NODES_IN_LAYER = 2
-    ineq_lte = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1, MAX_NODES_IN_LAYER + 1))
-    ineq_gte = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1, MAX_NODES_IN_LAYER + 1))
-    ineq_relu_gte = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1, MAX_NODES_IN_LAYER + 1))
-    ineq_relu_lte = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1, MAX_NODES_IN_LAYER + 1))
-    if_activation = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1))
+    affine = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1, MAX_NODES_IN_LAYER + 1)).astype(np.float32)
+    relu = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1, 4)).astype(np.float32)
+    if_activation = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1)).astype(np.float32)
+    active_pattern = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1)).astype(np.float32)
+    # The 4 in relu is for lessThan(slope,y-coeff);greaterThan(slope,y-coeff)
     # TO-DO: can make the assumption if one node in a layer has relu then all do
     for current in nodes:
         if isinstance(current, Function):
             for (node, eq) in zip(current.stmts[0], current.stmts[1]):
-                coeffs = np.zeros((MAX_NODES_IN_LAYER + 1,))
+                coeffs = np.zeros((MAX_NODES_IN_LAYER + 1,)).astype(np.float32)
                 eq = texpr_to_dict(eq)
                 for var, val in eq.items():
                     if var != '_':
@@ -175,47 +214,52 @@ def network_condense_GPU( nodes):
                         coeffs[var] = val
                     else:
                         coeffs[0] = val
-                ineq_lte[int(str(node)[1]), int(str(node)[2]),
+                affine[int(str(node)[1]), int(str(node)[2]),
                 :] = coeffs  # TO-DO: do something more general than assume format X[N][N] for var name
         elif isinstance(current, Activation):
             if_activation[int(str(current.stmts)[1]), int(str(current.stmts)[2])] = True
         else:
-            '''     What to do here
-            for stmt in reversed(current.stmts):
-                state = semantics.assume_call_semantics(stmt, state, manager)'''
+            '''What to do here
+			for stmt in reversed(current.stmts):
+			state = semantics.assume_call_semantics(stmt, state, manager)'''
             continue
-
     # can remove layer 0 as it has no inequations
-    for i in range(1, len(ineq_lte)):
+    # All these print are for debug mode. Actual will only activation pattern.
+    '''affine = np.random.randn(NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1, MAX_NODES_IN_LAYER + 1).astype(np.float32)
+    relu = np.random.randn(NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1, 4).astype(np.float32)
+    if_activation = np.ones((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1))
+    active_pattern = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1))'''
+
+
+    d_affine = cp.asarray(affine)
+    d_relu = cp.asarray(relu)
+    d_active_pattern = cp.asarray(active_pattern)
+    for i in range(1, len(affine)):
 
         print(f"\t\t LAYER {i} Input Equations")
-        for j in range(1, len(ineq_lte[0])):
+        for j in range(1, len(affine[0])):
             print(
-                f"Node: {j} -> if_activation: {if_activation[i, j]}\n eq: {ineq_str(ineq_lte[i, j], i, j, '=', i - 1)} ")
+                f"Node: {j} -> if_activation: {if_activation[i, j]}\n eq: {ineq_str(d_affine[i, j], i, j, '=', i - 1)} ")
 
-        if (i != 1):
-            ineq_lte[i], ineq_gte[i] = back_propagate_l1_GPU(ineq_lte[i], ineq_relu_lte[i - 1],
-                                                                  ineq_relu_gte[i - 1])
-        else:
-            ineq_gte[i] = ineq_lte[i].copy()
-
+        #print(f"AFFINE BEFORE layer{i}-> {d_affine}")
+        ineq_lte, ineq_gte = back_propagate_GPU(d_affine, d_relu, i, if_activation, d_active_pattern)
+        #print(f"AFFINE AFTER layer{i}-> {d_affine}")
+        relu[i] = cp.asnumpy(d_relu[i])
         print(f"\t\t LAYER {i} Substituted")
-        for j in range(1, len(ineq_lte[0])):
+        for j in range(1, len(affine[0])):
             print(f"\tNode {j}")
-            print(f" eq LTE L1: {ineq_str(ineq_lte[i][j], i, j, '>=', 0)}")
-            print(f" eq GTE L1: {ineq_str(ineq_gte[i][j], i, j, '<=', 0)}")
+            print(f" eq LTE L1: {ineq_str(ineq_lte[j], i, j, '>=', 0)}")
+            print(f" eq GTE L1: {ineq_str(ineq_gte[j], i, j, '<=', 0)}")
             print(
-                f" eq (LB,UB): {get_bounds_single(ineq_lte[i], ineq_gte[i], j)}")  # Performing the whole debug-print segment in CPU will be removed later.
+                f" eq (LB,UB): {get_bounds_single(ineq_lte, ineq_gte, j)}")  # Performing the whole debug-print segment in CPU will be removed later.
 
-        if (if_activation[i,1]==1):  # assuming if first node in a layer has activation then all do
-            ineq_relu_lte[i], ineq_relu_gte[i] = relu_propagate_l1_GPU(ineq_lte[i], ineq_gte[i])
+        if (if_activation[i, 1] == 1):  # assuming if first node in a layer has activation then all do
             print(f"\t RELU-LAYER {i}")
-            for j in range(1, len(ineq_lte[0])):
+            for j in range(1, len(affine[0])):
                 print(f"\tNode {j}")
-                print(f" Relu eq LTE L1: {ineq_str(ineq_relu_lte[i][j], i, j, '>=', 0)}")
-                print(f" Relu eq GTE L1: {ineq_str(ineq_relu_gte[i][j], i, j, '<=', 0)}")
-                print(f"Relu eq (LB,UB): {get_bounds_single(ineq_relu_lte[i], ineq_relu_gte[i], j)}")
-            # print stuff
+                print(f" Relu eq LTE: Slope: {relu[i][j][0]}, Y-Coeff: {relu[i][j][1]}")
+                print(f" Relu eq GTE: Slope: {relu[i][j][2]}, Y-Coeff: {relu[i][j][3]}")
+                print(f"Relu eq (LB,UB): {get_bounds_single(ineq_lte, ineq_gte, j, relu_val=relu[i][j])}")
+        # print stuff
         else:
-            ineq_relu_lte[i][j], ineq_relu_gte[i][j] = ineq_lte[i][j], ineq_gte[i][j]
             print(f"\t\t NO RELU ON LAYER {i}")
