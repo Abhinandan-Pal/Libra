@@ -29,23 +29,23 @@ def back_propagate(affine,relu,layer:int,if_activation):
 		for i in range(1,len(ln_coeff_lte)):
 			for j in range(1,len(relu_layer)):
 				if(ln_coeff_lte[i][j]>0):
-					t = ln_coeff_lte[i][j].copy()
+					#t = ln_coeff_lte[i][j].copy()
 					ln_coeff_lte[i][0] += relu_layer[j][1] * ln_coeff_lte[i][j]
-					ln_coeff_lte[i][j] = relu_layer[j][0]* t			#[1:] to make sure base term is not affected
+					ln_coeff_lte[i][j] = relu_layer[j][0]* ln_coeff_lte[i][j]			#[1:] to make sure base term is not affected
 				else:
-					t = ln_coeff_lte[i][j].copy()
+					#t = ln_coeff_lte[i][j].copy()
 					ln_coeff_lte[i][0] += relu_layer[j][3] * ln_coeff_lte[i][j]
-					ln_coeff_lte[i][j] = relu_layer[j][2] * t
+					ln_coeff_lte[i][j] = relu_layer[j][2] * ln_coeff_lte[i][j]
 				if(ln_coeff_gte[i][j]>0):
 					#print(f"DEBUG REV ---> i:{i} ; j:{j} ; coeff: {ln_coeff_gte[i][j]}")
-					t = ln_coeff_gte[i][j].copy()
+					#t = ln_coeff_gte[i][j].copy()
 					ln_coeff_gte[i][0] += relu_layer[j][3] * ln_coeff_gte[i][j]
-					ln_coeff_gte[i][j] = relu_layer[j][2] * t
+					ln_coeff_gte[i][j] = relu_layer[j][2] * ln_coeff_gte[i][j]
 				else:
 					#print(f"DEBUG REV ---> i:{i} ; j:{j} ; coeff: {ln_coeff_gte[i][j]}")
-					t = ln_coeff_gte[i][j].copy()
+					#t = ln_coeff_gte[i][j].copy()
 					ln_coeff_gte[i][0] += relu_layer[j][1] * ln_coeff_gte[i][j]
-					ln_coeff_gte[i][j] = relu_layer[j][0] * t
+					ln_coeff_gte[i][j] = relu_layer[j][0] * ln_coeff_gte[i][j]
 
 	layer_t = layer
 	while(layer!= 1):	#layer zero is input and layer one is in already in terms of input
@@ -83,7 +83,7 @@ def back_propagate(affine,relu,layer:int,if_activation):
 	return ln_coeff_lte,ln_coeff_gte
 
 
-def get_bounds_CPU2(l1_lte,l1_gte , l1_lb = 0,l1_ub = 1):
+def get_bounds_CPU2(l1_lte,l1_gte , l1_lb = -1,l1_ub = 1):
 	lbs = np.zeros(l1_lte.shape[0])
 	ubs = np.zeros(l1_lte.shape[0])
 	for i in range(len(l1_lte)):
