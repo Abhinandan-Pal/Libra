@@ -546,7 +546,7 @@ class ForwardInterpreter(Interpreter):
         for _, node in self.cfg.nodes.items():
             nodes.append(node)
         #self.network_condense_GPU(nodes)
-        network_condense_GPU(nodes)
+        network_condense_GPU(nodes,initial)
         # till here
         while not worklist.empty():
             current: Node = worklist.get()  # retrieve the current node

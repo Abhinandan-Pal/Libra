@@ -324,7 +324,7 @@ def back_propagate(affine, relu, layer: int, if_activation, active_pattern):
 
 
 def caller3():
-    MAX_NODES_IN_LAYER = 20
+    MAX_NODES_IN_LAYER = 200
     NO_OF_LAYERS = 10
 
     affine = np.random.randn(NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1, MAX_NODES_IN_LAYER + 1).astype(np.float32)
@@ -334,11 +334,11 @@ def caller3():
     layer = 2
     # print(f"Affine -> {affine}")
 
-    '''print(f"MAX_NODES_IN_LAYER = {MAX_NODES_IN_LAYER}")
+    print(f"MAX_NODES_IN_LAYER = {MAX_NODES_IN_LAYER}")
     time_sec = time.time()
     print(f"{back_propagate(affine, relu, layer, if_activation, active_pattern)[0][0][0]}")
     time_sec = time.time() - time_sec
-    print(f"CPU time: {time_sec}\n\n")'''
+    print(f"CPU time: {time_sec}\n\n")
 
     time_sec = time.time()
     print(f"{back_propagate_GPU(affine, relu, layer, if_activation, active_pattern)[0][0][0]}")

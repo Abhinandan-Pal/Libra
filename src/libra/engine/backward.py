@@ -153,6 +153,7 @@ class BackwardInterpreter(Interpreter):
                 result = deepcopy(state).assume(list(value[2]))
             else:
                 result = deepcopy(state).assume({value[1]}, manager=manager)
+
             f_active = key[idx][0] if key else None
             f_inactive = key[idx][1] if key else None
             active, inactive, outcome = self.precursory.analyze(result, forced_active=f_active, forced_inactive=f_inactive, outputs=self.outputs)

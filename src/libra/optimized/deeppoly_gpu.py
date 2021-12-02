@@ -6,27 +6,25 @@ from libra.core.cfg import Node, Function, Activation
 import copy
 
 
-def get_bounds_GPU(d_l1_lte, d_l1_gte, l1_lb=-1, l1_ub=1):
+def get_bounds_GPU(d_l1_lte, d_l1_gte, d_l1_lb, d_l1_ub):
     @cuda.jit
     def bound_helper(l1_lte, l1_gte, l1_lb, l1_ub, lbs, ubs):
         id = cuda.grid(1)
         if (id >= len(lbs)):
             return
         lbs[id] = l1_lte[id, 0]
-        for coeff in l1_lte[id, 1:]:
-            if (coeff < 0):
-                lbs[id] += coeff * l1_ub[0]
+        for i in range(1,len(l1_lte[id])):
+            if(l1_lte[id,i]<0):
+                lbs[id] += l1_lte[id,i] * l1_ub[i]
             else:
-                lbs[id] += coeff * l1_lb[0]
+                lbs[id] += l1_lte[id,i] * l1_lb[i]
         ubs[id] = l1_gte[id, 0]
-        for coeff in l1_gte[id, 1:]:
-            if (coeff > 0):
-                ubs[id] += coeff * l1_ub[0]
+        for i in range(1,len(l1_gte[id])):
+            if(l1_gte[id,i]>0):
+                ubs[id] += l1_gte[id,i] * l1_ub[i]
             else:
-                ubs[id] += coeff * l1_lb[0]
+                ubs[id] += l1_gte[id,i] * l1_lb[i]
 
-    d_l1_lb = cp.asarray([l1_lb])
-    d_l1_ub = cp.asarray([l1_ub])
     d_lbs = cp.zeros(d_l1_lte.shape[0])
     d_ubs = cp.zeros(d_l1_lte.shape[0])
     tpb = (min(1024, len(d_l1_lte)),)
@@ -40,11 +38,11 @@ def get_bounds_GPU(d_l1_lte, d_l1_gte, l1_lb=-1, l1_ub=1):
     return d_lbs, d_ubs
 
 
-def relu_compute_GPU(d_l1_lte, d_l1_gte, d_relu_layer, d_active_pattern):
+def relu_compute_GPU(d_l1_lte, d_l1_gte, d_relu_layer, d_active_pattern,d_l1_lb,d_l1_ub):
     @cuda.jit
     def relu_compute_helper(lbs, ubs, relu_layer, active_pattern):
         id = cuda.grid(1)
-        if (id >= len(ubs)):
+        if (id< 1 or id >= len(ubs)):
             return
         if (ubs[id] < 0):
             relu_layer[id] = (0.0, 0.0, 0.0, 0.0)
@@ -63,7 +61,7 @@ def relu_compute_GPU(d_l1_lte, d_l1_gte, d_relu_layer, d_active_pattern):
         if (c3_area < b3_area):
             relu_layer[id] = (1.0, 0.0, slope, y_coeff)
 
-    d_lbs, d_ubs = get_bounds_GPU(d_l1_lte, d_l1_gte)
+    d_lbs, d_ubs = get_bounds_GPU(d_l1_lte, d_l1_gte,d_l1_lb,d_l1_ub)
     tpb = (min(1024, len(d_l1_lte)),)
     bpg = (int(np.ceil(len(d_l1_lte) / tpb[0])),)
     relu_compute_helper[bpg, tpb](d_lbs,
@@ -73,9 +71,9 @@ def relu_compute_GPU(d_l1_lte, d_l1_gte, d_relu_layer, d_active_pattern):
     return d_relu_layer, d_active_pattern
 
 
-def back_propagate_GPU(d_affine, d_relu, layer: int, if_activation, d_active_pattern):
+def back_propagate_GPU(d_affine, d_relu, layer: int, if_activation, d_active_pattern,d_l1_lb,d_l1_ub):
     # shift the CP creation to caller.
-    d_ln_coeff_lte = d_affine[layer].copy().astype('float32')               #Need to create copies
+    d_ln_coeff_lte = d_affine[layer].copy().astype('float32')  # Need to create copies
     d_ln_coeff_gte = d_affine[layer].copy().astype('float32')
 
     @cuda.jit
@@ -96,7 +94,6 @@ def back_propagate_GPU(d_affine, d_relu, layer: int, if_activation, d_active_pat
     def back_affine_GPU(d_ineq_prev_lte, d_ineq_prev_gte, d_ln_coeff_lte, d_ln_coeff_gte):
         d_l1_lte = cp.zeros(d_affine[layer].shape)
         d_l1_gte = cp.zeros(d_affine[layer].shape)
-        #for i in range(len(d_l1_lte)):
         d_l1_lte[:, 0] = d_ln_coeff_lte[:, 0]  # The more optimal syntax doesnt work in few cupy versions
         d_l1_gte[:, 0] = d_ln_coeff_gte[:, 0]
 
@@ -106,11 +103,6 @@ def back_propagate_GPU(d_affine, d_relu, layer: int, if_activation, d_active_pat
 
         for i in range(1, len(d_l1_lte)):
             d_i = cp.array([i])
-            # d_coeff_lte = cp.array(d_ln_coeff_lte[:, i])
-            # d_coeff_gte = cp.array(d_ln_coeff_gte[:, i])
-            # d_ineq_prev_lte_i = d_ineq_prev_lte[i]
-            # d_ineq_prev_gte_i = d_ineq_prev_gte[i]
-
             back_affine_helper[bpg, tpb](d_i, d_l1_lte,
                                          d_l1_gte,
                                          d_ln_coeff_lte,
@@ -167,9 +159,7 @@ def back_propagate_GPU(d_affine, d_relu, layer: int, if_activation, d_active_pat
     while (layer != 1):  # layer zero is input and layer one is in already in terms of input
         # First relu of previous layer
         if (if_activation[layer - 1][1] == True):
-            # print(f"DEBUG--->relu{layer-1}:{relu[layer-1]}; ln_gte={ln_coeff_gte}")
             back_relu_GPU(d_relu[layer - 1], d_ln_coeff_lte, d_ln_coeff_gte)
-        # print(f"DEBUG---> ln_lte AFTER ={ln_coeff_gte}")
         # Then affine of previous layer
         d_ineq_prev_gte = d_affine[layer - 1]
         d_ineq_prev_lte = d_affine[layer - 1]
@@ -177,29 +167,28 @@ def back_propagate_GPU(d_affine, d_relu, layer: int, if_activation, d_active_pat
                                                          d_ln_coeff_gte)
         layer -= 1
     if (if_activation[layer_t][1] == 1):
-        # print("DEBUG --> PERFORM RELU")
-        #print(f"DEBUG RELU layer: {layer_t} Before ---> {d_relu[layer_t]}")
-        relu_compute_GPU(d_ln_coeff_lte, d_ln_coeff_gte, d_relu[layer_t], d_active_pattern[layer_t])
-        #print(f"DEBUG RELU layer: {layer_t} After ---> {d_relu[layer_t]}")
+        relu_compute_GPU(d_ln_coeff_lte, d_ln_coeff_gte, d_relu[layer_t], d_active_pattern[layer_t],d_l1_lb,d_l1_ub)
     else:
         pass
-    # print("DEBUG --> DONT PERFORM RELU")
-    # return active_pattern
-    # Different return for debug purposes
+    #return d_active_pattern
+    ''''# Different return for debug purposes'''
     ln_coeff_gte = cp.asnumpy(d_ln_coeff_gte).astype(np.float32)
     ln_coeff_lte = cp.asnumpy(d_ln_coeff_lte).astype(np.float32)
     return ln_coeff_lte, ln_coeff_gte
 
 
-def network_condense_GPU(nodes):
+def network_condense_GPU(nodes, initial):
     # equation[n1][n2] stores the bias and coeff of nodes of previous layer to form x[n1][n2] in order
     # if_activation[n1][n2] stores if there is an activation on x[n1][n2] (only relu considered for now)
+
     NO_OF_LAYERS = 3
     MAX_NODES_IN_LAYER = 2
     affine = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1, MAX_NODES_IN_LAYER + 1)).astype(np.float32)
     relu = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1, 4)).astype(np.float32)
     if_activation = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1)).astype(np.float32)
     active_pattern = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1)).astype(np.float32)
+    l1_lb = np.zeros(MAX_NODES_IN_LAYER+1).astype(np.float32)
+    l1_ub = np.ones(MAX_NODES_IN_LAYER+1).astype(np.float32)
     # The 4 in relu is for lessThan(slope,y-coeff);greaterThan(slope,y-coeff)
     # TO-DO: can make the assumption if one node in a layer has relu then all do
     for current in nodes:
@@ -223,27 +212,32 @@ def network_condense_GPU(nodes):
 			for stmt in reversed(current.stmts):
 			state = semantics.assume_call_semantics(stmt, state, manager)'''
             continue
+
+    # obtain the lower bound and upper bound for input layer using "initial"
+    #Assuming "initial" contains input from 0 to nth input in order.
+    i = 1
+    for var,bound in initial.bounds.items():
+        l1_lb[i] = bound.lower
+        l1_ub[i] = bound.upper
+        i+=1
+
+    print(f"L1_UB {l1_ub}; L1_LB {l1_lb}")
     # can remove layer 0 as it has no inequations
     # All these print are for debug mode. Actual will only activation pattern.
-    '''affine = np.random.randn(NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1, MAX_NODES_IN_LAYER + 1).astype(np.float32)
-    relu = np.random.randn(NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1, 4).astype(np.float32)
-    if_activation = np.ones((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1))
-    active_pattern = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1))'''
-
-
     d_affine = cp.asarray(affine)
     d_relu = cp.asarray(relu)
     d_active_pattern = cp.asarray(active_pattern)
+
+    d_l1_lb = cp.asarray(l1_lb)
+    d_l1_ub = cp.asarray(l1_ub)
+    #Detailed print for DEBUG
     for i in range(1, len(affine)):
 
         print(f"\t\t LAYER {i} Input Equations")
         for j in range(1, len(affine[0])):
             print(
                 f"Node: {j} -> if_activation: {if_activation[i, j]}\n eq: {ineq_str(d_affine[i, j], i, j, '=', i - 1)} ")
-
-        #print(f"AFFINE BEFORE layer{i}-> {d_affine}")
-        ineq_lte, ineq_gte = back_propagate_GPU(d_affine, d_relu, i, if_activation, d_active_pattern)
-        #print(f"AFFINE AFTER layer{i}-> {d_affine}")
+        ineq_lte, ineq_gte = back_propagate_GPU(d_affine, d_relu, i, if_activation, d_active_pattern,d_l1_lb,d_l1_ub)
         relu[i] = cp.asnumpy(d_relu[i])
         print(f"\t\t LAYER {i} Substituted")
         for j in range(1, len(affine[0])):
@@ -263,3 +257,9 @@ def network_condense_GPU(nodes):
         # print stuff
         else:
             print(f"\t\t NO RELU ON LAYER {i}")
+    print(f"activation->{d_active_pattern}")
+    '''
+
+    for i in range(1, len(affine)):
+        back_propagate_GPU(d_affine, d_relu, i, if_activation, d_active_pattern,d_l1_lb,d_l1_ub)
+    print(f"activation->{d_active_pattern}")'''
