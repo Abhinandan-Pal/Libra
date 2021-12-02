@@ -2,7 +2,9 @@ import numpy as np
 import cupy as cp
 from numba import cuda
 from libra.optimized.commons import texpr_to_dict, get_bounds_single, ineq_str
-from libra.core.cfg import Node, Function, Activation
+from libra.core.cfg import Node, Function, Activation,Basic
+import warnings
+from apronpy.var import PyVar
 import copy
 
 
@@ -176,6 +178,23 @@ def back_propagate_GPU(d_affine, d_relu, layer: int, if_activation, d_active_pat
     ln_coeff_lte = cp.asnumpy(d_ln_coeff_lte).astype(np.float32)
     return ln_coeff_lte, ln_coeff_gte
 
+def active_convert(active_status,dims):
+    activated = set()
+    deactivated = set()
+    node_num = 3
+    for layer_index in range(1,len(dims[1:])):
+        for neuron_index in range(1,dims[layer_index]):
+            if(active_status[layer_index,neuron_index] == 0):
+                stmt = "x"+str(layer_index)+str(neuron_index)
+                val = Basic(node_num,[PyVar(stmt)])
+                deactivated.add(val)
+            elif(active_status[layer_index,neuron_index] == 1):
+                stmt = "x" + str(layer_index) + str(neuron_index)
+                val = Basic(node_num, [PyVar(stmt)])
+                activated.add(val)
+            node_num+=1
+        node_num+=1
+    return activated,deactivated
 
 def network_condense_GPU(nodes, initial):
     # equation[n1][n2] stores the bias and coeff of nodes of previous layer to form x[n1][n2] in order
@@ -189,6 +208,8 @@ def network_condense_GPU(nodes, initial):
     active_pattern = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1)).astype(np.float32)
     l1_lb = np.zeros(MAX_NODES_IN_LAYER+1).astype(np.float32)
     l1_ub = np.ones(MAX_NODES_IN_LAYER+1).astype(np.float32)
+    dims = np.ones(NO_OF_LAYERS+1).astype(np.int32)
+
     # The 4 in relu is for lessThan(slope,y-coeff);greaterThan(slope,y-coeff)
     # TO-DO: can make the assumption if one node in a layer has relu then all do
     for current in nodes:
@@ -203,6 +224,7 @@ def network_condense_GPU(nodes, initial):
                         coeffs[var] = val
                     else:
                         coeffs[0] = val
+                dims[int(str(node)[1])] += 1
                 affine[int(str(node)[1]), int(str(node)[2]),
                 :] = coeffs  # TO-DO: do something more general than assume format X[N][N] for var name
         elif isinstance(current, Activation):
@@ -221,7 +243,6 @@ def network_condense_GPU(nodes, initial):
         l1_ub[i] = bound.upper
         i+=1
 
-    print(f"L1_UB {l1_ub}; L1_LB {l1_lb}")
     # can remove layer 0 as it has no inequations
     # All these print are for debug mode. Actual will only activation pattern.
     d_affine = cp.asarray(affine)
@@ -230,6 +251,7 @@ def network_condense_GPU(nodes, initial):
 
     d_l1_lb = cp.asarray(l1_lb)
     d_l1_ub = cp.asarray(l1_ub)
+    '''
     #Detailed print for DEBUG
     for i in range(1, len(affine)):
 
@@ -259,7 +281,11 @@ def network_condense_GPU(nodes, initial):
             print(f"\t\t NO RELU ON LAYER {i}")
     print(f"activation->{d_active_pattern}")
     '''
-
+    warnings.filterwarnings("ignore")                       #Removes NumbaPerformanceWarning and others but slow down everything significantly.
     for i in range(1, len(affine)):
         back_propagate_GPU(d_affine, d_relu, i, if_activation, d_active_pattern,d_l1_lb,d_l1_ub)
-    print(f"activation->{d_active_pattern}")'''
+    #print(f"INSIDE activation -> {d_active_pattern}; dims -> {dims}")
+    active_pattern = cp.asnumpy(d_active_pattern)
+    activated, deactivated = active_convert(active_pattern,dims)
+    #print(f"INSIDE activated = {activated}, deactivated = {deactivated}")
+    return activated,deactivated,None

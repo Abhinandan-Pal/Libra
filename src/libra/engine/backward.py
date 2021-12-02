@@ -156,7 +156,8 @@ class BackwardInterpreter(Interpreter):
 
             f_active = key[idx][0] if key else None
             f_inactive = key[idx][1] if key else None
-            active, inactive, outcome = self.precursory.analyze(result, forced_active=f_active, forced_inactive=f_inactive, outputs=self.outputs)
+            #active, inactive, outcome = self.precursory.analyze(result, forced_active=f_active, forced_inactive=f_inactive, outputs=self.outputs)
+            active, inactive, outcome = self.precursory.analyze_GPU(result)
             outcomes.add(outcome)
             disjunctions = len(self.activations) - len(active) - len(inactive)
             if disjunctions > disjuncts:

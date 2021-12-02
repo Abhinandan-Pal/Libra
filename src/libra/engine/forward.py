@@ -546,7 +546,7 @@ class ForwardInterpreter(Interpreter):
         for _, node in self.cfg.nodes.items():
             nodes.append(node)
         #self.network_condense_GPU(nodes)
-        network_condense_GPU(nodes,initial)
+        #network_condense_GPU(nodes,initial)
         # till here
         while not worklist.empty():
             current: Node = worklist.get()  # retrieve the current node
@@ -581,8 +581,31 @@ class ForwardInterpreter(Interpreter):
 
         self._state_log(state, outputs)
         found = state.outcome(outputs)
+        #print(f"DEBUG--> initial: {initial.bounds.items()}")
+        '''print("DEBUG -> activated")
+        for act in activated:
+            print(f"ident: {act.identifier};stmts: {act.stmts}")
+        print("DEBUG -> deactivated")
+        for deact in deactivated:
+            print(f"ident: {deact.identifier};stmts: {type(deact.stmts)}")'''
 
+
+        #print(f"DEBUG -> active:{activated}; deactive:{deactivated}")
         return activated, deactivated, found
+
+    def analyze_GPU(self,initial):
+        nodes = []
+        for _, node in self.cfg.nodes.items():
+            nodes.append(node)
+        activated,deactivated,outcome = network_condense_GPU(nodes, initial)
+        # self.network_condense_GPU(nodes)
+        '''print("DEBUG -> activated")
+        for act in activated:
+            print(f"ident: {act.identifier};stmts: {act.stmts}")
+        print("DEBUG -> deactivated")
+        for deact in deactivated:
+            print(f"ident: {deact.identifier};stmts: {type(deact.stmts)}")'''
+        return activated,deactivated,outcome
 
 
 class ActivationPatternForwardSemantics(DefaultForwardSemantics):
