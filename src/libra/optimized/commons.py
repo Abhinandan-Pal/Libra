@@ -62,18 +62,21 @@ def texpr_to_dict( texpr):
     texpr1 = texpr.texpr1.contents
     return do(texpr1.texpr0.contents, texpr1.env.contents)
 
-def ineq_str(ineq:list[float],layer_lhs,node_num,op,layer_rhs):
+def ineq_str(ineq:list[float],layer_lhs,node_num,op,layer_rhs,inv_var_index):
+    if not ((layer_lhs,node_num) in inv_var_index.keys()):
+        return "Empty Node"
     if(op==">="):
-        str_ineq = f"X{layer_lhs}{node_num} >= "
+        str_ineq = f"{inv_var_index[(layer_lhs,node_num)]} >= "
     elif (op == "="):
-        str_ineq = f"X{layer_lhs}{node_num} = "
+        str_ineq = f"{inv_var_index[(layer_lhs,node_num)]} = "
     else:
-        str_ineq = f"X{layer_lhs}{node_num} <= "
+        str_ineq = f"{inv_var_index[(layer_lhs,node_num)]} <= "
     for i in range(len(ineq)):
         if(i==0):
             str_ineq += f"+({ineq[0]})"
         else:
-            str_ineq += f"+({ineq[i]} * X{layer_rhs}{i})"
+            if((layer_rhs,i) in inv_var_index.keys()):
+                str_ineq += f"+({ineq[i]} * {inv_var_index[(layer_rhs,i)]})"
     return str_ineq
 
 '''Given a node of a layer expressed in inequality form of x01 and x02. it gives the upper and lower bound
