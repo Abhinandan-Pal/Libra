@@ -246,46 +246,34 @@ def network_condense_GPU(nodes, initial):
 
     NO_OF_LAYERS = 1
     MAX_NODES_IN_LAYER = 1
+    CURR_NODED_IN_LAYER = 0
+    flag = False
     for current in nodes:
         if isinstance(current, Function):
             for (node, eq) in zip(current.stmts[0], current.stmts[1]):
-                NO_OF_LAYERS = max(NO_OF_LAYERS,int(str(node)[1]))
-                MAX_NODES_IN_LAYER = max(MAX_NODES_IN_LAYER,int(str(node)[2]))
-        else:
+                if(flag):
+                    flag = False
+                    NO_OF_LAYERS += 1
+                    MAX_NODES_IN_LAYER = max(MAX_NODES_IN_LAYER, CURR_NODED_IN_LAYER)
+                    CURR_NODED_IN_LAYER = 0
+                CURR_NODED_IN_LAYER += 1
+        elif isinstance(current, Activation):
+            flag = True
             continue
+    print(f"NO_OF_LAYER:{NO_OF_LAYERS}; MNIL:{MAX_NODES_IN_LAYER}")
     var_index: dict(str,(int,int)) = dict()
+    row_id = 0
+    col_id = 1
+    flag = False
+
 
     affine = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1, MAX_NODES_IN_LAYER + 1)).astype(np.float32)
-    relu = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1, 4)).astype(np.float32)
+    relu = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1,4)).astype(np.float32)
     if_activation = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1)).astype(np.float32)
     active_pattern = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1)).astype(np.float32)
     l1_lb = np.zeros(MAX_NODES_IN_LAYER+1).astype(np.float32)
     l1_ub = np.zeros(MAX_NODES_IN_LAYER+1).astype(np.float32)
     dims = np.ones(NO_OF_LAYERS+1).astype(np.int32)
-
-    # The 4 in relu is for lessThan(slope,y-coeff);greaterThan(slope,y-coeff)
-    # TO-DO: can make the assumption if one node in a layer has relu then all do
-    for current in nodes:
-        if isinstance(current, Function):
-            for (node, eq) in zip(current.stmts[0], current.stmts[1]):
-                coeffs = np.zeros((MAX_NODES_IN_LAYER + 1,)).astype(np.float32)
-                eq = texpr_to_dict(eq)
-                for var, val in eq.items():
-                    if var != '_':
-                        var = int(var[2])  # TO-DO: do something more general than assume format X[N][N] for var name
-                        coeffs[var] = val
-                    else:
-                        coeffs[0] = val
-                dims[int(str(node)[1])] += 1
-                affine[int(str(node)[1]), int(str(node)[2]),:] = coeffs
-                # TO-DO: do something more general than assume format X[N][N] for var name
-        elif isinstance(current, Activation):
-            if_activation[int(str(current.stmts)[1]), int(str(current.stmts)[2])] = True
-        else:
-            '''What to do here
-			for stmt in reversed(current.stmts):
-			state = semantics.assume_call_semantics(stmt, state, manager)'''
-            continue
 
     # obtain the lower bound and upper bound for input layer using "initial"
     #Assuming "initial" contains input from 0 to nth input in order.
@@ -293,8 +281,51 @@ def network_condense_GPU(nodes, initial):
     for var,bound in initial.bounds.items():
         l1_lb[i] = bound.lower
         l1_ub[i] = bound.upper
+        var_index[str(var)] = (row_id, col_id)
+        col_id += 1
         i+=1
+    row_id = 1
+    col_id = 1
+    # The 4 in relu is for lessThan(slope,y-coeff);greaterThan(slope,y-coeff)
+    # TO-DO: can make the assumption if one node in a layer has relu then all do
+    for current in nodes:
+        if isinstance(current, Function):
+            for (node, eq) in zip(current.stmts[0], current.stmts[1]):
+                if(flag):
+                    flag = False
+                    row_id += 1
+                    col_id = 1
+                coeffs = np.zeros((MAX_NODES_IN_LAYER + 1,)).astype(np.float32)
+                eq = texpr_to_dict(eq)
+                for var, val in eq.items():
+                    if var != '_':
+                        r,c = var_index[str(var)]
+                        if(r != row_id-1):
+                            raise NotImplementedError(f"Affine should only be based on previous layer{row_id} But was on {r}.")
+                        coeffs[c] += val
+                    else:
+                        coeffs[0] += val
 
+                dims[row_id] += 1
+                affine[row_id, col_id,:] = coeffs
+                #print(f"Afiine->{str(node)}")
+                var_index[str(node)] = (row_id,col_id)
+                col_id += 1
+                # TO-DO: do something more general than assume format X[N][N] for var name
+        elif isinstance(current, Activation):
+            flag = True
+            r,c = var_index[str(current.stmts)]
+            if_activation[r,c] = True
+            #print(f"Relu->{str(current.stmts)}")
+        else:
+            #print(f"Others->{current.stmts}")
+            '''What to do here
+			for stmt in reversed(current.stmts):
+			state = semantics.assume_call_semantics(stmt, state, manager)'''
+            continue
+    print(f"var_index = {var_index}")
+    inv_var_index = {v: k for k, v in var_index.items()}
+    print(f"inv_var_index = {inv_var_index}")
     # can remove layer 0 as it has no inequations
     # All these print are for debug mode. Actual will only activation pattern.
     d_affine = cp.asarray(affine)
@@ -310,14 +341,14 @@ def network_condense_GPU(nodes, initial):
         print(f"\t\t LAYER {i} Input Equations")
         for j in range(1, len(affine[0])):
             print(
-                f"Node: {j} -> if_activation: {if_activation[i, j]}\n eq: {ineq_str(d_affine[i, j], i, j, '=', i - 1)} ")
+                f"Node: {j} -> if_activation: {if_activation[i, j]}\n eq: {ineq_str(d_affine[i, j], i, j, '=', i - 1,inv_var_index)} ")
         ineq_lte, ineq_gte = back_propagate_GPU(d_affine, d_relu, i, if_activation, d_active_pattern,d_l1_lb,d_l1_ub)
         relu[i] = cp.asnumpy(d_relu[i])
         print(f"\t\t LAYER {i} Substituted")
         for j in range(1, len(affine[0])):
             print(f"\tNode {j}")
-            print(f" eq LTE L1: {ineq_str(ineq_lte[j], i, j, '>=', 0)}")
-            print(f" eq GTE L1: {ineq_str(ineq_gte[j], i, j, '<=', 0)}")
+            print(f" eq LTE L1: {ineq_str(ineq_lte[j], i, j, '>=', 0,inv_var_index)}")
+            print(f" eq GTE L1: {ineq_str(ineq_gte[j], i, j, '<=', 0,inv_var_index)}")
             print(
                 f" eq (LB,UB): {get_bounds_single(ineq_lte, ineq_gte, j)}")  # Performing the whole debug-print segment in CPU will be removed later.
 
@@ -328,6 +359,7 @@ def network_condense_GPU(nodes, initial):
                 print(f" Relu eq LTE: Slope: {relu[i][j][0]}, Y-Coeff: {relu[i][j][1]}")
                 print(f" Relu eq GTE: Slope: {relu[i][j][2]}, Y-Coeff: {relu[i][j][3]}")
                 print(f"Relu eq (LB,UB): {get_bounds_single(ineq_lte, ineq_gte, j, relu_val=relu[i][j])}")
+
         # print stuff
         else:
             print(f"\t\t NO RELU ON LAYER {i}")

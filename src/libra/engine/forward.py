@@ -547,7 +547,8 @@ class ForwardInterpreter(Interpreter):
         for _, node in self.cfg.nodes.items():
             nodes.append(node)
         #self.network_condense_GPU(nodes)
-        symbolic_gpu.network_condense_GPU(nodes,initial)
+        deeppoly_gpu.network_condense_GPU(nodes,initial)
+        #symbolic_gpu.network_condense_GPU(nodes, initial)
         # till here
         while not worklist.empty():
             current: Node = worklist.get()  # retrieve the current node
@@ -591,14 +592,14 @@ class ForwardInterpreter(Interpreter):
             print(f"ident: {deact.identifier};stmts: {type(deact.stmts)}")'''
 
 
-        print(f"DEBUG -> active:{activated}; deactive:{deactivated}; outcome:{type(found)}")
+        print(f"DEBUG -> active:{activated}; deactive:{deactivated}; outcome:{found}")
         return activated, deactivated, found
 
     def analyze_GPU(self,initial):
         nodes = []
         for _, node in self.cfg.nodes.items():
             nodes.append(node)
-        activated,deactivated,outcome = network_condense_GPU(nodes, initial)
+        activated,deactivated,outcome = deeppoly_gpu.network_condense_GPU(nodes, initial)
         # self.network_condense_GPU(nodes)
         '''print("DEBUG -> activated")
         for act in activated:
