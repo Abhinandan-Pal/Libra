@@ -22,7 +22,8 @@ from libra.semantics.forward import DefaultForwardSemantics
 from libra.abstract_domains.state import State
 from libra.core.cfg import Node, Function, Activation
 
-from libra.optimized.deeppoly_gpu import network_condense_GPU
+from  libra.optimized import deeppoly_gpu
+from  libra.optimized import symbolic_gpu
 from libra.optimized.deeppoly_cpu import network_condense_CPU
 
 from apronpy.texpr0 import TexprRtype, TexprRdir, TexprDiscr, TexprOp
@@ -546,7 +547,7 @@ class ForwardInterpreter(Interpreter):
         for _, node in self.cfg.nodes.items():
             nodes.append(node)
         #self.network_condense_GPU(nodes)
-        #network_condense_GPU(nodes,initial)
+        symbolic_gpu.network_condense_GPU(nodes,initial)
         # till here
         while not worklist.empty():
             current: Node = worklist.get()  # retrieve the current node
@@ -590,7 +591,7 @@ class ForwardInterpreter(Interpreter):
             print(f"ident: {deact.identifier};stmts: {type(deact.stmts)}")'''
 
 
-        #print(f"DEBUG -> active:{activated}; deactive:{deactivated}")
+        print(f"DEBUG -> active:{activated}; deactive:{deactivated}; outcome:{type(found)}")
         return activated, deactivated, found
 
     def analyze_GPU(self,initial):
