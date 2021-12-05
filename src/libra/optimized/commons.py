@@ -79,9 +79,22 @@ def ineq_str(ineq:list[float],layer_lhs,node_num,op,layer_rhs,inv_var_index):
                 str_ineq += f"+({ineq[i]} * {inv_var_index[(layer_rhs,i)]})"
     return str_ineq
 
+def ineq_str_direct(ineq:list[float],layer_lhs,node_num,op,layer_rhs):
+    if(op==">="):
+        str_ineq = f"X{layer_lhs}{node_num} >= "
+    elif (op == "="):
+        str_ineq = f"X{layer_lhs}{node_num} = "
+    else:
+        str_ineq = f"X{layer_lhs}{node_num} <= "
+    for i in range(len(ineq)):
+        if(i==0):
+            str_ineq += f"+({ineq[0]})"
+        else:
+            str_ineq += f"+({ineq[i]} * X{layer_rhs}{i})"
+    return str_ineq
 '''Given a node of a layer expressed in inequality form of x01 and x02. it gives the upper and lower bound
  assuming x0n are in [0,1]'''
-def get_bounds_single(l1_layer_lte,l1_layer_gte,node_num:int , l1_lb = 0,l1_ub = 1,relu_val=[1,0,1,0]):
+def get_bounds_single(l1_layer_lte,l1_layer_gte,node_num:int , l1_lb,l1_ub,relu_val=[1,0,1,0]):
     l1_lte = l1_layer_lte[node_num]*relu_val[0]
 
     l1_lte[0] += relu_val[1]
@@ -89,15 +102,15 @@ def get_bounds_single(l1_layer_lte,l1_layer_gte,node_num:int , l1_lb = 0,l1_ub =
     l1_gte = l1_layer_gte[node_num]*relu_val[2]
     l1_gte[0] += relu_val[3]
     lb = l1_lte[0]
-    for coeff in l1_lte[1:]:
-        if (coeff < 0):
-            lb += coeff * l1_ub
+    for i in range(1,len(l1_lte)):
+        if (l1_lte[i] < 0):
+            lb += l1_lte[i] * l1_ub[i]
         else:
-            lb += coeff* l1_lb
+            lb += l1_lte[i] * l1_lb[i]
     ub = l1_gte[0]
-    for coeff in l1_gte[1:]:
-        if (coeff > 0):
-            ub += coeff * l1_ub
+    for i in range(1,len(l1_gte)):
+        if (l1_gte[i] > 0):
+            ub += l1_gte[i] * l1_ub[i]
         else:
-            ub += coeff* l1_lb
+            ub += l1_gte[i] * l1_lb[i]
     return lb, ub

@@ -29,7 +29,7 @@ from libra.engine.forward import ForwardInterpreter, ActivationPatternForwardSem
 
 class ForwardAnalysis(Runner):
 
-    def __init__(self, spec, domain=AbstractDomain.SYMBOLIC2, log=False):
+    def __init__(self, spec, domain=AbstractDomain.SYMBOLIC2, log=True):
         super().__init__()
         self.spec = spec
         self.domain = domain

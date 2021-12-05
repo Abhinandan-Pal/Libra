@@ -15,7 +15,7 @@ nn = 'libra/tests/toy.py'
 if len(sys.argv) > 1:
     domain = checker(sys.argv[1])
 else:
-    domain = AbstractDomain.DEEPPOLY # default
+    domain = AbstractDomain.NEURIFY # default
 print(f"> Domain chosen: '{domain}'")
 b = ForwardAnalysis(spec, domain=domain, log=True)
 # forced_active = {
