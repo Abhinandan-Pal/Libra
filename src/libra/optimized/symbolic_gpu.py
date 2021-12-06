@@ -328,7 +328,7 @@ def network_condense_GPU(nodes, initial):
             print(f" eq LTE L1: {ineq_str(ineq_lte[j], i, j, '>=', 0,inv_var_index)}")
             print(f" eq GTE L1: {ineq_str(ineq_gte[j], i, j, '<=', 0,inv_var_index)}")
             print(
-                f" eq (LB,UB): {get_bounds_single(ineq_lte, ineq_gte, j)}")  # Performing the whole debug-print segment in CPU will be removed later.
+                f" eq (LB,UB): {get_bounds_single(ineq_lte, ineq_gte, j,l1_lb,l1_ub)}")  # Performing the whole debug-print segment in CPU will be removed later.
 
         if (if_activation[i, 1] == 1):  # assuming if first node in a layer has activation then all do
             print(f"\t RELU-LAYER {i}")
@@ -336,7 +336,7 @@ def network_condense_GPU(nodes, initial):
                 print(f"\tNode {j}")
                 print(f" SYMB  BOOL: {symb[i][j][0]}, LB: {symb[i][j][2]}, UB: {symb[i][j][1]}")
                 if(symb[i][j][0] == 0.0):
-                    print(f"Relu eq (LB,UB): {get_bounds_single(ineq_lte, ineq_gte, j)}")
+                    print(f"Relu eq (LB,UB): {get_bounds_single(ineq_lte, ineq_gte, j,l1_lb,l1_ub)}")
                 else:
                     print(f"Relu eq (LB,UB): ({symb[i][j][2]},{symb[i][j][1]})")
 

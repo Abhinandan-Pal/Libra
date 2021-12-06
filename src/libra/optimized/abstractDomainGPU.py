@@ -1,4 +1,6 @@
 import numpy as np
+import cupy as cp
+from numba import cuda
 from apronpy.texpr0 import TexprRtype, TexprRdir, TexprDiscr, TexprOp
 from apronpy.texpr1 import PyTexpr1
 from apronpy.var import PyVar
@@ -7,6 +9,38 @@ from copy import deepcopy
 class AbstractDomainGPU():
     def __init__(self):
         pass
+
+    def get_bounds_GPU(self,d_l1_lte, d_l1_gte, d_l1_lb, d_l1_ub):
+        @cuda.jit
+        def bound_helper(l1_lte, l1_gte, l1_lb, l1_ub, lbs, ubs):
+            id = cuda.grid(1)
+            if (id >= len(lbs)):
+                return
+            lbs[id] = l1_lte[id, 0]
+            for i in range(1, len(l1_lte[id])):
+                if (l1_lte[id, i] < 0):
+                    lbs[id] += l1_lte[id, i] * l1_ub[i]
+                else:
+                    lbs[id] += l1_lte[id, i] * l1_lb[i]
+            ubs[id] = l1_gte[id, 0]
+            for i in range(1, len(l1_gte[id])):
+                if (l1_gte[id, i] > 0):
+                    ubs[id] += l1_gte[id, i] * l1_ub[i]
+                else:
+                    ubs[id] += l1_gte[id, i] * l1_lb[i]
+
+        d_lbs = cp.zeros(d_l1_lte.shape[0])
+        d_ubs = cp.zeros(d_l1_lte.shape[0])
+        tpb = (min(1024, len(d_l1_lte)),)
+        bpg = (int(np.ceil(len(d_l1_lte) / tpb[0])),)
+        bound_helper[bpg, tpb](d_l1_lte,
+                               d_l1_gte,
+                               d_l1_lb,
+                               d_l1_ub,
+                               d_lbs,
+                               d_ubs)
+        return d_lbs, d_ubs
+
     def texpr_to_dict(self,texpr):
         def do(texpr0, env):
             if texpr0.discr == TexprDiscr.AP_TEXPR_CST:
