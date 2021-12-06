@@ -42,7 +42,7 @@ class DeepPolyGPU(AbstractDomainGPU):
                                d_ubs)
         return d_lbs, d_ubs
 
-    def relu_compute_GPU(self,d_l1_lte, d_l1_gte, d_relu_layer, d_active_pattern, d_l1_lb, d_l1_ub):
+    def relu_compute_GPU(self,d_lbs, d_ubs, d_relu_layer, d_active_pattern, d_l1_lb, d_l1_ub):
         @cuda.jit
         def relu_compute_helper(lbs, ubs, relu_layer, active_pattern):
             id = cuda.grid(1)
@@ -65,9 +65,8 @@ class DeepPolyGPU(AbstractDomainGPU):
             if (c3_area < b3_area):
                 relu_layer[id] = (1.0, 0.0, slope, y_coeff)
 
-        d_lbs, d_ubs = self.get_bounds_GPU(d_l1_lte, d_l1_gte, d_l1_lb, d_l1_ub)
-        tpb = (min(1024, len(d_l1_lte)),)
-        bpg = (int(np.ceil(len(d_l1_lte) / tpb[0])),)
+        tpb = (min(1024, len(d_lbs)),)
+        bpg = (int(np.ceil(len(d_lbs) / tpb[0])),)
         relu_compute_helper[bpg, tpb](d_lbs,
                                       d_ubs,
                                       d_relu_layer,
@@ -169,16 +168,17 @@ class DeepPolyGPU(AbstractDomainGPU):
             d_ln_coeff_lte, d_ln_coeff_gte = self.back_affine_GPU(d_ineq_prev_lte, d_ineq_prev_gte, d_ln_coeff_lte,
                                                              d_ln_coeff_gte)
             layer -= 1
-        if (if_activation[layer_t][1] == 1):
+        d_lbs, d_ubs = self.get_bounds_GPU(d_ln_coeff_lte, d_ln_coeff_gte, d_l1_lb, d_l1_ub)
+        '''if (if_activation[layer_t][1] == 1):
             self.relu_compute_GPU(d_ln_coeff_lte, d_ln_coeff_gte, d_relu[layer_t], d_active_pattern[layer_t], d_l1_lb,
                              d_l1_ub)
         else:
-            pass
+            pass'''
         # return d_active_pattern
         ''''# Different return for debug purposes'''
         ln_coeff_gte = cp.asnumpy(d_ln_coeff_gte).astype(np.float32)
         ln_coeff_lte = cp.asnumpy(d_ln_coeff_lte).astype(np.float32)
-        return ln_coeff_lte, ln_coeff_gte
+        return d_lbs,d_ubs,ln_coeff_lte, ln_coeff_gte
 
     # Simplification Assumption: output layer has 2 nodes.
     def oneOutput(self,last, d_affine, d_relu, if_activation, d_l1_lb, d_l1_ub):
@@ -310,8 +310,9 @@ class DeepPolyGPU(AbstractDomainGPU):
             for j in range(1, len(d_affine[0])):
                 print(
                     f"Node: {j} -> if_activation: {if_activation[i, j]}\n eq: {self.ineq_str(d_affine[i, j], i, j, '=', i - 1, inv_var_index)} ")
-            ineq_lte, ineq_gte = self.back_propagate_GPU(d_affine, d_relu, i, if_activation, d_active_pattern, d_l1_lb,
+            d_lbs,d_ubs,ineq_lte, ineq_gte = self.back_propagate_GPU(d_affine, d_relu, i, if_activation, d_active_pattern, d_l1_lb,
                                                     d_l1_ub)
+            self.relu_compute_GPU(d_lbs,d_ubs,d_relu[i],d_active_pattern,d_l1_lb,d_l1_ub)
             relu[i] = cp.asnumpy(d_relu[i])
             print(f"\t\t LAYER {i} Substituted")
             for j in range(1, len(d_affine[0])):
@@ -337,8 +338,9 @@ class DeepPolyGPU(AbstractDomainGPU):
 
     def miniPrintCondense(self,d_affine,d_relu,d_active_pattern,d_l1_lb,d_l1_ub,if_activation,l1_lb,l1_ub,relu):
         for i in range(1, len(d_affine)):
-            ineq_lte, ineq_gte = self.back_propagate_GPU(d_affine, d_relu, i, if_activation, d_active_pattern, d_l1_lb,
+            d_lbs,d_ubs,ineq_lte, ineq_gte = self.back_propagate_GPU(d_affine, d_relu, i, if_activation, d_active_pattern, d_l1_lb,
                                                     d_l1_ub)
+            self.relu_compute_GPU(d_lbs, d_ubs, d_relu[i], d_active_pattern, d_l1_lb, d_l1_ub)
             relu[i] = cp.asnumpy(d_relu[i])
             if (if_activation[i, 1] == 1):  # assuming if first node in a layer has activation then all do
                 for j in range(1, len(d_affine[0])):
@@ -381,14 +383,13 @@ class DeepPolyGPU(AbstractDomainGPU):
         d_affine = cp.asarray(affine)
         d_relu = cp.asarray(relu)
         d_active_pattern = cp.asarray(active_pattern)
-
         d_l1_lb = cp.asarray(l1_lb)
         d_l1_ub = cp.asarray(l1_ub)
 
         # Removes NumbaPerformanceWarning and others but slow down everything significantly.
         warnings.filterwarnings("ignore")
-        self.detailedPrintCondense(d_affine,d_relu,d_active_pattern,d_l1_lb,d_l1_ub,if_activation,relu,var_index,inv_var_index,l1_lb,l1_ub)
-        #self.miniPrintCondense(d_affine, d_relu, d_active_pattern, d_l1_lb, d_l1_ub, if_activation, l1_lb, l1_ub, relu)
+        #self.detailedPrintCondense(d_affine,d_relu,d_active_pattern,d_l1_lb,d_l1_ub,if_activation,relu,var_index,inv_var_index,l1_lb,l1_ub)
+        self.miniPrintCondense(d_affine, d_relu, d_active_pattern, d_l1_lb, d_l1_ub, if_activation, l1_lb, l1_ub, relu)
 
         # print(f"activation->{d_active_pattern}")
         outcome = self.oneOutput(affine[-1], d_affine, d_relu, if_activation, d_l1_lb, d_l1_ub)
