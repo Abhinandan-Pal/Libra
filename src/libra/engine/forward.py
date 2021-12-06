@@ -25,6 +25,7 @@ from libra.core.cfg import Node, Function, Activation
 from  libra.optimized import deeppoly_gpu
 from libra.optimized.deepPolyGPU import DeepPolyGPU
 from libra.optimized.symbolicGPU import SymbolicGPU
+from libra.optimized.neurifyGPU import NeurifyGPU
 
 from  libra.optimized import symbolic_gpu
 from  libra.optimized import neurify_gpu
@@ -552,8 +553,8 @@ class ForwardInterpreter(Interpreter):
             nodes.append(node)
         #self.network_condense_GPU(nodes)
         #DeepPolyGPU().network_condense_GPU(nodes,initial)
-        #neurify_gpu.network_condense_GPU(nodes,initial)
-        SymbolicGPU().network_condense_GPU(nodes, initial)
+        NeurifyGPU().network_condense_GPU(nodes,initial)
+        #SymbolicGPU().network_condense_GPU(nodes, initial)
         # till here
         while not worklist.empty():
             current: Node = worklist.get()  # retrieve the current node

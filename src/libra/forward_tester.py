@@ -15,7 +15,7 @@ nn = 'libra/tests/example.py'
 if len(sys.argv) > 1:
     domain = checker(sys.argv[1])
 else:
-    domain = AbstractDomain.SYMBOLIC3 # default
+    domain = AbstractDomain.NEURIFY # default
 print(f"> Domain chosen: '{domain}'")
 b = ForwardAnalysis(spec, domain=domain, log=True)
 # forced_active = {

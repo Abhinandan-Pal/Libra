@@ -58,7 +58,6 @@ def relu_compute_GPU(d_l1_lte, d_l1_gte, d_relu_layer, d_active_pattern,d_l1_lb,
             slope = ubs_low[id] / (ubs_low[id] - lbs_low[id])
             relu_layer[id][0] = slope
             active_pattern[0][id] = 2
-
         relu_layer[id][3] = 0.0
         if (ubs_up[id] < 0):
             relu_layer[id][2] = 0.0
@@ -72,7 +71,6 @@ def relu_compute_GPU(d_l1_lte, d_l1_gte, d_relu_layer, d_active_pattern,d_l1_lb,
             relu_layer[id][2] = slope
             relu_layer[id][3] = y_coeff
             active_pattern[1][id] = 2
-
 
     d_lbs_up, d_ubs_up = get_bounds_GPU(d_l1_gte, d_l1_gte,d_l1_lb,d_l1_ub)
     d_lbs_low, d_ubs_low = get_bounds_GPU(d_l1_lte, d_l1_lte, d_l1_lb, d_l1_ub)
