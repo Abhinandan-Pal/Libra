@@ -239,9 +239,7 @@ class DeepPolyGPU(AbstractDomainGPU):
             node_num += 1
         return activated, deactivated
 
-    def network_condense_GPU(self,nodes, initial):
-        # equation[n1][n2] stores the bias and coeff of nodes of previous layer to form x[n1][n2] in order
-        # if_activation[n1][n2] stores if there is an activation on x[n1][n2] (only relu considered for now)
+    def getNetShape(self,nodes):
         NO_OF_LAYERS = 1
         MAX_NODES_IN_LAYER = 1
         CURR_NODED_IN_LAYER = 0
@@ -258,30 +256,10 @@ class DeepPolyGPU(AbstractDomainGPU):
             elif isinstance(current, Activation):
                 flag = True
                 continue
-        var_index: dict(str, (int, int)) = dict()
-        row_id = 0
-        col_id = 1
-        flag = False
+        return NO_OF_LAYERS,MAX_NODES_IN_LAYER
 
-        affine = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1, MAX_NODES_IN_LAYER + 1)).astype(np.float32)
-        relu = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1, 4)).astype(np.float32)
-        if_activation = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1)).astype(np.float32)
-        active_pattern = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1)).astype(np.float32)
-        l1_lb = np.zeros(MAX_NODES_IN_LAYER + 1).astype(np.float32)
-        l1_ub = np.zeros(MAX_NODES_IN_LAYER + 1).astype(np.float32)
-        dims = np.ones(NO_OF_LAYERS + 1).astype(np.int32)
-
-        # obtain the lower bound and upper bound for input layer using "initial"
-        # Assuming "initial" contains input from 0 to nth input in order.
-        i = 1
-        for var, bound in initial.bounds.items():
-            l1_lb[i] = bound.lower
-            l1_ub[i] = bound.upper
-            var_index[str(var)] = (row_id, col_id)
-            col_id += 1
-            i += 1
-        row_id = 1
-        col_id = 1
+    def fillInput(self,nodes,affine,dims,if_activation,var_index,MNIL):
+        row_id,col_id,flag = (1,1,False)
         # The 4 in relu is for lessThan(slope,y-coeff);greaterThan(slope,y-coeff)
         # TO-DO: can make the assumption if one node in a layer has relu then all do
         for current in nodes:
@@ -291,7 +269,7 @@ class DeepPolyGPU(AbstractDomainGPU):
                         flag = False
                         row_id += 1
                         col_id = 1
-                    coeffs = np.zeros((MAX_NODES_IN_LAYER + 1,)).astype(np.float32)
+                    coeffs = np.zeros((MNIL + 1,)).astype(np.float32)
                     eq = self.texpr_to_dict(eq)
                     for var, val in eq.items():
                         if var != '_':
@@ -317,10 +295,85 @@ class DeepPolyGPU(AbstractDomainGPU):
             else:
                 # print(f"Others->{current.stmts}")
                 '''What to do here
-    			for stmt in reversed(current.stmts):
-    			state = semantics.assume_call_semantics(stmt, state, manager)'''
+                for stmt in reversed(current.stmts):
+                state = semantics.assume_call_semantics(stmt, state, manager)'''
                 continue
 
+    def detailedPrintCondense(self,d_affine,d_relu,d_active_pattern,d_l1_lb,d_l1_ub,if_activation,relu,var_index,inv_var_index,l1_lb,l1_ub):
+        print(f"var_index = {var_index}")
+        print(f"inv_var_index = {inv_var_index}")
+
+
+        for i in range(1, len(d_affine)):
+
+            print(f"\t\t LAYER {i} Input Equations")
+            for j in range(1, len(d_affine[0])):
+                print(
+                    f"Node: {j} -> if_activation: {if_activation[i, j]}\n eq: {self.ineq_str(d_affine[i, j], i, j, '=', i - 1, inv_var_index)} ")
+            ineq_lte, ineq_gte = self.back_propagate_GPU(d_affine, d_relu, i, if_activation, d_active_pattern, d_l1_lb,
+                                                    d_l1_ub)
+            relu[i] = cp.asnumpy(d_relu[i])
+            print(f"\t\t LAYER {i} Substituted")
+            for j in range(1, len(d_affine[0])):
+                print(f"\tNode {j}")
+                print(f" eq LTE L1: {self.ineq_str(ineq_lte[j], i, j, '>=', 0, inv_var_index)}")
+                print(f" eq GTE L1: {self.ineq_str(ineq_gte[j], i, j, '<=', 0, inv_var_index)}")
+                print(
+                    f" eq (LB,UB): {self.get_bounds_single(ineq_lte, ineq_gte, j, l1_lb, l1_ub)}")  # Performing the whole debug-print segment in CPU will be removed later.
+
+            if (if_activation[i, 1] == 1):  # assuming if first node in a layer has activation then all do
+                print(f"\t RELU-LAYER {i}")
+                for j in range(1, len(d_affine[0])):
+                    print(f"\tNode {j}")
+                    print(f" Relu eq LTE: Slope: {relu[i][j][0]}, Y-Coeff: {relu[i][j][1]}")
+                    print(f" Relu eq GTE: Slope: {relu[i][j][2]}, Y-Coeff: {relu[i][j][3]}")
+                    print(
+                        f"Relu eq (LB,UB): {self.get_bounds_single(ineq_lte, ineq_gte, j, l1_lb, l1_ub, relu_val=relu[i][j])}")
+
+            # print stuff
+            else:
+                print(f"\t\t NO RELU ON LAYER {i}")
+        print(f"activation->{d_active_pattern}")
+
+    def miniPrintCondense(self,d_affine,d_relu,d_active_pattern,d_l1_lb,d_l1_ub,if_activation,l1_lb,l1_ub,relu):
+        for i in range(1, len(d_affine)):
+            ineq_lte, ineq_gte = self.back_propagate_GPU(d_affine, d_relu, i, if_activation, d_active_pattern, d_l1_lb,
+                                                    d_l1_ub)
+            relu[i] = cp.asnumpy(d_relu[i])
+            if (if_activation[i, 1] == 1):  # assuming if first node in a layer has activation then all do
+                for j in range(1, len(d_affine[0])):
+                    print(f"Relu {i}:{j} eq (LB,UB): {self.get_bounds_single(ineq_lte, ineq_gte, j,l1_lb,l1_ub, relu_val=relu[i][j])}")
+            else:
+                for j in range(1, len(d_affine[0])):
+                    print(f"{i}:{j} eq (LB,UB): {self.get_bounds_single(ineq_lte, ineq_gte, j,l1_lb,l1_ub)}")
+
+    def network_condense_GPU(self,nodes, initial):
+        # equation[n1][n2] stores the bias and coeff of nodes of previous layer to form x[n1][n2] in order
+        # if_activation[n1][n2] stores if there is an activation on x[n1][n2] (only relu considered for now)
+        NO_OF_LAYERS, MAX_NODES_IN_LAYER = self.getNetShape(nodes)
+        print(f"NO_OF_LAYER:{NO_OF_LAYERS}; MNIL:{MAX_NODES_IN_LAYER}")
+        var_index: dict(str, (int, int)) = dict()
+        row_id,col_id,flag = (0,1,False)
+
+        affine = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1, MAX_NODES_IN_LAYER + 1)).astype(np.float32)
+        relu = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1, 4)).astype(np.float32)
+        if_activation = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1)).astype(np.float32)
+        active_pattern = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1)).astype(np.float32)
+        l1_lb = np.zeros(MAX_NODES_IN_LAYER + 1).astype(np.float32)
+        l1_ub = np.zeros(MAX_NODES_IN_LAYER + 1).astype(np.float32)
+        dims = np.ones(NO_OF_LAYERS + 1).astype(np.int32)
+
+        # obtain the lower bound and upper bound for input layer using "initial"
+        # Assuming "initial" contains input from 0 to nth input in order.
+        i = 1
+        for var, bound in initial.bounds.items():
+            l1_lb[i] = bound.lower
+            l1_ub[i] = bound.upper
+            var_index[str(var)] = (row_id, col_id)
+            col_id += 1
+            i += 1
+
+        self.fillInput( nodes, affine, dims, if_activation, var_index, MAX_NODES_IN_LAYER)
         inv_var_index = {v: k for k, v in var_index.items()}
 
         # can remove layer 0 as it has no inequations
@@ -332,53 +385,10 @@ class DeepPolyGPU(AbstractDomainGPU):
         d_l1_lb = cp.asarray(l1_lb)
         d_l1_ub = cp.asarray(l1_ub)
 
-        '''
-        #Detailed print for DEBUG
-        print(f"var_index = {var_index}")
-        print(f"inv_var_index = {inv_var_index}")
-        print(f"NO_OF_LAYER:{NO_OF_LAYERS}; MNIL:{MAX_NODES_IN_LAYER}")
-
-        for i in range(1, len(affine)):
-
-            print(f"\t\t LAYER {i} Input Equations")
-            for j in range(1, len(affine[0])):
-                print(
-                    f"Node: {j} -> if_activation: {if_activation[i, j]}\n eq: {ineq_str(d_affine[i, j], i, j, '=', i - 1,inv_var_index)} ")
-            ineq_lte, ineq_gte = back_propagate_GPU(d_affine, d_relu, i, if_activation, d_active_pattern,d_l1_lb,d_l1_ub)
-            relu[i] = cp.asnumpy(d_relu[i])
-            print(f"\t\t LAYER {i} Substituted")
-            for j in range(1, len(affine[0])):
-                print(f"\tNode {j}")
-                print(f" eq LTE L1: {ineq_str(ineq_lte[j], i, j, '>=', 0,inv_var_index)}")
-                print(f" eq GTE L1: {ineq_str(ineq_gte[j], i, j, '<=', 0,inv_var_index)}")
-                print(
-                    f" eq (LB,UB): {get_bounds_single(ineq_lte, ineq_gte, j, l1_lb,l1_ub)}")  # Performing the whole debug-print segment in CPU will be removed later.
-
-            if (if_activation[i, 1] == 1):  # assuming if first node in a layer has activation then all do
-                print(f"\t RELU-LAYER {i}")
-                for j in range(1, len(affine[0])):
-                    print(f"\tNode {j}")
-                    print(f" Relu eq LTE: Slope: {relu[i][j][0]}, Y-Coeff: {relu[i][j][1]}")
-                    print(f" Relu eq GTE: Slope: {relu[i][j][2]}, Y-Coeff: {relu[i][j][3]}")
-                    print(f"Relu eq (LB,UB): {get_bounds_single(ineq_lte, ineq_gte, j,l1_lb,l1_ub, relu_val=relu[i][j])}")
-
-            # print stuff
-            else:
-                print(f"\t\t NO RELU ON LAYER {i}")
-        print(f"activation->{d_active_pattern}")
-        '''
-        warnings.filterwarnings(
-            "ignore")  # Removes NumbaPerformanceWarning and others but slow down everything significantly.
-        for i in range(1, len(affine)):
-            ineq_lte, ineq_gte = self.back_propagate_GPU(d_affine, d_relu, i, if_activation, d_active_pattern, d_l1_lb,
-                                                    d_l1_ub)
-            relu[i] = cp.asnumpy(d_relu[i])
-            if (if_activation[i, 1] == 1):  # assuming if first node in a layer has activation then all do
-                for j in range(1, len(affine[0])):
-                    print(f"Relu {i}:{j} eq (LB,UB): {self.get_bounds_single(ineq_lte, ineq_gte, j,l1_lb,l1_ub, relu_val=relu[i][j])}")
-            else:
-                for j in range(1, len(affine[0])):
-                    print(f"{i}:{j} eq (LB,UB): {self.get_bounds_single(ineq_lte, ineq_gte, j,l1_lb,l1_ub)}")
+        # Removes NumbaPerformanceWarning and others but slow down everything significantly.
+        warnings.filterwarnings("ignore")
+        self.detailedPrintCondense(d_affine,d_relu,d_active_pattern,d_l1_lb,d_l1_ub,if_activation,relu,var_index,inv_var_index,l1_lb,l1_ub)
+        #self.miniPrintCondense(d_affine, d_relu, d_active_pattern, d_l1_lb, d_l1_ub, if_activation, l1_lb, l1_ub, relu)
 
         # print(f"activation->{d_active_pattern}")
         outcome = self.oneOutput(affine[-1], d_affine, d_relu, if_activation, d_l1_lb, d_l1_ub)
