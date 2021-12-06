@@ -200,18 +200,18 @@ def oneOutput(last,d_affine,d_relu,if_activation,d_l1_lb,d_l1_ub):
 
 
 
-def active_convert(active_status,dims):
+def active_convert(active_status,dims,inv_var_index):
     activated = set()
     deactivated = set()
     node_num = 3
     for layer_index in range(1,len(dims[1:])):
         for neuron_index in range(1,dims[layer_index]):
             if(active_status[layer_index,neuron_index] == 0):
-                stmt = "x"+str(layer_index)+str(neuron_index)
+                stmt = inv_var_index[(layer_index,neuron_index)]
                 val = Basic(node_num,[PyVar(stmt)])
                 deactivated.add(val)
             elif(active_status[layer_index,neuron_index] == 1):
-                stmt = "x" + str(layer_index) + str(neuron_index)
+                stmt = inv_var_index[(layer_index,neuron_index)]
                 val = Basic(node_num, [PyVar(stmt)])
                 activated.add(val)
             node_num+=1
@@ -352,6 +352,6 @@ def network_condense_GPU(nodes, initial):
     outcome = oneOutput(affine[-1],d_affine, d_relu, if_activation,d_l1_lb,d_l1_ub)
     #print(f"INSIDE activation -> {d_active_pattern}; dims -> {dims}")
     active_pattern = cp.asnumpy(d_active_pattern)
-    activated, deactivated = active_convert(active_pattern,dims)
+    activated, deactivated = active_convert(active_pattern,dims,inv_var_index)
     #print(f"INSIDE activated = {activated}, deactivated = {deactivated}")
     return activated,deactivated,outcome'''

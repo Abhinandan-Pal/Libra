@@ -1,7 +1,7 @@
 import numpy as np
 import cupy as cp
 from numba import cuda
-from libra.optimized.commons import texpr_to_dict, get_bounds_single, ineq_str,ineq_str_direct
+from libra.optimized.commons import texpr_to_dict, get_bounds_single, ineq_str,ineq_str_direct,get_bounds_single_neurify
 from libra.core.cfg import Node, Function, Activation,Basic
 from libra.core.expressions import VariableIdentifier
 import warnings
@@ -18,15 +18,15 @@ def get_bounds_GPU(d_l1_lte, d_l1_gte, d_l1_lb, d_l1_ub):
         lbs[id] = l1_lte[id, 0]
         for i in range(1,len(l1_lte[id])):
             if(l1_lte[id,i]<0):
-                lbs[id] += l1_lte[id,i] * l1_ub[i]
+                lbs[id] += l1_lte[id,i] * l1_ub[i][1]
             else:
-                lbs[id] += l1_lte[id,i] * l1_lb[i]
+                lbs[id] += l1_lte[id,i] * l1_lb[i][0]
         ubs[id] = l1_gte[id, 0]
         for i in range(1,len(l1_gte[id])):
             if(l1_gte[id,i]>0):
-                ubs[id] += l1_gte[id,i] * l1_ub[i]
+                ubs[id] += l1_gte[id,i] * l1_ub[i][1]
             else:
-                ubs[id] += l1_gte[id,i] * l1_lb[i]
+                ubs[id] += l1_gte[id,i] * l1_lb[i][0]
 
     d_lbs = cp.zeros(d_l1_lte.shape[0])
     d_ubs = cp.zeros(d_l1_lte.shape[0])
@@ -239,18 +239,18 @@ def oneOutput(last,d_affine,d_relu,if_activation,d_l1_lb,d_l1_ub):
 
 
 
-def active_convert(active_status,dims):
+def active_convert(active_status,dims,inv_var_index):
     activated = set()
     deactivated = set()
     node_num = 3
     for l_id in range(1,len(dims[1:])):
         for n_id in range(1,dims[l_id]):
             if(active_status[0,l_id,n_id] == 0 and active_status[1,l_id,n_id] == 0):
-                stmt = "x"+str(l_id)+str(n_id)
+                stmt = inv_var_index[(l_id,n_id)]
                 val = Basic(node_num,[PyVar(stmt)])
                 deactivated.add(val)
             elif(active_status[0,l_id,n_id] == 1  and active_status[1,l_id,n_id] == 1):
-                stmt = "x" + str(l_id) + str(n_id)
+                stmt = inv_var_index[(l_id,n_id)]
                 val = Basic(node_num, [PyVar(stmt)])
                 activated.add(val)
             node_num+=1
@@ -287,23 +287,26 @@ def network_condense_GPU(nodes, initial):
     relu = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1,4)).astype(np.float32)
     if_activation = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1)).astype(np.float32)
     active_pattern = np.zeros((2,NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1)).astype(np.float32)
-    l1_lb = np.zeros(MAX_NODES_IN_LAYER+1).astype(np.float32)
-    l1_ub = np.zeros(MAX_NODES_IN_LAYER+1).astype(np.float32)
+    l1_lb = np.zeros((MAX_NODES_IN_LAYER+1,2)).astype(np.float32)         #bounds for LOW
+    l1_ub = np.zeros((MAX_NODES_IN_LAYER+1,2)).astype(np.float32)         #bounds for UP
     dims = np.ones(NO_OF_LAYERS+1).astype(np.int32)
 
     # obtain the lower bound and upper bound for input layer using "initial"
     #Assuming "initial" contains input from 0 to nth input in order.
     i = 1
     for var,bound in initial.bounds.items():
-        if(type(bound) == VariableIdentifier):
+        '''if(type(bound) == VariableIdentifier):
             l1_lb[i] = bound.lower
             l1_ub[i] = bound.upper
-        else:
-            l1_lb[i] = bound[0].lower
-            l1_ub[i] = bound[1].upper
+        else:'''
+        l1_lb[i][0] = bound[0].lower
+        l1_lb[i][1] = bound[0].upper
+        l1_ub[i][0] = bound[1].upper
+        l1_ub[i][1] = bound[1].upper
         var_index[str(var)] = (row_id, col_id)
         col_id += 1
         i+=1
+    print(f"\tDEBUG ---> l1_lb: {l1_lb} \n l1_ub: {l1_ub}")
     row_id = 1
     col_id = 1
     # The 4 in relu is for lessThan(slope,y-coeff);greaterThan(slope,y-coeff)
@@ -374,8 +377,8 @@ def network_condense_GPU(nodes, initial):
             print(f"\tNode {j}")
             print(f" eq LTE L1: {ineq_str(ineq_lte[j], i, j, '>=', 0,inv_var_index)}")
             print(f" eq GTE L1: {ineq_str(ineq_gte[j], i, j, '<=', 0,inv_var_index)}")
-            print(f" eq LOW (LB,UB): {get_bounds_single(ineq_lte, ineq_lte, j, l1_lb,l1_ub)}")
-            print(f" eq UP (LB,UB): {get_bounds_single(ineq_gte, ineq_gte, j, l1_lb,l1_ub)}")
+            print(f" eq LOW (LB,UB): {get_bounds_single_neurify(ineq_lte, ineq_lte, j, l1_lb,l1_ub)}")
+            print(f" eq UP (LB,UB): {get_bounds_single_neurify(ineq_gte, ineq_gte, j, l1_lb,l1_ub)}")
         if (if_activation[i, 1] == 1):  # assuming if first node in a layer has activation then all do
             print(f"\t RELU-LAYER {i}")
             for j in range(1, len(affine[0])):
@@ -383,9 +386,9 @@ def network_condense_GPU(nodes, initial):
                 print(f" Relu eq LTE: Slope: {relu[i][j][0]}, Y-Coeff: {relu[i][j][1]}")
                 print(f" Relu eq GTE: Slope: {relu[i][j][2]}, Y-Coeff: {relu[i][j][3]}")
                 relu_val = [relu[i][j][0],relu[i][j][1],relu[i][j][0],relu[i][j][1]]
-                print(f"Relu eq LOW (LB,UB): {get_bounds_single(ineq_lte, ineq_lte, j,l1_lb,l1_ub, relu_val=relu_val)}")
+                print(f"Relu eq LOW (LB,UB): {get_bounds_single_neurify(ineq_lte, ineq_lte, j,l1_lb,l1_ub, relu_val=relu_val)}")
                 relu_val = [relu[i][j][2], relu[i][j][3], relu[i][j][2], relu[i][j][3]]
-                print(f"Relu eq UP (LB,UB): {get_bounds_single(ineq_gte, ineq_gte, j, l1_lb, l1_ub, relu_val=relu_val)}")
+                print(f"Relu eq UP (LB,UB): {get_bounds_single_neurify(ineq_gte, ineq_gte, j, l1_lb, l1_ub, relu_val=relu_val)}")
 
         # print stuff
         else:
@@ -396,22 +399,22 @@ def network_condense_GPU(nodes, initial):
     for i in range(1, len(affine)):
         ineq_lte, ineq_gte = back_propagate_GPU(d_affine, d_relu, i, if_activation, d_active_pattern,d_l1_lb,d_l1_ub)
         relu[i] = cp.asnumpy(d_relu[i])
-        '''
+
         if (if_activation[i, 1] == 1):  # assuming if first node in a layer has activation then all do
             for j in range(1, len(affine[0])):
                 relu_val = [relu[i][j][0], relu[i][j][1], relu[i][j][0], relu[i][j][1]]
                 print(f"Relu{i}{j} eq LOW (LB,UB): {get_bounds_single(ineq_lte, ineq_lte, j, l1_lb, l1_ub, relu_val=relu_val)}")
                 relu_val = [relu[i][j][2], relu[i][j][3], relu[i][j][2], relu[i][j][3]]
-                print(f"Relu{i}{j} eq UP (LB,UB): {get_bounds_single(ineq_gte, ineq_gte, j, l1_lb, l1_ub, relu_val=relu_val)}")
+                print(f"Relu{i}{j} eq UP (LB,UB): {get_bounds_single_neurify(ineq_gte, ineq_gte, j, l1_lb, l1_ub, relu_val=relu_val)}")
         else:
             for j in range(1, len(affine[0])):
-                print(f" eq{i}{j} LOW (LB,UB): {get_bounds_single(ineq_lte, ineq_lte, j, l1_lb, l1_ub)}")
-                print(f" eq{i}{j} UP (LB,UB): {get_bounds_single(ineq_gte, ineq_gte, j, l1_lb, l1_ub)}")
-       '''
+                print(f" eq{i}{j} LOW (LB,UB): {get_bounds_single_neurify(ineq_lte, ineq_lte, j, l1_lb, l1_ub)}")
+                print(f" eq{i}{j} UP (LB,UB): {get_bounds_single_neurify(ineq_gte, ineq_gte, j, l1_lb, l1_ub)}")
+
     
     outcome = oneOutput(affine[-1],d_affine, d_relu, if_activation,d_l1_lb,d_l1_ub)
     active_pattern = cp.asnumpy(d_active_pattern)
-    activated, deactivated = active_convert(active_pattern,dims)
+    activated, deactivated = active_convert(active_pattern,dims,inv_var_index)
     print(f"GPU active:{activated}; deactive:{deactivated}; outcome:{outcome}")
     return activated,deactivated,outcome
 

@@ -23,6 +23,7 @@ from libra.abstract_domains.state import State
 from libra.core.cfg import Node, Function, Activation
 
 from  libra.optimized import deeppoly_gpu
+from libra.optimized.deepPolyGPU import DeepPolyGPU
 from  libra.optimized import symbolic_gpu
 from  libra.optimized import neurify_gpu
 from libra.optimized.deeppoly_cpu import network_condense_CPU
@@ -548,7 +549,7 @@ class ForwardInterpreter(Interpreter):
         for _, node in self.cfg.nodes.items():
             nodes.append(node)
         #self.network_condense_GPU(nodes)
-        #deeppoly_gpu.network_condense_GPU(nodes,initial)
+        DeepPolyGPU().network_condense_GPU(nodes,initial)
         #neurify_gpu.network_condense_GPU(nodes,initial)
         #symbolic_gpu.network_condense_GPU(nodes, initial)
         # till here

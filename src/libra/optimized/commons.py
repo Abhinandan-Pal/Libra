@@ -41,9 +41,6 @@ def texpr_to_dict( texpr):
                         result[var] = -val
                 return result
             elif op == TexprOp.AP_TEXPR_MUL:
-                # print('multiplying')
-                # print('left: ', left)
-                # print('right: ', right)
                 result = dict()
                 if '_' in left and len(left) == 1:
                     for var, val in right.items():
@@ -53,7 +50,6 @@ def texpr_to_dict( texpr):
                         result[var] = right['_'] * left[var]
                 else:
                     assert False
-                # print('result: ', result)
             elif op == TexprOp.AP_TEXPR_NEG:
                 result = deepcopy(left)
                 for var, val in result.items():
@@ -113,4 +109,25 @@ def get_bounds_single(l1_layer_lte,l1_layer_gte,node_num:int , l1_lb,l1_ub,relu_
             ub += l1_gte[i] * l1_ub[i]
         else:
             ub += l1_gte[i] * l1_lb[i]
+    return lb, ub
+
+def get_bounds_single_neurify(l1_layer_lte,l1_layer_gte,node_num:int , l1_lb,l1_ub,relu_val=[1,0,1,0]):
+    l1_lte = l1_layer_lte[node_num]*relu_val[0]
+
+    l1_lte[0] += relu_val[1]
+
+    l1_gte = l1_layer_gte[node_num]*relu_val[2]
+    l1_gte[0] += relu_val[3]
+    lb = l1_lte[0]
+    for i in range(1,len(l1_lte)):
+        if (l1_lte[i] < 0):
+            lb += l1_lte[i] * l1_ub[i][0]
+        else:
+            lb += l1_lte[i] * l1_lb[i][0]
+    ub = l1_gte[0]
+    for i in range(1,len(l1_gte)):
+        if (l1_gte[i] > 0):
+            ub += l1_gte[i] * l1_ub[i][1]
+        else:
+            ub += l1_gte[i] * l1_lb[i][1]
     return lb, ub
