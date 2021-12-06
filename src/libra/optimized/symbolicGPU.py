@@ -298,10 +298,10 @@ class SymbolicGPU(AbstractDomainGPU):
                 for j in range(1, len(d_affine[0])):
                     print(f"{i}:{j} eq (LB,UB): {self.get_bounds_single(ineq_lte, ineq_gte, j,l1_lb,l1_ub)}")
 
-    def noPrintCondense(self,d_affine, d_relu, i, if_activation, d_active_pattern,d_l1_lb,d_l1_ub):
+    def noPrintCondense(self,d_affine, d_symb, i, if_activation, d_active_pattern,d_l1_lb,d_l1_ub):
         for i in range(1, len(d_affine)):
-            d_lbs, d_ubs, ineq_lte, ineq_gte = self.back_propagate_GPU(d_affine, d_relu, i, if_activation, d_active_pattern,d_l1_lb,d_l1_ub)
-            self.relu_compute_GPU(d_lbs, d_ubs, d_relu[i], d_active_pattern, d_l1_lb, d_l1_ub)
+            d_lbs, d_ubs, ineq_lte, ineq_gte = self.back_propagate_GPU(d_affine, d_symb, i, if_activation, d_active_pattern,d_l1_lb,d_l1_ub)
+            self.relu_compute_GPU(d_lbs, d_ubs, d_symb[i], d_active_pattern, d_l1_lb, d_l1_ub)
 
     def network_condense_GPU(self,nodes, initial):
         # equation[n1][n2] stores the bias and coeff of nodes of previous layer to form x[n1][n2] in order
