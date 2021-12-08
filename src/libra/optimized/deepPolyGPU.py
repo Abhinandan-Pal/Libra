@@ -280,7 +280,8 @@ class DeepPolyGPU(AbstractDomainGPU):
                     f"Node: {j} -> if_activation: {if_activation[i, j]}\n eq: {self.ineq_str(d_affine[i, j], i, j, '=', i - 1, inv_var_index)} ")
             d_lbs,d_ubs,ineq_lte, ineq_gte = self.back_propagate_GPU(d_affine, d_relu, i, if_activation, d_active_pattern, d_l1_lb,
                                                     d_l1_ub)
-            self.relu_compute_GPU(d_lbs,d_ubs,d_relu[i],d_active_pattern,d_l1_lb,d_l1_ub)
+            if (if_activation[i][1] == 1):
+                self.relu_compute_GPU(d_lbs,d_ubs,d_relu[i],d_active_pattern[i],d_l1_lb,d_l1_ub)
             relu[i] = cp.asnumpy(d_relu[i])
             print(f"\t\t LAYER {i} Substituted")
             for j in range(1, len(d_affine[0])):
@@ -298,7 +299,6 @@ class DeepPolyGPU(AbstractDomainGPU):
                     print(f" Relu eq GTE: Slope: {relu[i][j][2]}, Y-Coeff: {relu[i][j][3]}")
                     print(
                         f"Relu eq (LB,UB): {self.get_bounds_single(ineq_lte, ineq_gte, j, l1_lb, l1_ub, relu_val=relu[i][j])}")
-
             # print stuff
             else:
                 print(f"\t\t NO RELU ON LAYER {i}")
@@ -308,8 +308,9 @@ class DeepPolyGPU(AbstractDomainGPU):
         for i in range(1, len(d_affine)):
             d_lbs,d_ubs,ineq_lte, ineq_gte = self.back_propagate_GPU(d_affine, d_relu, i, if_activation, d_active_pattern, d_l1_lb,
                                                     d_l1_ub)
-            self.relu_compute_GPU(d_lbs, d_ubs, d_relu[i], d_active_pattern, d_l1_lb, d_l1_ub)
-            relu[i] = cp.asnumpy(d_relu[i])
+            if (if_activation[i][1] == 1):
+                self.relu_compute_GPU(d_lbs, d_ubs, d_relu[i], d_active_pattern[i], d_l1_lb, d_l1_ub)
+                relu[i] = cp.asnumpy(d_relu[i])
             if (if_activation[i, 1] == 1):  # assuming if first node in a layer has activation then all do
                 for j in range(1, len(d_affine[0])):
                     print(f"Relu {i}:{j} eq (LB,UB): {self.get_bounds_single(ineq_lte, ineq_gte, j,l1_lb,l1_ub, relu_val=relu[i][j])}")
@@ -322,7 +323,8 @@ class DeepPolyGPU(AbstractDomainGPU):
             d_lbs, d_ubs, ineq_lte, ineq_gte = self.back_propagate_GPU(d_affine, d_relu, i, if_activation,
                                                                        d_active_pattern, d_l1_lb,
                                                                        d_l1_ub)
-            self.relu_compute_GPU(d_lbs, d_ubs, d_relu[i], d_active_pattern, d_l1_lb, d_l1_ub)
+            if (if_activation[i][1] == 1):
+                self.relu_compute_GPU(d_lbs, d_ubs, d_relu[i], d_active_pattern[i], d_l1_lb, d_l1_ub)
 
     def network_condense_GPU(self,nodes, initial):
         # equation[n1][n2] stores the bias and coeff of nodes of previous layer to form x[n1][n2] in order
@@ -365,11 +367,11 @@ class DeepPolyGPU(AbstractDomainGPU):
         warnings.filterwarnings("ignore")
         #self.detailedPrintCondense(d_affine,d_relu,d_active_pattern,d_l1_lb,d_l1_ub,if_activation,relu,var_index,inv_var_index,l1_lb,l1_ub)
         self.miniPrintCondense(d_affine, d_relu, d_active_pattern, d_l1_lb, d_l1_ub, if_activation, l1_lb, l1_ub, relu)
-        #self.noPrintCondense(self, d_affine, d_relu, i, if_activation, d_active_pattern, d_l1_lb, d_l1_ub)
+        #self.noPrintCondense( d_affine, d_relu, i, if_activation, d_active_pattern, d_l1_lb, d_l1_ub)
 
-        # print(f"activation->{d_active_pattern}")
+        #print(f"activation->{d_active_pattern}")
         outcome = self.oneOutput(affine[-1], d_affine, d_relu, if_activation, d_l1_lb, d_l1_ub)
         active_pattern = cp.asnumpy(d_active_pattern)
         activated, deactivated = self.active_convert(active_pattern, dims, inv_var_index)
-        # print(f"GPU active:{activated}; deactive:{deactivated}; outcome:{outcome}")
+        #print(f"GPU active:{activated}; deactive:{deactivated}; outcome:{outcome}")
         return activated, deactivated, outcome

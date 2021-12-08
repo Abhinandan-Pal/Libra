@@ -65,8 +65,8 @@ def relu_compute_GPU(d_l1_lte, d_l1_gte, d_relu_layer, d_active_pattern,d_l1_lb,
             relu_layer[id] = (1.0, 0.0, slope, y_coeff)
 
     d_lbs, d_ubs = get_bounds_GPU(d_l1_lte, d_l1_gte,d_l1_lb,d_l1_ub)
-    tpb = (min(1024, len(d_l1_lte)),)
-    bpg = (int(np.ceil(len(d_l1_lte) / tpb[0])),)
+    tpb = (min(1024, len(d_lbs)),)
+    bpg = (int(np.ceil(len(d_lbs) / tpb[0])),)
     relu_compute_helper[bpg, tpb](d_lbs,
                                   d_ubs,
                                   d_relu_layer,
@@ -206,10 +206,10 @@ def oneOutput(last,d_affine,d_relu,if_activation,d_l1_lb,d_l1_ub):
     ubs = cp.asnumpy(d_ubs)
     ln_coeff_gte = cp.asnumpy(d_ln_coeff_gte).astype(np.float32)
     ln_coeff_lte = cp.asnumpy(d_ln_coeff_lte).astype(np.float32)
-    '''print(f"DEBUG --> l1_lb: {d_l1_lb}; l1_ub:{d_l1_ub}")
+    print(f"DEBUG --> l1_lb: {d_l1_lb}; l1_ub:{d_l1_ub}")
     print(f" eq LTE L1: {ineq_str_direct(ln_coeff_lte[1], 4, 1, '>=', 0)}")
     print(f" eq GTE L1: {ineq_str_direct(ln_coeff_gte[1], 4, 1, '<=', 0)}")
-    print(f"DEBUG --> lbs:{d_lbs}; ubs:{d_ubs}")'''
+    print(f"DEBUG --> lbs:{d_lbs}; ubs:{d_ubs}")
     if(lbs[1]>0.0):
         stmt = "x" + str(len(d_affine)-1) + str(1)
         return VariableIdentifier(stmt)
@@ -370,15 +370,15 @@ def network_condense_GPU(nodes, initial):
     warnings.filterwarnings("ignore")                       #Removes NumbaPerformanceWarning and others but slow down everything significantly.
     for i in range(1, len(affine)):
         ineq_lte, ineq_gte = back_propagate_GPU(d_affine, d_relu, i, if_activation, d_active_pattern,d_l1_lb,d_l1_ub)
-        '''relu[i] = cp.asnumpy(d_relu[i])
+        relu[i] = cp.asnumpy(d_relu[i])
         if (if_activation[i, 1] == 1):  # assuming if first node in a layer has activation then all do
             for j in range(1, len(affine[0])):
                 print(f"Relu {i}:{j} eq (LB,UB): {get_bounds_single(ineq_lte, ineq_gte, j,l1_lb,l1_ub, relu_val=relu[i][j])}")
         else:
             for j in range(1, len(affine[0])):
                 print(f"{i}:{j} eq (LB,UB): {get_bounds_single(ineq_lte, ineq_gte, j,l1_lb,l1_ub)}")
-       '''
-    #print(f"activation->{d_active_pattern}")
+
+    print(f"activation->{d_active_pattern}")
     outcome = oneOutput(affine[-1],d_affine, d_relu, if_activation,d_l1_lb,d_l1_ub)
     active_pattern = cp.asnumpy(d_active_pattern)
     activated, deactivated = active_convert(active_pattern,dims,inv_var_index)

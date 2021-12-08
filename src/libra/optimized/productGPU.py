@@ -76,12 +76,13 @@ class ProductGPU(AbstractDomainGPU):
                 d_lbsL[j], d_ubsL[j] = d_lbs_low,d_ubs_up
                 j += 1
             d_lbs,d_ubs = self.mergeBounds(d_lbsL,d_ubsL)
-            if ("DeepPoly" in domains):
-                dpG.relu_compute_GPU(d_lbs, d_ubs, d_relu_dp[i], d_active_pattern, d_l1_lb, d_l1_ub)
-            if ("Symbolic" in domains):
-                smbG.relu_compute_GPU(d_lbs, d_ubs, d_symb[i], d_active_pattern, d_l1_lb, d_l1_ub)
-            if ("Neurify" in domains):
-                neuG.relu_compute_GPU(d_lbs, d_ubs_low, d_lbs_up, d_ubs, d_relu_neu[i], d_active_pattern, d_l1_lb_neu,d_l1_ub_neu)
+            if (if_activation[i][1] == 1):
+                if ("DeepPoly" in domains):
+                    dpG.relu_compute_GPU(d_lbs, d_ubs, d_relu_dp[i], d_active_pattern[i], d_l1_lb, d_l1_ub)
+                if ("Symbolic" in domains):
+                    smbG.relu_compute_GPU(d_lbs, d_ubs, d_symb[i], d_active_pattern[i], d_l1_lb, d_l1_ub)
+                if ("Neurify" in domains):
+                    neuG.relu_compute_GPU(d_lbs, d_ubs_low, d_lbs_up, d_ubs, d_relu_neu[i], d_active_pattern[i], d_l1_lb_neu,d_l1_ub_neu)
 
 
     def network_condense_GPU(self,nodes, initial,domains):

@@ -257,7 +257,8 @@ class SymbolicGPU(AbstractDomainGPU):
                     f"Node: {j} -> if_activation: {if_activation[i, j]}\n eq: {self.ineq_str(d_affine[i, j], i, j, '=', i - 1, inv_var_index)} ")
             d_lbs,d_ubs,ineq_lte, ineq_gte = self.back_propagate_GPU(d_affine, d_symb, i, if_activation, d_active_pattern, d_l1_lb,
                                                          d_l1_ub)
-            self.relu_compute_GPU(d_lbs, d_ubs, d_symb[i], d_active_pattern, d_l1_lb, d_l1_ub)
+            if (if_activation[i][1] == 1):
+                self.relu_compute_GPU(d_lbs, d_ubs, d_symb[i], d_active_pattern[i], d_l1_lb, d_l1_ub)
             symb[i] = cp.asnumpy(d_symb[i])
             print(f"\t\t LAYER {i} Substituted")
             for j in range(1, len(d_affine[0])):
@@ -286,7 +287,8 @@ class SymbolicGPU(AbstractDomainGPU):
         for i in range(1, len(d_affine)):
             d_lbs, d_ubs,ineq_lte, ineq_gte = self.back_propagate_GPU(d_affine, d_symb, i, if_activation, d_active_pattern, d_l1_lb,
                                                     d_l1_ub)
-            self.relu_compute_GPU(d_lbs, d_ubs, d_symb[i], d_active_pattern, d_l1_lb, d_l1_ub)
+            if (if_activation[i][1] == 1):
+                self.relu_compute_GPU(d_lbs, d_ubs, d_symb[i], d_active_pattern[i], d_l1_lb, d_l1_ub)
             symb[i] = cp.asnumpy(d_symb[i])
             if (if_activation[i, 1] == 1):  # assuming if first node in a layer has activation then all do
                 for j in range(1, len(d_affine[0])):
@@ -301,7 +303,8 @@ class SymbolicGPU(AbstractDomainGPU):
     def noPrintCondense(self,d_affine, d_symb, i, if_activation, d_active_pattern,d_l1_lb,d_l1_ub):
         for i in range(1, len(d_affine)):
             d_lbs, d_ubs, ineq_lte, ineq_gte = self.back_propagate_GPU(d_affine, d_symb, i, if_activation, d_active_pattern,d_l1_lb,d_l1_ub)
-            self.relu_compute_GPU(d_lbs, d_ubs, d_symb[i], d_active_pattern, d_l1_lb, d_l1_ub)
+            if (if_activation[i][1] == 1):
+                self.relu_compute_GPU(d_lbs, d_ubs, d_symb[i], d_active_pattern[i], d_l1_lb, d_l1_ub)
 
     def network_condense_GPU(self,nodes, initial):
         # equation[n1][n2] stores the bias and coeff of nodes of previous layer to form x[n1][n2] in order

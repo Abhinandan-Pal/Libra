@@ -556,7 +556,7 @@ class ForwardInterpreter(Interpreter):
         #DeepPolyGPU().network_condense_GPU(nodes,initial)
         #NeurifyGPU().network_condense_GPU(nodes,initial)
         #SymbolicGPU().network_condense_GPU(nodes, initial)
-        ProductGPU().network_condense_GPU(nodes, initial,{"Symbolic","Neurify"})
+        #ProductGPU().network_condense_GPU(nodes, initial,{"Symbolic","Neurify"})
         # till here
         while not worklist.empty():
             current: Node = worklist.get()  # retrieve the current node
@@ -610,7 +610,8 @@ class ForwardInterpreter(Interpreter):
         nodes = []
         for _, node in self.cfg.nodes.items():
             nodes.append(node)
-        activated,deactivated,outcome = neurify_gpu.network_condense_GPU(nodes, initial)
+        activated,deactivated,outcome = DeepPolyGPU().network_condense_GPU(nodes, initial)
+        #activated, deactivated, outcome = deeppoly_gpu.network_condense_GPU(nodes, initial)
         # self.network_condense_GPU(nodes)
         '''print("DEBUG -> activated")
         for act in activated:
