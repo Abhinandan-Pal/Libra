@@ -25,11 +25,12 @@ from libra.core.cfg import Node, Function, Activation
 from  libra.optimized import deeppoly_gpu
 from libra.optimized.deepPolyGPU import DeepPolyGPU
 #from libra.optimized.symbolicGPU import SymbolicGPU
-#from libra.optimized.neurifyGPU import NeurifyGPU
+from libra.optimized.neurifyGPU import NeurifyGPU
 #from libra.optimized.productGPU import ProductGPU
 
 from  libra.optimized import symbolic_gpu
 from  libra.optimized import neurify_gpu
+from  libra.optimized import product_gpu
 from libra.optimized.deeppoly_cpu import network_condense_CPU
 
 from apronpy.texpr0 import TexprRtype, TexprRdir, TexprDiscr, TexprOp
@@ -603,15 +604,16 @@ class ForwardInterpreter(Interpreter):
         for iout in outputs:
             pri.append(iout.name)
         #print(f"DEBUG IN -> forced_active:{forced_active} forced_inactive:{forced_inactive} output:{pri}")
-        print(f"DEBUG -> \tinitial:{initial.bounds.items()}\n active:{activated}; deactive:{deactivated}; outcome:{found}")
+        print(f"DEBUG CPU -> \tinitial:{initial.bounds.items()}\n active:{activated}; deactive:{deactivated}; outcome:{found}")
         return activated, deactivated, found
 
     def analyze_GPU(self,initial,outputs):
         nodes = []
         for _, node in self.cfg.nodes.items():
             nodes.append(node)
-        activated,deactivated,outcome = DeepPolyGPU().network_condense_GPU(nodes, initial)
-        #activated, deactivated, outcome = deeppoly_gpu.network_condense_GPU(nodes, initial,outputs)
+        activated,deactivated,outcome = neurify_gpu.network_condense_GPU(nodes, initial,outputs)
+        #activated, deactivated, outcome = symbolic_gpu.network_condense_GPU(nodes, initial,outputs)
+        #activated, deactivated, outcome = product_gpu.network_condense_GPU(nodes, initial,{"Symbolic","DeepPoly"},outputs)
         # self.network_condense_GPU(nodes)
         '''print("DEBUG -> activated")
         for act in activated:
@@ -619,7 +621,7 @@ class ForwardInterpreter(Interpreter):
         print("DEBUG -> deactivated")
         for deact in deactivated:
             print(f"ident: {deact.identifier};stmts: {type(deact.stmts)}")'''
-        print(f"DEBUG -> initial:{initial.bounds.items()};\n active:{activated}; deactive:{deactivated}; outcome:{outcome}")
+        print(f"DEBUG GPU -> initial:{initial.bounds.items()};\n active:{activated}; deactive:{deactivated}; outcome:{outcome}")
 
         return activated,deactivated,outcome
 

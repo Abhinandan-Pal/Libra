@@ -413,8 +413,7 @@ class NeurifyGPU(AbstractDomainGPU):
                                                                                                    d_l1_lb,
                                                                                                    d_l1_ub)
             if (if_activation[i][1] == 1):
-                self.relu_compute_GPU(d_lbs_low, d_ubs_low, d_lbs_up, d_ubs_up, d_relu[i], d_active_pattern[i], d_l1_lb,
-                                  d_l1_ub)
+                self.relu_compute_GPU(d_lbs_low, d_ubs_low,d_lbs_up, d_ubs_up, d_relu[i], d_active_pattern[:,i,:],d_l1_lb,d_l1_ub)
     def network_condense_GPU(self,nodes, initial):
         # equation[n1][n2] stores the bias and coeff of nodes of previous layer to form x[n1][n2] in order
         # if_activation[n1][n2] stores if there is an activation on x[n1][n2] (only relu considered for now)
@@ -461,12 +460,13 @@ class NeurifyGPU(AbstractDomainGPU):
         d_l1_ub = cp.asarray(l1_ub)
         # Removes NumbaPerformanceWarning and others but slow down everything significantly.
         warnings.filterwarnings("ignore")
-        self.detailedPrintCondense(d_affine,d_relu,d_active_pattern,d_l1_lb,d_l1_ub,if_activation,relu,var_index,inv_var_index,l1_lb,l1_ub)
+        #self.detailedPrintCondense(d_affine,d_relu,d_active_pattern,d_l1_lb,d_l1_ub,if_activation,relu,var_index,inv_var_index,l1_lb,l1_ub)
         #self.miniPrintCondense(d_affine, d_relu, d_active_pattern, d_l1_lb, d_l1_ub, if_activation, l1_lb, l1_ub, relu)
-        #self.noPrintCondense(d_affine, d_relu, i, if_activation, d_active_pattern, d_l1_lb, d_l1_ub)
+        self.noPrintCondense(d_affine, d_relu, i, if_activation, d_active_pattern, d_l1_lb, d_l1_ub)
 
         outcome = self.oneOutput(affine[-1], d_affine, d_relu, if_activation, d_l1_lb, d_l1_ub)
         active_pattern = cp.asnumpy(d_active_pattern)
+
         activated, deactivated = self.active_convert(active_pattern, dims, inv_var_index)
         print(f"GPU active:{activated}; deactive:{deactivated}; outcome:{outcome}")
         return activated, deactivated, outcome
