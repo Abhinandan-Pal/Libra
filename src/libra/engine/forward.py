@@ -24,9 +24,9 @@ from libra.core.cfg import Node, Function, Activation
 
 from  libra.optimized import deeppoly_gpu
 from libra.optimized.deepPolyGPU import DeepPolyGPU
-from libra.optimized.symbolicGPU import SymbolicGPU
-from libra.optimized.neurifyGPU import NeurifyGPU
-from libra.optimized.productGPU import ProductGPU
+#from libra.optimized.symbolicGPU import SymbolicGPU
+#from libra.optimized.neurifyGPU import NeurifyGPU
+#from libra.optimized.productGPU import ProductGPU
 
 from  libra.optimized import symbolic_gpu
 from  libra.optimized import neurify_gpu
@@ -606,12 +606,12 @@ class ForwardInterpreter(Interpreter):
         print(f"DEBUG -> \tinitial:{initial.bounds.items()}\n active:{activated}; deactive:{deactivated}; outcome:{found}")
         return activated, deactivated, found
 
-    def analyze_GPU(self,initial):
+    def analyze_GPU(self,initial,outputs):
         nodes = []
         for _, node in self.cfg.nodes.items():
             nodes.append(node)
         activated,deactivated,outcome = DeepPolyGPU().network_condense_GPU(nodes, initial)
-        #activated, deactivated, outcome = deeppoly_gpu.network_condense_GPU(nodes, initial)
+        #activated, deactivated, outcome = deeppoly_gpu.network_condense_GPU(nodes, initial,outputs)
         # self.network_condense_GPU(nodes)
         '''print("DEBUG -> activated")
         for act in activated:

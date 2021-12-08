@@ -224,6 +224,7 @@ class DeepPolyGPU(AbstractDomainGPU):
             elif isinstance(current, Activation):
                 flag = True
                 continue
+        MAX_NODES_IN_LAYER = max(MAX_NODES_IN_LAYER, CURR_NODED_IN_LAYER)
         return NO_OF_LAYERS,MAX_NODES_IN_LAYER
 
     def fillInput(self,nodes,affine,dims,if_activation,var_index,MNIL):
