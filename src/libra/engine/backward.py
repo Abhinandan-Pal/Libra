@@ -676,7 +676,7 @@ class BackwardInterpreter(Interpreter):
             if arity > 1:   # the sensitive feature is one-hot encoded
                 self.values: List[OneHot1] = list(one_hots(self.sensitive))
             else:           # the sensitive feature is continuous
-                zero = Literal('0')
+                zero = Literal('-1')
                 pivot = specification.readline().strip()
                 literal = Literal(pivot)
                 one = Literal('1')
@@ -686,7 +686,7 @@ class BackwardInterpreter(Interpreter):
                 lower = BinaryComparisonOperation(zero, BinaryComparisonOperation.Operator.LtE, self.sensitive[0])
                 upper = BinaryComparisonOperation(self.sensitive[0], BinaryComparisonOperation.Operator.Lt, literal)
                 value1 = BinaryBooleanOperation(lower, BinaryBooleanOperation.Operator.And, upper)
-                _value1[self.sensitive[0]] = (0, eval(pivot))
+                _value1[self.sensitive[0]] = (-1, eval(pivot))
                 self.values.append((variable1, value1, tuple(_value1.items())))
                 _value2 = dict()
                 variable2 = VariableIdentifier('{}[>={}]'.format(self.sensitive[0], literal))
@@ -696,7 +696,7 @@ class BackwardInterpreter(Interpreter):
                 _value2[self.sensitive[0]] = (eval(pivot), 1)
                 self.values.append((variable2, value2, tuple(_value2.items())))
             # bound the sensitive feature between 0 and 1
-            zero = Literal('0')
+            zero = Literal('-1')
             one = Literal('1')
             left = BinaryComparisonOperation(zero, BinaryComparisonOperation.Operator.LtE, self.sensitive[0])
             right = BinaryComparisonOperation(self.sensitive[0], BinaryComparisonOperation.Operator.LtE, one)
@@ -733,8 +733,13 @@ class BackwardInterpreter(Interpreter):
             self.uncontroversial2 = list(inputs - set(self.sensitive) - set(itertools.chain(*self.uncontroversial1)))
             ranges: Dict[VariableIdentifier, Tuple[int, int]] = dict()
             for uncontroversial in self.uncontroversial2:
-                ranges[uncontroversial] = (0, 1)
-            # for uncontroversial in self.uncontroversial2:
+                ranges[uncontroversial] = (-1, 1)
+            ranges[VariableIdentifier('x07')] = (1, 1)
+            ranges[VariableIdentifier('x08')] = (-1, -1)
+            ranges[VariableIdentifier('x09')] = (-1, -1)
+            ranges[VariableIdentifier('x010')] = (-1, -1)
+            ranges[VariableIdentifier('x011')] = (1, 1)
+                # for uncontroversial in self.uncontroversial2:
             #     left = BinaryComparisonOperation(zero, BinaryComparisonOperation.Operator.LtE, uncontroversial)
             #     right = BinaryComparisonOperation(uncontroversial, BinaryComparisonOperation.Operator.LtE, one)
             #     conj = BinaryBooleanOperation(left, BinaryBooleanOperation.Operator.And, right)

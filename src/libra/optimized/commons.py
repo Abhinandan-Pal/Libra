@@ -58,7 +58,7 @@ def texpr_to_dict( texpr):
     texpr1 = texpr.texpr1.contents
     return do(texpr1.texpr0.contents, texpr1.env.contents)
 
-def ineq_str(ineq:list[float],layer_lhs,node_num,op,layer_rhs,inv_var_index):
+def ineq_str(ineq,layer_lhs,node_num,op,layer_rhs,inv_var_index):
     if not ((layer_lhs,node_num) in inv_var_index.keys()):
         return "Empty Node"
     if(op==">="):

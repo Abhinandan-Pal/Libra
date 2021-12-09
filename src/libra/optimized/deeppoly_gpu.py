@@ -234,7 +234,7 @@ def getNetShape(nodes):
     flag = False
     for current in nodes:
         if isinstance(current, Function):
-            for (node, eq) in zip(current.stmts[0], current.stmts[1]):
+            for (node, eq) in zip(current.stmts[0], current.stmts[1]):              #TODO just use the length
                 if (flag):
                     flag = False
                     NO_OF_LAYERS += 1
