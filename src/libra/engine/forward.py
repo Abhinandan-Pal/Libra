@@ -26,7 +26,7 @@ from  libra.optimized import deeppoly_gpu
 from libra.optimized.deepPolyGPU import DeepPolyGPU
 #from libra.optimized.symbolicGPU import SymbolicGPU
 from libra.optimized.neurifyGPU import NeurifyGPU
-#from libra.optimized.productGPU import ProductGPU
+from libra.optimized.productGPU import ProductGPU
 
 from  libra.optimized import symbolic_gpu
 from  libra.optimized import neurify_gpu
@@ -555,9 +555,11 @@ class ForwardInterpreter(Interpreter):
             nodes.append(node)
         #self.network_condense_GPU(nodes)
         #DeepPolyGPU().network_condense_GPU(nodes,initial)
-        #NeurifyGPU().network_condense_GPU(nodes,initial)
-        #SymbolicGPU().network_condense_GPU(nodes, initial)
-        #ProductGPU().network_condense_GPU(nodes, initial,{"Symbolic","Neurify"})
+        #neurify_gpu.network_condense_GPU(nodes,initial,outputs)
+        #symbolic_gpu.network_condense_GPU(nodes, initial,outputs)
+        #product_gpu.network_condense_GPU(nodes, initial,{"Neurify","DeepPoly","Symbolic"},outputs)
+        #ProductGPU().network_condense_GPU(nodes, initial,{"Neurify","DeepPoly","Symbolic"})
+
         # till here
         while not worklist.empty():
             current: Node = worklist.get()  # retrieve the current node
@@ -611,9 +613,9 @@ class ForwardInterpreter(Interpreter):
         nodes = []
         for _, node in self.cfg.nodes.items():
             nodes.append(node)
-        activated,deactivated,outcome = neurify_gpu.network_condense_GPU(nodes, initial,outputs)
+        #activated,deactivated,outcome = neurify_gpu.network_condense_GPU(nodes, initial,outputs)
         #activated, deactivated, outcome = symbolic_gpu.network_condense_GPU(nodes, initial,outputs)
-        #activated, deactivated, outcome = product_gpu.network_condense_GPU(nodes, initial,{"Symbolic","DeepPoly"},outputs)
+        activated, deactivated, outcome = product_gpu.network_condense_GPU(nodes, initial,{"Neurify","DeepPoly"},outputs)
         # self.network_condense_GPU(nodes)
         '''print("DEBUG -> activated")
         for act in activated:

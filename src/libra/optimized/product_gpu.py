@@ -71,42 +71,39 @@ def fillInput(nodes,affine,dims,if_activation,var_index,MNIL):
             state = semantics.assume_call_semantics(stmt, state, manager)'''
             continue
 
-def miniPrintCondense(d_affine, if_activation,d_active_pattern, d_l1_lb,d_l1_ub,domains,d_relu_dp = None,d_symb = None,d_relu_neu=None, d_l1_lb_neu=None,d_l1_ub_neu=None):
-    dpG = DeepPolyGPU()
-    smbG = SymbolicGPU()
-    neuG = NeurifyGPU()
+def miniPrintCondense(d_affine, if_activation, d_l1_lb,d_l1_ub,domains,d_relu_dp,d_symb,d_relu_neu, d_l1_lb_neu,d_l1_ub_neu,d_active_pattern_dp,d_active_pattern_symb,d_active_pattern_neu):
     d_lbsL = cp.zeros((len(domains), len(d_affine[0])))
     d_ubsL = cp.zeros((len(domains), len(d_affine[0])))
     for i in range(1, len(d_affine)):
         j = 0
         if ("DeepPoly" in domains):
-            d_lbsL[j], d_ubsL[j], ineq_lte, ineq_gte = dpG.back_propagate_GPU(d_affine, d_relu_dp, i, if_activation,
-                                                                              d_active_pattern, d_l1_lb, d_l1_ub)
+            d_ineq_lte, d_ineq_gte = dpG.back_propagate_GPU(d_affine, d_relu_dp, i, if_activation, d_active_pattern_dp,
+                                                            d_l1_lb, d_l1_ub)
+            d_lbsL[j], d_ubsL[j] = dpG.get_bounds_GPU(d_ineq_lte, d_ineq_gte, d_l1_lb, d_l1_ub)
             j += 1
         if ("Symbolic" in domains):
-            d_lbsL[j], d_ubsL[j], ineq_lte, ineq_gte = smbG.back_propagate_GPU(d_affine, d_symb, i, if_activation,
-                                                                               d_active_pattern, d_l1_lb, d_l1_ub)
+            d_ineq_lte, d_ineq_gte = smbG.back_propagate_GPU(d_affine, d_symb, i, if_activation, d_active_pattern_symb,
+                                                             d_l1_lb, d_l1_ub)
+            d_lbsL[j], d_ubsL[j] = smbG.get_bounds_GPU(d_ineq_lte, d_ineq_gte, d_l1_lb, d_l1_ub)
             j += 1
         if ("Neurify" in domains):
-            d_lbs_low, d_ubs_low, d_lbs_up, d_ubs_up, ineq_lte, ineq_gte = neuG.back_propagate_GPU(d_affine,
-                                                                                                   d_relu_neu, i,
-                                                                                                   if_activation,
-                                                                                                   d_active_pattern,
-                                                                                                   d_l1_lb_neu,
-                                                                                                   d_l1_ub_neu)
+            d_ineq_lte, d_ineq_gte = neuG.back_propagate_GPU(d_affine, d_relu_neu, i, if_activation,
+                                                             d_active_pattern_neu, d_l1_lb_neu, d_l1_ub_neu)
+            d_lbs_low, d_ubs_low = neuG.get_bounds_GPU(d_ineq_lte, d_ineq_lte, d_l1_lb_neu,d_l1_ub_neu)
+            d_lbs_up, d_ubs_up = neuG.get_bounds_GPU(d_ineq_gte, d_ineq_gte, d_l1_lb_neu,d_l1_ub_neu)
             d_lbsL[j], d_ubsL[j] = d_lbs_low, d_ubs_up
             j += 1
         d_lbs, d_ubs = mergeBounds(d_lbsL, d_ubsL)
-        if ("DeepPoly" in domains):
-            dpG.relu_compute_GPU(d_lbs, d_ubs, d_relu_dp[i], d_active_pattern, d_l1_lb, d_l1_ub)
-        if ("Symbolic" in domains):
-            smbG.relu_compute_GPU(d_lbs, d_ubs, d_symb[i], d_active_pattern, d_l1_lb, d_l1_ub)
-        if ("Neurify" in domains):
-            neuG.relu_compute_GPU(d_lbs, d_ubs_low, d_lbs_up, d_ubs, d_relu_neu[i], d_active_pattern, d_l1_lb_neu,
-                                  d_l1_ub_neu)
+        if (if_activation[i][1] == 1):
+            if ("DeepPoly" in domains):
+                dpG.relu_compute_GPU(d_lbs, d_ubs, d_relu_dp[i], d_active_pattern_dp[i], d_l1_lb, d_l1_ub)
+            if ("Symbolic" in domains):
+                smbG.relu_compute_GPU(d_lbs, d_ubs, d_symb[i], d_active_pattern_symb[i], d_l1_lb, d_l1_ub)
+            if ("Neurify" in domains):
+                neuG.relu_compute_GPU(d_lbs, d_ubs_low, d_lbs_up, d_ubs, d_relu_neu[i], d_active_pattern_neu[:,i,:],d_l1_lb,d_l1_ub)
 
-            for j in range(1, len(d_affine[0])):
-                print(f"Affine {i}:{j} eq (LB,UB): ({d_lbs[j]}, {d_ubs[j]})")
+        for j in range(1, len(d_affine[0])):
+            print(f"Affine {i}:{j} eq (LB,UB): ({d_lbs[j]}, {d_ubs[j]})")
 
 def mergeBounds(d_lbsL,d_ubsL):
     d_lbs = cp.amax(d_lbsL, axis=0)
@@ -130,8 +127,8 @@ def noPrintCondense(d_affine, if_activation, d_l1_lb,d_l1_ub,domains,d_relu_dp,d
             j += 1
         if ("Neurify" in domains):
             d_ineq_lte, d_ineq_gte = neuG.back_propagate_GPU(d_affine, d_relu_neu, i,if_activation,d_active_pattern_neu,d_l1_lb_neu,d_l1_ub_neu)
-            d_lbs_low, d_ubs_low = neuG.get_bounds_GPU(d_ineq_lte, d_ineq_lte, d_l1_lb, d_l1_ub)
-            d_lbs_up, d_ubs_up = neuG.get_bounds_GPU(d_ineq_gte, d_ineq_gte, d_l1_lb, d_l1_ub)
+            d_lbs_low, d_ubs_low = neuG.get_bounds_GPU(d_ineq_lte, d_ineq_lte, d_l1_lb_neu,d_l1_ub_neu)
+            d_lbs_up, d_ubs_up = neuG.get_bounds_GPU(d_ineq_gte, d_ineq_gte, d_l1_lb_neu,d_l1_ub_neu)
             d_lbsL[j], d_ubsL[j] = d_lbs_low,d_ubs_up
             j += 1
         d_lbs,d_ubs = mergeBounds(d_lbsL,d_ubsL)
@@ -141,7 +138,7 @@ def noPrintCondense(d_affine, if_activation, d_l1_lb,d_l1_ub,domains,d_relu_dp,d
             if ("Symbolic" in domains):
                 smbG.relu_compute_GPU(d_lbs, d_ubs, d_symb[i], d_active_pattern_symb[i], d_l1_lb, d_l1_ub)
             if ("Neurify" in domains):
-                neuG.relu_compute_GPU(d_lbs, d_ubs_low, d_lbs_up, d_ubs, d_relu_neu[i], d_active_pattern_neu[i], d_l1_lb_neu,d_l1_ub_neu)
+                neuG.relu_compute_GPU(d_lbs, d_ubs_low, d_lbs_up, d_ubs, d_relu_neu[i], d_active_pattern_neu[:,i,:],d_l1_lb,d_l1_ub)
     print(f"DP:\n{d_active_pattern_dp}")
     print(f"SYM:\n{d_active_pattern_symb}")
     print(f"NEU:\n{d_active_pattern_neu}")
@@ -215,7 +212,7 @@ def network_condense_GPU(nodes, initial,domains,outputs):
 
     # Removes NumbaPerformanceWarning and others but slow down everything significantly.
     warnings.filterwarnings("ignore")
-    #miniPrintCondense(d_affine, if_activation,d_active_pattern, d_l1_lb,d_l1_ub,domains,d_relu_dp = d_relu_dp,d_symb = d_symb,d_relu_neu=d_relu_neu, d_l1_lb_neu=d_l1_lb_neu,d_l1_ub_neu=d_l1_ub_neu)
+    #miniPrintCondense(d_affine, if_activation, d_l1_lb,d_l1_ub,domains,d_relu_dp,d_symb,d_relu_neu,d_l1_lb_neu,d_l1_ub_neu,d_active_pattern_dp,d_active_pattern_symb,d_active_pattern_neu)
     noPrintCondense(d_affine, if_activation, d_l1_lb,d_l1_ub,domains,d_relu_dp,d_symb,d_relu_neu,d_l1_lb_neu,d_l1_ub_neu,d_active_pattern_dp,d_active_pattern_symb,d_active_pattern_neu)
 
     #print(f"activation->{d_active_pattern}")

@@ -373,8 +373,8 @@ def network_condense_GPU(nodes, initial,outputs):
     # Removes NumbaPerformanceWarning and others but slow down everything significantly.
     warnings.filterwarnings("ignore")
     #detailedPrintCondense(d_affine, d_symb, d_active_pattern, d_l1_lb, d_l1_ub, if_activation, symb, var_index,inv_var_index, l1_lb, l1_ub)
-    #miniPrintCondense(d_affine, d_symb, d_active_pattern, d_l1_lb, d_l1_ub, if_activation, l1_lb, l1_ub, symb)
-    noPrintCondense(d_affine, d_symb, i, if_activation, d_active_pattern, d_l1_lb, d_l1_ub)
+    miniPrintCondense(d_affine, d_symb, d_active_pattern, d_l1_lb, d_l1_ub, if_activation, l1_lb, l1_ub, symb)
+    #noPrintCondense(d_affine, d_symb, i, if_activation, d_active_pattern, d_l1_lb, d_l1_ub)
 
     outcome = oneOutput(affine[-1],d_affine, d_symb, if_activation,d_l1_lb,d_l1_ub,outNodes,inv_var_index)
     print(f"INSIDE activation -> {d_active_pattern}; dims -> {dims}")
