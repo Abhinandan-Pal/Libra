@@ -195,6 +195,7 @@ def back_propagate_GPU(d_affine, d_relu, layer: int, if_activation, d_active_pat
     #ln_coeff_lte = cp.asnumpy(d_ln_coeff_lte).astype(np.float32)
     return d_ln_coeff_lte, d_ln_coeff_gte
 
+
 def oneOutput(d_affine,d_relu,if_activation,d_l1_lb,d_l1_ub,outNodes,inv_var_index):
     outcomes = [None]*len(d_relu)
     for out1 in outNodes:
@@ -202,8 +203,8 @@ def oneOutput(d_affine,d_relu,if_activation,d_l1_lb,d_l1_ub,outNodes,inv_var_ind
         ln_coeff_lte = np.zeros(ln_shape).astype('float32')
         for out2 in outNodes:
             if(out2 != out1):
-                ln_coeff_lte[:][out2][out1] = 1
-                ln_coeff_lte[:][out2][out2] = -1
+                ln_coeff_lte[:,out2,out1] = 1
+                ln_coeff_lte[:,out2,out2] = -1
         d_ln_coeff_lte = cp.asarray(ln_coeff_lte)
         d_ln_coeff_gte = d_ln_coeff_lte.copy().astype('float32')
         layer = len(d_affine)
@@ -218,6 +219,7 @@ def oneOutput(d_affine,d_relu,if_activation,d_l1_lb,d_l1_ub,outNodes,inv_var_ind
                                                             d_ln_coeff_gte)
             layer -= 1
         d_lbs,d_ubs = get_bounds_GPU(d_ln_coeff_lte,d_ln_coeff_gte,d_l1_lb,d_l1_ub)
+
         lbs = cp.asnumpy(d_lbs)
         #print(f"DEBUG OUTCOME Node{out1} --> lbs:{d_lbs}; ubs:{d_ubs}")
         for init_id in range(len(d_relu)):
@@ -410,7 +412,7 @@ def network_condense_GPU(nodes, initial,outputs):
             a = random.uniform(bound.lower,bound.upper)
             b = random.uniform(bound.lower,bound.upper)
             l1_lb[ini][i] = min(a,b)#bound.lower
-            l1_ub[ini][i] = min(a,b)#bound.upper
+            l1_ub[ini][i] = max(a,b)#bound.upper
             i += 1
     fillInput(nodes, affine, dims, if_activation, var_index, MAX_NODES_IN_LAYER)
     outNodes = set()
@@ -432,9 +434,12 @@ def network_condense_GPU(nodes, initial,outputs):
     #miniPrintCondense(d_affine, d_relu, d_active_pattern, d_l1_lb, d_l1_ub, if_activation, l1_lb, l1_ub, relu)
     noPrintCondense( d_affine, d_relu, i, if_activation, d_active_pattern, d_l1_lb, d_l1_ub)
 
-    print(f"activation->{d_active_pattern[0]}")
+
     outcome = oneOutput(d_affine, d_relu, if_activation, d_l1_lb, d_l1_ub,outNodes,inv_var_index)
     active_pattern = cp.asnumpy(d_active_pattern)
     activated, deactivated = active_convert(active_pattern, dims, inv_var_index)
-    print(f"GPU active:{activated[0]}; deactive:{deactivated[0]}; outcome:{outcome[0]}")
+    for i in range(NO_OF_INITIALS):
+        print(f"l1_lb -> {d_l1_lb[i]}; l1_ub -> {d_l1_ub[i]}")
+        print(f"activation->{active_pattern[i]}")
+        print(f"GPU active:{activated[i]}; deactive:{deactivated[i]}; outcome:{outcome[i]}")
     #return activated, deactivated, outcome
