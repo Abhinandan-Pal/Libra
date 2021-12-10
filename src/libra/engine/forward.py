@@ -559,7 +559,10 @@ class ForwardInterpreter(Interpreter):
         #symbolic_gpu.network_condense_GPU(nodes, initial,outputs)
         #product_gpu.network_condense_GPU(nodes, initial,{"Neurify","DeepPoly","Symbolic"},outputs)
         #ProductGPU().network_condense_GPU(nodes, initial,{"Neurify","DeepPoly","Symbolic"})
-
+        time_sec = time.time()
+        deeppoly_gpu.network_condense_GPU(nodes, initial, outputs)
+        time_sec = time.time() - time_sec
+        print(f"GPU time: {time_sec}\n\n")
         # till here
         while not worklist.empty():
             current: Node = worklist.get()  # retrieve the current node
