@@ -143,7 +143,7 @@ def back_affine_GPU(d_ineq_prev_lte, d_ineq_prev_gte, d_ln_coeff_lte, d_ln_coeff
 @cuda.jit
 def back_relu_coeff_helper(relu_layer, ln_coeff_lte, ln_coeff_gte):
     init_id,i, j = cuda.grid(3)
-    if (i < 1 or j < 1 or i >= len(ln_coeff_lte[0]) or j >= len(relu_layer) or init_id >= len(ln_coeff_lte)):
+    if (i < 1 or j < 1 or i >= len(ln_coeff_lte[0]) or j >= len(relu_layer[0]) or init_id >= len(ln_coeff_lte)):
         return
     if (ln_coeff_lte[init_id][i][j] > 0):
         ln_coeff_lte[init_id][i][j] = relu_layer[init_id][j][0] * ln_coeff_lte[init_id][i][j]
@@ -349,7 +349,7 @@ def detailedPrintCondense(d_affine,d_relu,d_active_pattern,d_l1_lb,d_l1_ub,if_ac
             d_lbs_up, d_ubs_up = get_bounds_GPU(d_ineq_gte, d_ineq_gte, d_l1_lb, d_l1_ub)
             relu_compute_GPU(d_lbs_low, d_ubs_low, d_lbs_up, d_ubs_up, d_relu[:,i], d_active_pattern[:, :, i, :],
                              d_l1_lb, d_l1_ub)
-            relu[i] = cp.asnumpy(d_relu[i])
+            relu = cp.asnumpy(d_relu)
         ineq_lte = cp.asnumpy(d_ineq_lte)
         ineq_gte = cp.asnumpy(d_ineq_gte)
         init_id = 1
@@ -384,11 +384,11 @@ def miniPrintCondense( d_affine, d_relu, d_active_pattern, d_l1_lb, d_l1_ub, if_
             d_lbs_up, d_ubs_up = get_bounds_GPU(d_ineq_gte, d_ineq_gte, d_l1_lb, d_l1_ub)
             relu_compute_GPU(d_lbs_low, d_ubs_low, d_lbs_up, d_ubs_up, d_relu[:,i], d_active_pattern[:, :, i, :],
                              d_l1_lb, d_l1_ub)
-            relu[i] = cp.asnumpy(d_relu[i])
+            relu = cp.asnumpy(d_relu)
         ineq_lte = cp.asnumpy(d_ineq_lte)
         ineq_gte = cp.asnumpy(d_ineq_gte)
         init_id = 1
-        if (if_activation[i, 1] == 1):  # assuming if first node in a layer has activation then all do
+        if (if_activation[i, 1] == 1 ):  # assuming if first node in a layer has activation then all do
             for j in range(1, len(d_affine[0])):
                 relu_val = [relu[init_id][i][j][0], relu[init_id][i][j][1], relu[init_id][i][j][0], relu[init_id][i][j][1]]
                 print(f"Relu{i}{j} eq LOW (LB,UB): {get_bounds_single_neurify(ineq_lte[init_id], ineq_lte[init_id], j, l1_lb[init_id], l1_ub[init_id], relu_val=relu_val)}")
@@ -443,10 +443,10 @@ def network_condense_GPU(nodes, initial,outputs):
             else:'''
             a = random.uniform(bound[0].lower, bound[1].upper)
             b = random.uniform(bound[0].lower, bound[1].upper)
-            l1_lb[ini][i][0] = min(a,b)     #bound[0].lower
-            l1_lb[ini][i][1] = min(a,b)     #bound[0].upper
-            l1_ub[ini][i][0] = max(a,b)     #bound[1].upper
-            l1_ub[ini][i][1] = max(a,b)     #bound[1].upper
+            l1_lb[ini][i][0] = bound[0].lower
+            l1_lb[ini][i][1] = bound[0].upper
+            l1_ub[ini][i][0] = bound[1].upper
+            l1_ub[ini][i][1] = bound[1].upper
             i += 1
     #print(f"\tDEBUG ---> l1_lb: {l1_lb} \n l1_ub: {l1_ub}")
 
@@ -466,15 +466,15 @@ def network_condense_GPU(nodes, initial,outputs):
     # Removes NumbaPerformanceWarning and others but slow down everything significantly.
     warnings.filterwarnings("ignore")
     #detailedPrintCondense(d_affine,d_relu,d_active_pattern,d_l1_lb,d_l1_ub,if_activation,relu,var_index,inv_var_index,l1_lb,l1_ub)
-    #miniPrintCondense(d_affine, d_relu, d_active_pattern, d_l1_lb, d_l1_ub, if_activation, l1_lb, l1_ub, relu)
-    noPrintCondense(d_affine, d_relu, i, if_activation, d_active_pattern, d_l1_lb, d_l1_ub)
+    miniPrintCondense(d_affine, d_relu, d_active_pattern, d_l1_lb, d_l1_ub, if_activation, l1_lb, l1_ub, relu)
+    #noPrintCondense(d_affine, d_relu, i, if_activation, d_active_pattern, d_l1_lb, d_l1_ub)
 
     outcome = oneOutput(affine[-1], d_affine, d_relu, if_activation, d_l1_lb, d_l1_ub,outNodes,inv_var_index)
     active_pattern = cp.asnumpy(d_active_pattern)
 
     activated, deactivated = active_convert(active_pattern, dims, inv_var_index)
-    for i in range(NO_OF_INITIALS):
+    '''for i in range(NO_OF_INITIALS):
             print(f"l1_lb -> {d_l1_lb[i]}; l1_ub -> {d_l1_ub[i]}")
             print(f"activation->{active_pattern[i]}")
             print(f"GPU active:{activated[i]}; deactive:{deactivated[i]}; outcome:{outcome[i]}")
-    # return activated, deactivated, outcome
+    # return activated, deactivated, outcome'''
