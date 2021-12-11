@@ -24,7 +24,7 @@ from libra.core.cfg import Node, Function, Activation
 
 from  libra.optimized import deeppoly_gpu
 from libra.optimized.deepPolyGPU import DeepPolyGPU
-#from libra.optimized.symbolicGPU import SymbolicGPU
+from libra.optimized.symbolicGPU import SymbolicGPU
 from libra.optimized.neurifyGPU import NeurifyGPU
 from libra.optimized.productGPU import ProductGPU
 
@@ -554,13 +554,14 @@ class ForwardInterpreter(Interpreter):
         for _, node in self.cfg.nodes.items():
             nodes.append(node)
         #self.network_condense_GPU(nodes)
-        #DeepPolyGPU().network_condense_GPU(nodes,initial)
-        #neurify_gpu.network_condense_GPU(nodes,initial,outputs)
+        #SymbolicGPU().network_condense_GPU(nodes,initial)
+        #NeurifyGPU().network_condense_GPU(nodes,initial)
         #symbolic_gpu.network_condense_GPU(nodes, initial,outputs)
         #product_gpu.network_condense_GPU(nodes, initial,{"Neurify","DeepPoly","Symbolic"},outputs)
         #ProductGPU().network_condense_GPU(nodes, initial,{"Neurify","DeepPoly","Symbolic"})
+        #deeppoly_gpu.network_condense_GPU(nodes, initial, outputs)
         time_sec = time.time()
-        deeppoly_gpu.network_condense_GPU(nodes, initial, outputs)
+        neurify_gpu.network_condense_GPU(nodes,initial,outputs)
         time_sec = time.time() - time_sec
         print(f"GPU time: {time_sec}\n\n")
         # till here

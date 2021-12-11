@@ -151,7 +151,7 @@ def back_relu_GPU(d_relu_layer, d_ln_coeff_lte, d_ln_coeff_gte):
     back_relu_base_helper[bpg1, tpb1](d_relu_layer,
                                       d_ln_coeff_lte,
                                       d_ln_coeff_gte)
-    cuda_iters = (len(d_ln_coeff_lte),len(d_ln_coeff_lte[0]), len(d_relu_layer))
+    cuda_iters = (len(d_ln_coeff_lte),len(d_ln_coeff_lte[0]), len(d_relu_layer[0]))         #Untestd: d_relu_layer[0]
     tpb = (min(16, cuda_iters[1]),min(8, cuda_iters[1]), min(8, cuda_iters[2]))
     bpg = (int(np.ceil(cuda_iters[0] / tpb[0])),int(np.ceil(cuda_iters[1] / tpb[1])), int(np.ceil(cuda_iters[2] / tpb[2])))
     back_relu_coeff_helper[bpg, tpb](d_relu_layer,
@@ -168,11 +168,11 @@ def back_propagate_GPU(d_affine, d_relu, layer: int, if_activation, d_active_pat
     d_ln_coeff_gte[0] = d_affine[layer].copy().astype('float32')'''
     ln_shape = (len(d_relu),) + d_affine[layer].shape
     ln_coeff_lte = np.zeros(ln_shape)
-    ln_coeff_lte[:] = d_affine[layer].get()  # Need to create copies
+    ln_coeff_lte[:] = d_affine[layer].get()
     d_ln_coeff_lte = cp.asarray(ln_coeff_lte)
 
     ln_coeff_gte = np.zeros(ln_shape)
-    ln_coeff_gte[:] = d_affine[layer].get()  # Need to create copies
+    ln_coeff_gte[:] = d_affine[layer].get()
     d_ln_coeff_gte = cp.asarray(ln_coeff_gte)
     layer_t = layer
     while (layer != 1):  # layer zero is input and layer one is in already in terms of input

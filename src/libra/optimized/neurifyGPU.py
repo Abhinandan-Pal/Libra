@@ -94,6 +94,8 @@ class NeurifyGPU(AbstractDomainGPU):
                 relu_layer[id][3] = y_coeff
                 active_pattern[1][id] = 2
 
+        print(f"d_lbs_up->{d_lbs_up} ; \nd_ubs_up->{d_ubs_up}")
+        print(f"d_lbs_low->{d_lbs_low} ; \nd_ubs_low->{d_ubs_low}")
         tpb = (min(1024, len(d_lbs_low)),)
         bpg = (int(np.ceil(len(d_lbs_low) / tpb[0])),)
         relu_compute_helper[bpg, tpb](d_lbs_up,
@@ -102,6 +104,7 @@ class NeurifyGPU(AbstractDomainGPU):
                                       d_ubs_low,
                                       d_relu_layer,
                                       d_active_pattern)
+        print(f"d_relu_layer->{d_relu_layer}")
         return d_relu_layer, d_active_pattern
 
     def back_affine_GPU(self,d_ineq_prev_lte, d_ineq_prev_gte, d_ln_coeff_lte, d_ln_coeff_gte):
@@ -352,7 +355,7 @@ class NeurifyGPU(AbstractDomainGPU):
             d_lbs_low, d_ubs_low,d_lbs_up, d_ubs_up,ineq_lte, ineq_gte = self.back_propagate_GPU(d_affine, d_relu, i, if_activation, d_active_pattern, d_l1_lb,
                                                          d_l1_ub)
             if (if_activation[i][1] == 1):
-                self.relu_compute_GPU(d_lbs_low, d_ubs_low,d_lbs_up, d_ubs_up, d_relu[i], d_active_pattern[i], d_l1_lb, d_l1_ub)
+                self.relu_compute_GPU(d_lbs_low, d_ubs_low,d_lbs_up, d_ubs_up, d_relu[i], d_active_pattern[:,i,:],d_l1_lb,d_l1_ub)
             relu[i] = cp.asnumpy(d_relu[i])
             print(f"\t\t LAYER {i} Substituted")
             for j in range(1, len(d_affine[0])):
@@ -376,7 +379,7 @@ class NeurifyGPU(AbstractDomainGPU):
             # print stuff
             else:
                 print(f"\t\t NO RELU ON LAYER {i}")
-        print(f"activation->{d_active_pattern}")
+        #print(f"activation->{d_active_pattern}")
 
     def miniPrintCondense(self, d_affine, d_relu, d_active_pattern, d_l1_lb, d_l1_ub, if_activation, l1_lb, l1_ub,relu):
         for i in range(1, len(d_affine)):
@@ -386,8 +389,7 @@ class NeurifyGPU(AbstractDomainGPU):
                                                                                                    d_l1_lb,
                                                                                                    d_l1_ub)
             if (if_activation[i][1] == 1):
-                self.relu_compute_GPU(d_lbs_low, d_ubs_low, d_lbs_up, d_ubs_up, d_relu[i], d_active_pattern[i], d_l1_lb,
-                                  d_l1_ub)
+                self.relu_compute_GPU(d_lbs_low, d_ubs_low,d_lbs_up, d_ubs_up, d_relu[i], d_active_pattern[:,i,:],d_l1_lb,d_l1_ub)
             relu[i] = cp.asnumpy(d_relu[i])
 
             if (if_activation[i, 1] == 1):  # assuming if first node in a layer has activation then all do
@@ -460,9 +462,9 @@ class NeurifyGPU(AbstractDomainGPU):
         d_l1_ub = cp.asarray(l1_ub)
         # Removes NumbaPerformanceWarning and others but slow down everything significantly.
         warnings.filterwarnings("ignore")
-        #self.detailedPrintCondense(d_affine,d_relu,d_active_pattern,d_l1_lb,d_l1_ub,if_activation,relu,var_index,inv_var_index,l1_lb,l1_ub)
+        self.detailedPrintCondense(d_affine,d_relu,d_active_pattern,d_l1_lb,d_l1_ub,if_activation,relu,var_index,inv_var_index,l1_lb,l1_ub)
         #self.miniPrintCondense(d_affine, d_relu, d_active_pattern, d_l1_lb, d_l1_ub, if_activation, l1_lb, l1_ub, relu)
-        self.noPrintCondense(d_affine, d_relu, i, if_activation, d_active_pattern, d_l1_lb, d_l1_ub)
+        #self.noPrintCondense(d_affine, d_relu, i, if_activation, d_active_pattern, d_l1_lb, d_l1_ub)
 
         outcome = self.oneOutput(affine[-1], d_affine, d_relu, if_activation, d_l1_lb, d_l1_ub)
         active_pattern = cp.asnumpy(d_active_pattern)
