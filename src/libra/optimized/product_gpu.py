@@ -7,9 +7,55 @@ from libra.core.expressions import VariableIdentifier
 import warnings
 from apronpy.var import PyVar
 import copy
+import random
 from  libra.optimized import symbolic_gpu as smbG
 from  libra.optimized import neurify_gpu as neuG
 from  libra.optimized import deeppoly_gpu as dpG
+
+def oneOutput(d_affine,d_relu_dp,d_relu_neu,d_symb,if_activation,d_l1_lb,d_l1_ub,outNodes,inv_var_index,domains):
+    outcomes = [None] * len(d_l1_lb)
+    for out1 in outNodes:
+        ln_shape = (len(d_l1_lb),) + d_affine[0].shape
+        ln_coeff_lte = np.zeros(ln_shape).astype('float32')
+        for out2 in outNodes:
+            if(out2 != out1):
+                ln_coeff_lte[:,out2,out1] = 1
+                ln_coeff_lte[:,out2,out2] = -1
+        d_ln_coeff_lte = cp.asarray(ln_coeff_lte)
+        d_ln_coeff_gte = d_ln_coeff_lte.copy().astype('float32')
+        layer = len(d_affine)
+
+        d_lbsL = cp.zeros((len(domains), len(d_l1_lb), len(d_affine[0])))
+        d_ubsL = cp.zeros((len(domains), len(d_l1_lb), len(d_affine[0])))
+        j = 0
+        if ("DeepPoly" in domains):
+            d_ineq_lte, d_ineq_gte = dpG.back_propagate_GPU1(d_ln_coeff_lte, d_ln_coeff_gte,d_affine, d_relu_dp, layer, if_activation)
+            d_lbsL[j], d_ubsL[j] = dpG.get_bounds_GPU(d_ineq_lte, d_ineq_gte, d_l1_lb, d_l1_ub)
+            j += 1
+        if ("Symbolic" in domains):
+            d_ineq_lte, d_ineq_gte = smbG.back_propagate_GPU1(d_ln_coeff_lte, d_ln_coeff_gte,d_affine, d_symb, layer, if_activation)
+            d_lbsL[j], d_ubsL[j] = smbG.get_bounds_GPU(d_ineq_lte, d_ineq_gte, d_l1_lb, d_l1_ub)
+            j += 1
+        if ("Neurify" in domains):
+            d_ineq_lte, d_ineq_gte = neuG.back_propagate_GPU1(d_ln_coeff_lte, d_ln_coeff_gte,d_affine, d_relu_neu, layer, if_activation)
+            d_lbs_low, d_ubs_low = neuG.get_bounds_GPU(d_ineq_lte, d_ineq_lte, d_l1_lb, d_l1_ub)
+            d_lbs_up, d_ubs_up = neuG.get_bounds_GPU(d_ineq_gte, d_ineq_gte, d_l1_lb, d_l1_ub)
+            d_lbsL[j], d_ubsL[j] = d_lbs_low, d_ubs_up
+            j += 1
+        d_lbs, d_ubs = mergeBounds(d_lbsL, d_ubsL)
+        lbs = cp.asnumpy(d_lbs)
+        # print(f"DEBUG OUTCOME Node{out1} --> lbs:{d_lbs}; ubs:{d_ubs}")
+        for init_id in range(len(d_l1_lb)):
+            if (outcomes[init_id] == None):
+                flag = True
+                for out2 in outNodes:
+                    if (out2 != out1) and (lbs[init_id][out2] <= 0.0):
+                        flag = False
+                        break;
+                if (flag == True):
+                    stmt = inv_var_index[(len(d_affine) - 1, out1)]
+                    outcomes[init_id] = stmt
+    return outcomes
 
 def getNetShape(nodes):
     NO_OF_LAYERS = 1
@@ -77,18 +123,15 @@ def miniPrintCondense(d_affine, if_activation, d_l1_lb,d_l1_ub,domains,d_relu_dp
     for i in range(1, len(d_affine)):
         j = 0
         if ("DeepPoly" in domains):
-            d_ineq_lte, d_ineq_gte = dpG.back_propagate_GPU(d_affine, d_relu_dp, i, if_activation, d_active_pattern,
-                                                            d_l1_lb, d_l1_ub)
+            d_ineq_lte, d_ineq_gte = dpG.back_propagate_GPU(d_affine, d_relu_dp, i, if_activation)
             d_lbsL[j], d_ubsL[j] = dpG.get_bounds_GPU(d_ineq_lte, d_ineq_gte, d_l1_lb, d_l1_ub)
             j += 1
         if ("Symbolic" in domains):
-            d_ineq_lte, d_ineq_gte = smbG.back_propagate_GPU(d_affine, d_symb, i, if_activation, d_active_pattern,
-                                                             d_l1_lb, d_l1_ub)
+            d_ineq_lte, d_ineq_gte = smbG.back_propagate_GPU(d_affine, d_symb, i, if_activation)
             d_lbsL[j], d_ubsL[j] = smbG.get_bounds_GPU(d_ineq_lte, d_ineq_gte, d_l1_lb, d_l1_ub)
             j += 1
         if ("Neurify" in domains):
-            d_ineq_lte, d_ineq_gte = neuG.back_propagate_GPU(d_affine, d_relu_neu, i, if_activation, d_active_pattern,
-                                                             d_l1_lb, d_l1_ub)
+            d_ineq_lte, d_ineq_gte = neuG.back_propagate_GPU(d_affine, d_relu_neu, i, if_activation)
             d_lbs_low, d_ubs_low = neuG.get_bounds_GPU(d_ineq_lte, d_ineq_lte, d_l1_lb, d_l1_ub)
             d_lbs_up, d_ubs_up = neuG.get_bounds_GPU(d_ineq_gte, d_ineq_gte, d_l1_lb, d_l1_ub)
             d_lbsL[j], d_ubsL[j] = d_lbs_low, d_ubs_up
@@ -113,20 +156,20 @@ def mergeBounds(d_lbsL,d_ubsL):
     return d_lbs,d_ubs
 
 def noPrintCondense(d_affine, if_activation, d_l1_lb,d_l1_ub,domains,d_relu_dp,d_symb,d_relu_neu,d_active_pattern):
-    d_lbsL = cp.zeros((len(domains), len(d_relu_dp),len(d_affine[0])))
-    d_ubsL = cp.zeros((len(domains), len(d_relu_dp), len(d_affine[0])))
+    d_lbsL = cp.zeros((len(domains), len(d_l1_lb),len(d_affine[0])))
+    d_ubsL = cp.zeros((len(domains), len(d_l1_lb), len(d_affine[0])))
     for i in range(1, len(d_affine)):
         j = 0
         if ("DeepPoly" in domains):
-            d_ineq_lte, d_ineq_gte = dpG.back_propagate_GPU(d_affine, d_relu_dp, i, if_activation,d_active_pattern, d_l1_lb,d_l1_ub)
+            d_ineq_lte, d_ineq_gte = dpG.back_propagate_GPU(d_affine, d_relu_dp, i, if_activation)
             d_lbsL[j], d_ubsL[j] =   dpG.get_bounds_GPU(d_ineq_lte, d_ineq_gte, d_l1_lb, d_l1_ub)
             j += 1
         if ("Symbolic" in domains):
-            d_ineq_lte, d_ineq_gte = smbG.back_propagate_GPU(d_affine, d_symb, i, if_activation,d_active_pattern, d_l1_lb, d_l1_ub)
+            d_ineq_lte, d_ineq_gte = smbG.back_propagate_GPU(d_affine, d_symb, i, if_activation)
             d_lbsL[j], d_ubsL[j] = smbG.get_bounds_GPU(d_ineq_lte, d_ineq_gte, d_l1_lb, d_l1_ub)
             j += 1
         if ("Neurify" in domains):
-            d_ineq_lte, d_ineq_gte = neuG.back_propagate_GPU(d_affine, d_relu_neu, i,if_activation,d_active_pattern,d_l1_lb,d_l1_ub)
+            d_ineq_lte, d_ineq_gte = neuG.back_propagate_GPU(d_affine, d_relu_neu, i,if_activation)
             d_lbs_low, d_ubs_low = neuG.get_bounds_GPU(d_ineq_lte, d_ineq_lte, d_l1_lb,d_l1_ub)
             d_lbs_up, d_ubs_up = neuG.get_bounds_GPU(d_ineq_gte, d_ineq_gte, d_l1_lb,d_l1_ub)
             d_lbsL[j], d_ubsL[j] = d_lbs_low,d_ubs_up
@@ -147,8 +190,8 @@ def network_condense_GPU(nodes, initial,domains,outputs):
     # equation[n1][n2] stores the bias and coeff of nodes of previous layer to form x[n1][n2] in order
     # if_activation[n1][n2] stores if there is an activation on x[n1][n2] (only relu considered for now)
     NO_OF_LAYERS, MAX_NODES_IN_LAYER = getNetShape(nodes)
-    NO_OF_INITIALS = 5000
-    print(f"NO_OF_LAYER:{NO_OF_LAYERS}; MNIL:{MAX_NODES_IN_LAYER}")
+    NO_OF_INITIALS = 2**17
+    print(f"NO_OF_LAYER:{NO_OF_LAYERS}; MAX_NODES_IN_LAYER:{MAX_NODES_IN_LAYER}; NO_OF_INITIALS:{NO_OF_INITIALS}")
     var_index: dict(str, (int, int)) = dict()
 
     affine = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1, MAX_NODES_IN_LAYER + 1)).astype(np.float32)
@@ -176,8 +219,10 @@ def network_condense_GPU(nodes, initial,domains,outputs):
     for ini in range(NO_OF_INITIALS):
         i = 1
         for var, bound in initial.bounds.items():
-            l1_lb[ini][i] = bound.lower
-            l1_ub[ini][i] = bound.upper
+            a = random.uniform(bound.lower, bound.upper)
+            b = random.uniform(bound.lower, bound.upper)
+            l1_lb[ini][i] = min(a, b)  # bound.lower
+            l1_ub[ini][i] = max(a, b)  # bound.upper
             i += 1
     fillInput(nodes, affine, dims, if_activation, var_index, MAX_NODES_IN_LAYER)
     outNodes = set()
@@ -202,16 +247,16 @@ def network_condense_GPU(nodes, initial,domains,outputs):
     # Removes NumbaPerformanceWarning and others but slow down everything significantly.
     warnings.filterwarnings("ignore")
     #miniPrintCondense(d_affine, if_activation, d_l1_lb,d_l1_ub,domains,d_relu_dp,d_symb,d_relu_neu,d_active_pattern)
-    noPrintCondense(d_affine, if_activation, d_l1_lb,d_l1_ub,domains,d_relu_dp,d_symb,d_relu_neu,d_active_pattern)
+    #noPrintCondense(d_affine, if_activation, d_l1_lb,d_l1_ub,domains,d_relu_dp,d_symb,d_relu_neu,d_active_pattern)
 
     #print(f"activation->{d_active_pattern}")
-    #outcome = oneOutput(affine[-1], d_affine, d_relu, if_activation, d_l1_lb, d_l1_ub)
+    outcome = oneOutput(d_affine,d_relu_dp,d_relu_neu,d_symb,if_activation,d_l1_lb,d_l1_ub,outNodes,inv_var_index,domains)
     active_pattern = cp.asnumpy(d_active_pattern)
     activated, deactivated = dpG.active_convert(active_pattern, dims, inv_var_index)
     '''for i in range(NO_OF_INITIALS):
         print(f"l1_lb -> {d_l1_lb[i]}; l1_ub -> {d_l1_ub[i]}")
         print(f"activation->{active_pattern[i]}")
-        print(f"GPU active:{activated[i]}; deactive:{deactivated[i]};")
+        print(f"GPU active:{activated[i]}; deactive:{deactivated[i]}; outcome:{outcome[i]}")
     # return activated, deactivated, outcome'''
 
 
