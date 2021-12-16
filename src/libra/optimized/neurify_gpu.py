@@ -47,13 +47,13 @@ def get_bounds_single_neurify(l1_layer_lte, l1_layer_gte, node_num: int, l1_lb, 
     l1_gte = l1_layer_gte[node_num] * relu_val[2]
     l1_gte[0] += relu_val[3]
     lb = l1_lte[0]
-    for i in range(1, len(l1_lte)):
+    for i in range(1, len(l1_lb)):
         if (l1_lte[i] < 0):
             lb += l1_lte[i] * l1_ub[i][0]
         else:
             lb += l1_lte[i] * l1_lb[i][0]
     ub = l1_gte[0]
-    for i in range(1, len(l1_gte)):
+    for i in range(1, len(l1_ub)):
         if (l1_gte[i] > 0):
             ub += l1_gte[i] * l1_ub[i][1]
         else:
@@ -414,8 +414,7 @@ def network_condense_GPU(nodes, initial,outputs):
     relu = np.zeros((NO_OF_INITIALS,NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1, 4)).astype(np.float32)
     if_activation = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1)).astype(np.float32)
     active_pattern = np.zeros((NO_OF_INITIALS, NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1)).astype(np.float32)
-    l1_lb = np.zeros((NO_OF_INITIALS,MAX_NODES_IN_LAYER + 1)).astype(np.float32)  # bounds for LOW
-    l1_ub = np.zeros((NO_OF_INITIALS,MAX_NODES_IN_LAYER + 1)).astype(np.float32)  # bounds for UP
+
     dims = np.ones(NO_OF_LAYERS + 1).astype(np.int32)
 
     # obtain the lower bound and upper bound for input layer using "initial"
@@ -426,13 +425,11 @@ def network_condense_GPU(nodes, initial,outputs):
         var_index[str(var)] = (row_id, col_id)
         col_id += 1
 
+    l1_lb = np.zeros((NO_OF_INITIALS, len(initial.bounds.items()) + 1)).astype(np.float32)
+    l1_ub = np.zeros((NO_OF_INITIALS, len(initial.bounds.items()) + 1)).astype(np.float32)
     for ini in range(NO_OF_INITIALS):
         i=1
         for var, bound in initial.bounds.items():
-            '''if(type(bound) == VariableIdentifier):
-                l1_lb[i] = bound.lower
-                l1_ub[i] = bound.upper
-            else:'''
             a = random.uniform(bound[0].lower, bound[1].upper)
             b = random.uniform(bound[0].lower, bound[1].upper)
             l1_lb[ini][i] = bound[0].lower

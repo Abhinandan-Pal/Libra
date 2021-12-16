@@ -346,7 +346,7 @@ def detailedPrintCondense(d_affine,d_relu,d_active_pattern,d_l1_lb,d_l1_ub,if_ac
 def miniPrintCondense(d_affine,d_relu,d_active_pattern,d_l1_lb,d_l1_ub,if_activation,d_f_act_pattern):
     l1_ub = cp.asnumpy(d_l1_ub)
     l1_lb = cp.asnumpy(d_l1_lb)
-    init_id = len(d_l1_lb) - 1
+    init_id = 4 #len(d_l1_ub) -1
     print(f"init_id-> {init_id}; lbs -> {d_l1_lb[init_id]}; ubs -> {d_l1_ub[init_id]}")
     for i in range(1, len(d_affine)):
         d_ineq_lte, d_ineq_gte = back_propagate_GPU(d_affine, d_relu, i, if_activation)
@@ -372,16 +372,6 @@ def noPrintCondense(d_affine, d_relu, i, if_activation,d_active_pattern, d_l1_lb
             d_lbs, d_ubs = get_bounds_GPU(d_ineq_lte, d_ineq_gte, d_l1_lb, d_l1_ub)
             relu_compute_GPU(d_lbs, d_ubs, d_relu[:,i], d_active_pattern[:,i],d_f_act_pattern[:,i])
 
-def getInitial(initial,L,U):
-    NO_OF_INITIALS = 1
-    for ini in range(NO_OF_INITIALS):
-        i = 1
-        for var, bound in initial.bounds.items():
-            temp = bound.upper - bound.lower
-            NO_OF_INITIALS *= math.ceil(temp/L)
-            i += 1
-    return NO_OF_INITIALS
-
 def fillInitials(initial,L,MNIL):
     bounds = []
     NO_OF_INITIALS = 0
@@ -401,12 +391,12 @@ def fillInitials(initial,L,MNIL):
     l1_ub = []
     count = 0;
     for bound in bounds:
-        l1_lb_t = np.zeros((MNIL + 1,))
-        l1_ub_t = np.zeros((MNIL + 1,))
+        l1_lb_t = np.zeros((len(initial.bounds.items()) + 1,))
+        l1_ub_t = np.zeros((len(initial.bounds.items()) + 1,))
         flag = False
-        for i in range(len(initial.bounds.items())):
-            l1_lb_t[i] = bound[i][0]
-            l1_ub_t[i] = bound[i][1]
+        for i in range(1,len(initial.bounds.items())+1):
+            l1_lb_t[i] = bound[i-1][0]
+            l1_ub_t[i] = bound[i-1][1]
             if(l1_lb_t[i]>=l1_ub_t[i]):
                 flag = True
                 break
@@ -428,13 +418,13 @@ def fillInitials(initial,L,MNIL):
     l1_lb.append(l1_lb_a)
     l1_ub.append(l1_ub_a)
     #print(f"lbs Shape->{l1_lb} ubs Shape->{l1_ub}")
-    #for i in range(len(d_l1_lb)):
-    #    print(f"lbs-> {d_l1_lb[i][0:3]}; ubs-> {d_l1_ub[i][0:3]}")
+    for i in range(len(l1_lb[0])):
+        print(f"lbs-> {l1_lb[0][i]}; ubs-> {l1_ub[0][i]}")
     return l1_lb,l1_ub
 
 
 def network_condense_GPU(nodes, initial,forced_active, forced_inactive,outputs):
-    L = 0.125
+    L = 0.5
     U = 20
     # equation[n1][n2] stores the bias and coeff of nodes of previous layer to form x[n1][n2] in order
     # if_activation[n1][n2] stores if there is an activation on x[n1][n2] (only relu considered for now)
@@ -493,8 +483,8 @@ def network_condense_GPU(nodes, initial,forced_active, forced_inactive,outputs):
         # Removes NumbaPerformanceWarning and others but slow down everything significantly.
         warnings.filterwarnings("ignore")
         #detailedPrintCondense(d_affine,d_relu,d_active_pattern,d_l1_lb,d_l1_ub,if_activation,relu,var_index,inv_var_index,d_f_act_pattern)
-        #miniPrintCondense(d_affine, d_relu, d_active_pattern, d_l1_lb, d_l1_ub, if_activation,d_f_act_pattern)
-        noPrintCondense( d_affine, d_relu, i, if_activation, d_active_pattern, d_l1_lb, d_l1_ub,d_f_act_pattern)
+        miniPrintCondense(d_affine, d_relu, d_active_pattern, d_l1_lb, d_l1_ub, if_activation,d_f_act_pattern)
+        #noPrintCondense( d_affine, d_relu, i, if_activation, d_active_pattern, d_l1_lb, d_l1_ub,d_f_act_pattern)
 
 
         outcome = oneOutput(d_affine, d_relu, if_activation, d_l1_lb, d_l1_ub,outNodes,inv_var_index)

@@ -98,13 +98,13 @@ def get_bounds_single(l1_layer_lte,l1_layer_gte,node_num:int , l1_lb,l1_ub,relu_
     l1_gte = l1_layer_gte[node_num]*relu_val[2]
     l1_gte[0] += relu_val[3]
     lb = l1_lte[0]
-    for i in range(1,len(l1_lte)):
+    for i in range(1,len(l1_lb)):
         if (l1_lte[i] < 0):
             lb += l1_lte[i] * l1_ub[i]
         else:
             lb += l1_lte[i] * l1_lb[i]
     ub = l1_gte[0]
-    for i in range(1,len(l1_gte)):
+    for i in range(1,len(l1_ub)):
         if (l1_gte[i] > 0):
             ub += l1_gte[i] * l1_ub[i]
         else:

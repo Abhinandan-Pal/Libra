@@ -364,8 +364,6 @@ def network_condense_GPU(nodes, initial,outputs):
     symb = np.zeros((NO_OF_INITIALS,NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1, 3)).astype(np.float32)
     if_activation = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1)).astype(np.float32)
     active_pattern = np.zeros((NO_OF_INITIALS,NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1)).astype(np.float32)
-    l1_lb = np.zeros((NO_OF_INITIALS,MAX_NODES_IN_LAYER + 1)).astype(np.float32)
-    l1_ub = np.zeros((NO_OF_INITIALS,MAX_NODES_IN_LAYER + 1)).astype(np.float32)
     dims = np.ones(NO_OF_LAYERS + 1).astype(np.int32)
 
     # obtain the lower bound and upper bound for input layer using "initial"
@@ -376,6 +374,8 @@ def network_condense_GPU(nodes, initial,outputs):
         var_index[str(var)] = (row_id, col_id)
         col_id += 1
 
+    l1_lb = np.zeros((NO_OF_INITIALS, len(initial.bounds.items())+1)).astype(np.float32)
+    l1_ub = np.zeros((NO_OF_INITIALS, len(initial.bounds.items())+1)).astype(np.float32)
     for ini in range(NO_OF_INITIALS):
         i = 1
         for var, bound in initial.bounds.items():
@@ -384,7 +384,7 @@ def network_condense_GPU(nodes, initial,outputs):
             l1_lb[ini][i] = min(a, b)  # bound.lower
             l1_ub[ini][i] = max(a, b)  # bound.upper
             i += 1
-
+    print(f"l1_lb -> {l1_lb[i]}; l1_ub -> {l1_ub[i]}")
     fillInput(nodes, affine, dims, if_activation, var_index, MAX_NODES_IN_LAYER)
     outNodes = set()
     for output in outputs:
@@ -398,7 +398,7 @@ def network_condense_GPU(nodes, initial,outputs):
     d_l1_ub = cp.asarray(l1_ub)
     # Removes NumbaPerformanceWarning and others but slow down everything significantly.
     warnings.filterwarnings("ignore")
-    detailedPrintCondense(d_affine, d_symb, d_active_pattern, d_l1_lb, d_l1_ub, if_activation, symb, var_index,inv_var_index, l1_lb, l1_ub)
+    #detailedPrintCondense(d_affine, d_symb, d_active_pattern, d_l1_lb, d_l1_ub, if_activation, symb, var_index,inv_var_index, l1_lb, l1_ub)
     #miniPrintCondense(d_affine, d_symb, d_active_pattern, d_l1_lb, d_l1_ub, if_activation, l1_lb, l1_ub, symb)
     #noPrintCondense(d_affine, d_symb, i, if_activation, d_active_pattern, d_l1_lb, d_l1_ub)
 

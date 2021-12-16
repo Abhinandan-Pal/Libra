@@ -117,7 +117,7 @@ def fillInput(nodes,affine,dims,if_activation,var_index,MNIL):
             state = semantics.assume_call_semantics(stmt, state, manager)'''
             continue
 
-def miniPrintCondense(d_affine, if_activation, d_l1_lb,d_l1_ub,domains,d_relu_dp,d_symb,d_relu_neu,d_active_pattern):
+def miniPrintCondense(d_affine, if_activation, d_l1_lb,d_l1_ub,domains,d_relu_dp,d_symb,d_relu_neu,d_active_pattern,d_f_act_pattern):
     d_lbsL = cp.zeros((len(domains), len(d_relu_dp), len(d_affine[0])))
     d_ubsL = cp.zeros((len(domains), len(d_relu_dp), len(d_affine[0])))
     for i in range(1, len(d_affine)):
@@ -139,7 +139,7 @@ def miniPrintCondense(d_affine, if_activation, d_l1_lb,d_l1_ub,domains,d_relu_dp
         d_lbs, d_ubs = mergeBounds(d_lbsL, d_ubsL)
         if (if_activation[i][1] == 1):
             if ("DeepPoly" in domains):
-                dpG.relu_compute_GPU(d_lbs, d_ubs, d_relu_dp[:, i], d_active_pattern[:, i], d_l1_lb, d_l1_ub)
+                dpG.relu_compute_GPU(d_lbs, d_ubs, d_relu_dp[:, i], d_active_pattern[:, i],d_f_act_pattern[:,i])
             if ("Symbolic" in domains):
                 smbG.relu_compute_GPU(d_lbs, d_ubs, d_symb[:, i], d_active_pattern[:, i], d_l1_lb, d_l1_ub)
             if ("Neurify" in domains):
@@ -155,7 +155,7 @@ def mergeBounds(d_lbsL,d_ubsL):
     #print(f"DEBUG -> d_ubsL: {d_ubsL}\n d_lbsL: {d_lbsL};\n d_lbs: {d_lbs}\n d_ubs:{d_ubs}")
     return d_lbs,d_ubs
 
-def noPrintCondense(d_affine, if_activation, d_l1_lb,d_l1_ub,domains,d_relu_dp,d_symb,d_relu_neu,d_active_pattern):
+def noPrintCondense(d_affine, if_activation, d_l1_lb,d_l1_ub,domains,d_relu_dp,d_symb,d_relu_neu,d_active_pattern,d_f_act_pattern):
     d_lbsL = cp.zeros((len(domains), len(d_l1_lb),len(d_affine[0])))
     d_ubsL = cp.zeros((len(domains), len(d_l1_lb), len(d_affine[0])))
     for i in range(1, len(d_affine)):
@@ -177,7 +177,7 @@ def noPrintCondense(d_affine, if_activation, d_l1_lb,d_l1_ub,domains,d_relu_dp,d
         d_lbs,d_ubs = mergeBounds(d_lbsL,d_ubsL)
         if (if_activation[i][1] == 1):
             if ("DeepPoly" in domains):
-                dpG.relu_compute_GPU(d_lbs, d_ubs, d_relu_dp[:,i], d_active_pattern[:,i], d_l1_lb, d_l1_ub)
+                dpG.relu_compute_GPU(d_lbs, d_ubs, d_relu_dp[:, i], d_active_pattern[:, i],d_f_act_pattern[:,i])
             if ("Symbolic" in domains):
                 smbG.relu_compute_GPU(d_lbs, d_ubs, d_symb[:,i], d_active_pattern[:,i], d_l1_lb, d_l1_ub)
             if ("Neurify" in domains):
@@ -186,20 +186,19 @@ def noPrintCondense(d_affine, if_activation, d_l1_lb,d_l1_ub,domains,d_relu_dp,d
     #print(f"SYM:\n{d_active_pattern_symb}")
     #print(f"NEU:\n{d_active_pattern_neu}")
 
-def network_condense_GPU(nodes, initial,domains,outputs):
+def network_condense_GPU(nodes, initial,domains,forced_active, forced_inactive,outputs):
     # equation[n1][n2] stores the bias and coeff of nodes of previous layer to form x[n1][n2] in order
     # if_activation[n1][n2] stores if there is an activation on x[n1][n2] (only relu considered for now)
     NO_OF_LAYERS, MAX_NODES_IN_LAYER = getNetShape(nodes)
-    NO_OF_INITIALS = 2**17
+    NO_OF_INITIALS = 5
     print(f"NO_OF_LAYER:{NO_OF_LAYERS}; MAX_NODES_IN_LAYER:{MAX_NODES_IN_LAYER}; NO_OF_INITIALS:{NO_OF_INITIALS}")
     var_index: dict(str, (int, int)) = dict()
 
     affine = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1, MAX_NODES_IN_LAYER + 1)).astype(np.float32)
     if_activation = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1)).astype(np.float32)
-    l1_lb = np.zeros((NO_OF_INITIALS,MAX_NODES_IN_LAYER + 1)).astype(np.float32)
-    l1_ub = np.zeros((NO_OF_INITIALS,MAX_NODES_IN_LAYER + 1)).astype(np.float32)
     dims = np.ones(NO_OF_LAYERS + 1).astype(np.int32)
     active_pattern = np.zeros((NO_OF_INITIALS, NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1)).astype(np.float32)
+    f_act_pattern = np.zeros((NO_OF_INITIALS, NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1)).astype(np.int16)
 
     if ("DeepPoly" in domains):
         relu_dp = np.zeros((NO_OF_INITIALS,NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1, 4)).astype(np.float32)
@@ -216,13 +215,15 @@ def network_condense_GPU(nodes, initial,domains,outputs):
         var_index[str(var)] = (row_id, col_id)
         col_id += 1
 
+    l1_lb = np.zeros((NO_OF_INITIALS, len(initial.bounds.items()) + 1)).astype(np.float32)
+    l1_ub = np.zeros((NO_OF_INITIALS, len(initial.bounds.items()) + 1)).astype(np.float32)
     for ini in range(NO_OF_INITIALS):
         i = 1
         for var, bound in initial.bounds.items():
             a = random.uniform(bound.lower, bound.upper)
             b = random.uniform(bound.lower, bound.upper)
-            l1_lb[ini][i] = min(a, b)  # bound.lower
-            l1_ub[ini][i] = max(a, b)  # bound.upper
+            l1_lb[ini][i] = bound.lower
+            l1_ub[ini][i] = bound.upper
             i += 1
     fillInput(nodes, affine, dims, if_activation, var_index, MAX_NODES_IN_LAYER)
     outNodes = set()
@@ -235,6 +236,7 @@ def network_condense_GPU(nodes, initial,domains,outputs):
     d_symb,d_relu_dp,d_relu_neu= (None,None,None)
     d_affine = cp.asarray(affine)
     d_active_pattern = cp.asarray(active_pattern)
+    d_f_act_pattern = cp.asarray(f_act_pattern)
     d_l1_lb = cp.asarray(l1_lb)
     d_l1_ub = cp.asarray(l1_ub)
     if ("DeepPoly" in domains):
@@ -246,8 +248,8 @@ def network_condense_GPU(nodes, initial,domains,outputs):
 
     # Removes NumbaPerformanceWarning and others but slow down everything significantly.
     warnings.filterwarnings("ignore")
-    #miniPrintCondense(d_affine, if_activation, d_l1_lb,d_l1_ub,domains,d_relu_dp,d_symb,d_relu_neu,d_active_pattern)
-    #noPrintCondense(d_affine, if_activation, d_l1_lb,d_l1_ub,domains,d_relu_dp,d_symb,d_relu_neu,d_active_pattern)
+    miniPrintCondense(d_affine, if_activation, d_l1_lb,d_l1_ub,domains,d_relu_dp,d_symb,d_relu_neu,d_active_pattern,d_f_act_pattern)
+    #noPrintCondense(d_affine, if_activation, d_l1_lb,d_l1_ub,domains,d_relu_dp,d_symb,d_relu_neu,d_active_pattern,d_f_act_pattern)
 
     #print(f"activation->{d_active_pattern}")
     outcome = oneOutput(d_affine,d_relu_dp,d_relu_neu,d_symb,if_activation,d_l1_lb,d_l1_ub,outNodes,inv_var_index,domains)
