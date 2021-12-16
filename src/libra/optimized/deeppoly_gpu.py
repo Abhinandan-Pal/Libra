@@ -1,5 +1,5 @@
 import random
-
+import math
 import numpy as np
 import cupy as cp
 from numba import cuda
@@ -9,6 +9,7 @@ from libra.core.expressions import VariableIdentifier
 import warnings
 from apronpy.var import PyVar
 import copy
+from itertools import product
 
 def get_bounds_GPU(d_l1_lte, d_l1_gte, d_l1_lb, d_l1_ub):
     @cuda.jit
@@ -192,8 +193,8 @@ def oneOutput(d_affine,d_relu,if_activation,d_l1_lb,d_l1_ub,outNodes,inv_var_ind
         ln_coeff_lte = np.zeros(ln_shape).astype('float32')
         for out2 in outNodes:
             if(out2 != out1):
-                ln_coeff_lte[:,out2,out1] = 1
-                ln_coeff_lte[:,out2,out2] = -1
+                ln_coeff_lte[:,out2,out1] = 1.0
+                ln_coeff_lte[:,out2,out2] = -1.0
         d_ln_coeff_lte = cp.asarray(ln_coeff_lte)
         d_ln_coeff_gte = d_ln_coeff_lte.copy().astype('float32')
         layer = len(d_affine)
@@ -306,7 +307,9 @@ def fillInput(nodes,affine,dims,if_activation,var_index,MNIL):
             state = semantics.assume_call_semantics(stmt, state, manager)'''
             continue
 
-def detailedPrintCondense(d_affine,d_relu,d_active_pattern,d_l1_lb,d_l1_ub,if_activation,relu,var_index,inv_var_index,l1_lb,l1_ub,d_f_act_pattern):
+def detailedPrintCondense(d_affine,d_relu,d_active_pattern,d_l1_lb,d_l1_ub,if_activation,relu,var_index,inv_var_index,d_f_act_pattern):
+    l1_ub = cp.asnumpy(d_l1_ub)
+    l1_lb = cp.asnumpy(d_l1_lb)
     print(f"var_index = {var_index}")
     print(f"inv_var_index = {inv_var_index}")
     for i in range(1, len(d_affine)):
@@ -340,7 +343,11 @@ def detailedPrintCondense(d_affine,d_relu,d_active_pattern,d_l1_lb,d_l1_ub,if_ac
             print(f"\t\t NO RELU ON LAYER {i}")
     print(f"activation->{d_active_pattern}")
 
-def miniPrintCondense(d_affine,d_relu,d_active_pattern,d_l1_lb,d_l1_ub,if_activation,l1_lb,l1_ub,relu,d_f_act_pattern):
+def miniPrintCondense(d_affine,d_relu,d_active_pattern,d_l1_lb,d_l1_ub,if_activation,d_f_act_pattern):
+    l1_ub = cp.asnumpy(d_l1_ub)
+    l1_lb = cp.asnumpy(d_l1_lb)
+    init_id = len(d_l1_lb) - 1
+    print(f"init_id-> {init_id}; lbs -> {d_l1_lb[init_id]}; ubs -> {d_l1_ub[init_id]}")
     for i in range(1, len(d_affine)):
         d_ineq_lte, d_ineq_gte = back_propagate_GPU(d_affine, d_relu, i, if_activation)
         if (if_activation[i][1] == 1):
@@ -350,7 +357,7 @@ def miniPrintCondense(d_affine,d_relu,d_active_pattern,d_l1_lb,d_l1_ub,if_activa
 
         ineq_lte = cp.asnumpy(d_ineq_lte)
         ineq_gte = cp.asnumpy(d_ineq_gte)
-        init_id = 1
+
         if (if_activation[i, 1] == 1):  # assuming if first node in a layer has activation then all do
             for j in range(1, len(d_affine[0])):
                 print(f"Relu {i}:{j} eq (LB,UB): {get_bounds_single(ineq_lte[init_id], ineq_gte[init_id], j,l1_lb[init_id],l1_ub[init_id], relu_val=relu[init_id][i][j])}")
@@ -360,75 +367,141 @@ def miniPrintCondense(d_affine,d_relu,d_active_pattern,d_l1_lb,d_l1_ub,if_activa
 
 def noPrintCondense(d_affine, d_relu, i, if_activation,d_active_pattern, d_l1_lb,d_l1_ub,d_f_act_pattern):
     for i in range(1, len(d_affine)):
-        d_ineq_lte, d_ineq_gte = back_propagate_GPU(d_affine, d_relu, i, if_activation)
-        if (if_activation[i][1] == 1):
+        d_ineq_lte, d_ineq_gte = back_propagate_GPU(d_affine, d_relu, i, if_activation)     #place inside if and
+        if (if_activation[i][1] == 1):                                                      #TODO: adjust for forced activate.
             d_lbs, d_ubs = get_bounds_GPU(d_ineq_lte, d_ineq_gte, d_l1_lb, d_l1_ub)
             relu_compute_GPU(d_lbs, d_ubs, d_relu[:,i], d_active_pattern[:,i],d_f_act_pattern[:,i])
 
+def getInitial(initial,L,U):
+    NO_OF_INITIALS = 1
+    for ini in range(NO_OF_INITIALS):
+        i = 1
+        for var, bound in initial.bounds.items():
+            temp = bound.upper - bound.lower
+            NO_OF_INITIALS *= math.ceil(temp/L)
+            i += 1
+    return NO_OF_INITIALS
+
+def fillInitials(initial,L,MNIL):
+    bounds = []
+    NO_OF_INITIALS = 0
+    for var, bound in initial.bounds.items():
+        gaps = []
+        rangeU = bound.upper - bound.lower
+        for i in range(math.ceil(rangeU/L)+1):
+            gaps.append(bound.lower + L*i)
+        bounds.append(product(gaps,gaps))
+        NO_OF_INITIALS += 1
+    bounds = product(*bounds)
+    #for b in bounds:
+    #   print(f"Bounds: {b}")
+    l1_lb_a = []
+    l1_ub_a = []
+    l1_lb = []
+    l1_ub = []
+    count = 0;
+    for bound in bounds:
+        l1_lb_t = np.zeros((MNIL + 1,))
+        l1_ub_t = np.zeros((MNIL + 1,))
+        flag = False
+        for i in range(len(initial.bounds.items())):
+            l1_lb_t[i] = bound[i][0]
+            l1_ub_t[i] = bound[i][1]
+            if(l1_lb_t[i]>=l1_ub_t[i]):
+                flag = True
+                break
+        if(flag):
+            continue
+        l1_lb_a.append(l1_lb_t)
+        l1_ub_a.append(l1_ub_t)
+        count += 1
+        if(count == (2**16)):
+            l1_lb_a = np.array(l1_lb_a)
+            l1_ub_a = np.array(l1_ub_a)
+            l1_lb.append(l1_lb_a)
+            l1_ub.append(l1_ub_a)
+            count = 0
+            l1_lb_a = []
+            l1_ub_a = []
+    l1_lb_a = np.array(l1_lb_a)
+    l1_ub_a = np.array(l1_ub_a)
+    l1_lb.append(l1_lb_a)
+    l1_ub.append(l1_ub_a)
+    #print(f"lbs Shape->{l1_lb} ubs Shape->{l1_ub}")
+    #for i in range(len(d_l1_lb)):
+    #    print(f"lbs-> {d_l1_lb[i][0:3]}; ubs-> {d_l1_ub[i][0:3]}")
+    return l1_lb,l1_ub
+
+
 def network_condense_GPU(nodes, initial,forced_active, forced_inactive,outputs):
+    L = 0.125
+    U = 20
     # equation[n1][n2] stores the bias and coeff of nodes of previous layer to form x[n1][n2] in order
     # if_activation[n1][n2] stores if there is an activation on x[n1][n2] (only relu considered for now)
     NO_OF_LAYERS, MAX_NODES_IN_LAYER = getNetShape(nodes)
-    NO_OF_INITIALS = 5
-    print(f"NO_OF_LAYER:{NO_OF_LAYERS}; MAX_NODES_IN_LAYER:{MAX_NODES_IN_LAYER}; NO_OF_INITIALS:{NO_OF_INITIALS}")
-    var_index: dict(str, (int, int)) = dict()
+    l1_lb_list, l1_ub_list = fillInitials(initial, L, MAX_NODES_IN_LAYER)
 
-    affine = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1, MAX_NODES_IN_LAYER + 1)).astype(np.float32)
-    relu = np.zeros((NO_OF_INITIALS,NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1, 4)).astype(np.float32)
-    if_activation = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1)).astype(np.int16)
-    active_pattern = np.zeros((NO_OF_INITIALS,NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1)).astype(np.int16)
-    l1_lb = np.zeros((NO_OF_INITIALS,MAX_NODES_IN_LAYER + 1)).astype(np.float32)
-    l1_ub = np.zeros((NO_OF_INITIALS,MAX_NODES_IN_LAYER + 1)).astype(np.float32)
-    dims = np.ones(NO_OF_LAYERS + 1).astype(np.int32)
-    f_act_pattern = np.zeros((NO_OF_INITIALS, NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1)).astype(np.int16)
-    # obtain the lower bound and upper bound for input layer using "initial"
-    # Assuming "initial" contains input from 0 to nth input in order.
+    for i in range(len(l1_ub_list)):
+        d_l1_lb = cp.asarray(l1_lb_list[i])
+        d_l1_ub = cp.asarray(l1_ub_list[i])
+        
+        NO_OF_INITIALS = len(d_l1_lb)
+        print(f"NO_OF_LAYER:{NO_OF_LAYERS}; MAX_NODES_IN_LAYER:{MAX_NODES_IN_LAYER}; NO_OF_INITIALS:{NO_OF_INITIALS}")
 
-    '''
-        Convert forced_active, forced_inactive to f_act_pattern
-    '''
+        var_index: dict(str, (int, int)) = dict()
 
-    i = 1
-    row_id, col_id, flag = (0, 1, False)
-    for var,bound in initial.bounds.items():
-        var_index[str(var)] = (row_id, col_id)
-        col_id += 1
+        affine = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1, MAX_NODES_IN_LAYER + 1)).astype(np.float32)
+        #relu = np.zeros((NO_OF_INITIALS,NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1, 4)).astype(np.float32)
+        if_activation = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1)).astype(np.int16)
+        #active_pattern = np.zeros((NO_OF_INITIALS,NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1)).astype(np.int16)
+        dims = np.ones(NO_OF_LAYERS + 1).astype(np.int32)
+        f_act_pattern = np.zeros((NO_OF_INITIALS, NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1)).astype(np.int16)
+        # obtain the lower bound and upper bound for input layer using "initial"
+        # Assuming "initial" contains input from 0 to nth input in order.
 
-    for ini in range(NO_OF_INITIALS):
-        i=1
-        for var, bound in initial.bounds.items():
-            a = random.uniform(bound.lower,bound.upper)
-            b = random.uniform(bound.lower,bound.upper)
-            l1_lb[ini][i] = bound.lower
-            l1_ub[ini][i] = bound.upper
-            i += 1
-    fillInput(nodes, affine, dims, if_activation, var_index, MAX_NODES_IN_LAYER)
-    outNodes = set()
-    for output in outputs:
-        outNodes.add(var_index[str(output)][1])
-    inv_var_index = {v: k for k, v in var_index.items()}
+        '''
+            Convert forced_active, forced_inactive to f_act_pattern
+        '''
 
-    # can remove layer 0 as it has no inequations
-    # All these print are for debug mode. Actual will only activation pattern.
-    d_affine = cp.asarray(affine)
-    d_relu = cp.asarray(relu)
-    d_active_pattern = cp.asarray(active_pattern)
-    d_l1_lb = cp.asarray(l1_lb)
-    d_l1_ub = cp.asarray(l1_ub)
-    d_f_act_pattern = cp.asarray(f_act_pattern)
+        i = 1
+        row_id, col_id, flag = (0, 1, False)
+        for var,bound in initial.bounds.items():
+            var_index[str(var)] = (row_id, col_id)
+            col_id += 1
 
-    # Removes NumbaPerformanceWarning and others but slow down everything significantly.
-    warnings.filterwarnings("ignore")
-    detailedPrintCondense(d_affine,d_relu,d_active_pattern,d_l1_lb,d_l1_ub,if_activation,relu,var_index,inv_var_index,l1_lb,l1_ub,d_f_act_pattern)
-    miniPrintCondense(d_affine, d_relu, d_active_pattern, d_l1_lb, d_l1_ub, if_activation, l1_lb, l1_ub, relu,d_f_act_pattern)
-    noPrintCondense( d_affine, d_relu, i, if_activation, d_active_pattern, d_l1_lb, d_l1_ub,d_f_act_pattern)
+        '''for ini in range(NO_OF_INITIALS):
+            i=1
+            for var, bound in initial.bounds.items():
+                a = random.uniform(bound.lower,bound.upper)
+                b = random.uniform(bound.lower,bound.upper)
+                l1_lb[ini][i] = min(a, b)  # bound.lower
+                l1_ub[ini][i] = max(a, b)  # bound.upper
+                i += 1'''
+        fillInput(nodes, affine, dims, if_activation, var_index, MAX_NODES_IN_LAYER)
+        outNodes = set()
+        for output in outputs:
+            outNodes.add(var_index[str(output)][1])
+        inv_var_index = {v: k for k, v in var_index.items()}
+
+        # can remove layer 0 as it has no inequations
+        # All these print are for debug mode. Actual will only activation pattern.
+        d_affine = cp.asarray(affine)
+        d_relu = cp.zeros((NO_OF_INITIALS,NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1, 4))
+        d_active_pattern = cp.zeros((NO_OF_INITIALS,NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1))
+        d_f_act_pattern = cp.asarray(f_act_pattern)
+
+        # Removes NumbaPerformanceWarning and others but slow down everything significantly.
+        warnings.filterwarnings("ignore")
+        #detailedPrintCondense(d_affine,d_relu,d_active_pattern,d_l1_lb,d_l1_ub,if_activation,relu,var_index,inv_var_index,d_f_act_pattern)
+        #miniPrintCondense(d_affine, d_relu, d_active_pattern, d_l1_lb, d_l1_ub, if_activation,d_f_act_pattern)
+        noPrintCondense( d_affine, d_relu, i, if_activation, d_active_pattern, d_l1_lb, d_l1_ub,d_f_act_pattern)
 
 
-    outcome = oneOutput(d_affine, d_relu, if_activation, d_l1_lb, d_l1_ub,outNodes,inv_var_index)
-    active_pattern = cp.asnumpy(d_active_pattern)
-    activated, deactivated = active_convert(active_pattern, dims, inv_var_index)
-    '''for i in range(NO_OF_INITIALS):
-        print(f"l1_lb -> {d_l1_lb[i]}; l1_ub -> {d_l1_ub[i]}")
-        print(f"activation->{active_pattern[i]}")
-        print(f"GPU active:{activated[i]}; deactive:{deactivated[i]}; outcome:{outcome[i]}")
-    #return activated, deactivated, outcome'''
+        outcome = oneOutput(d_affine, d_relu, if_activation, d_l1_lb, d_l1_ub,outNodes,inv_var_index)
+        active_pattern = cp.asnumpy(d_active_pattern)
+        activated, deactivated = active_convert(active_pattern, dims, inv_var_index)
+        '''for i in range(NO_OF_INITIALS):
+            print(f"l1_lb -> {d_l1_lb[i]}; l1_ub -> {d_l1_ub[i]}")
+            print(f"active_pattern: {active_pattern}")
+            print(f"GPU active:{activated[i]}; deactive:{deactivated[i]}; outcome:{outcome[i]}")'''
+        #return activated, deactivated, outcome
