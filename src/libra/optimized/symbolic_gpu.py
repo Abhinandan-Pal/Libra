@@ -1,6 +1,7 @@
 import numpy as np
 import cupy as cp
 from numba import cuda
+from libra.optimized import commons
 from libra.optimized.commons import texpr_to_dict, get_bounds_single, ineq_str
 from libra.core.cfg import Node, Function, Activation,Basic
 from libra.core.expressions import VariableIdentifier
@@ -223,69 +224,10 @@ def active_convert(active_status,dims,inv_var_index):
         deactivated.append(deact)
     return activated,deactivated
 
-
-def getNetShape(nodes):
-    NO_OF_LAYERS = 1
-    MAX_NODES_IN_LAYER = 1
-    CURR_NODED_IN_LAYER = 0
-    flag = False
-    for current in nodes:
-        if isinstance(current, Function):
-            for (node, eq) in zip(current.stmts[0], current.stmts[1]):
-                if (flag):
-                    flag = False
-                    NO_OF_LAYERS += 1
-                    MAX_NODES_IN_LAYER = max(MAX_NODES_IN_LAYER, CURR_NODED_IN_LAYER)
-                    CURR_NODED_IN_LAYER = 0
-                CURR_NODED_IN_LAYER += 1
-        elif isinstance(current, Activation):
-            flag = True
-            continue
-    MAX_NODES_IN_LAYER = max(MAX_NODES_IN_LAYER, CURR_NODED_IN_LAYER)
-    return NO_OF_LAYERS,MAX_NODES_IN_LAYER
-
-def fillInput(nodes,affine,dims,if_activation,var_index,MNIL):
-    row_id,col_id,flag = (1,1,False)
-    # The 4 in relu is for lessThan(slope,y-coeff);greaterThan(slope,y-coeff)
-    # TO-DO: can make the assumption if one node in a layer has relu then all do
-    for current in nodes:
-        if isinstance(current, Function):
-            for (node, eq) in zip(current.stmts[0], current.stmts[1]):
-                if (flag):
-                    flag = False
-                    row_id += 1
-                    col_id = 1
-                coeffs = np.zeros((MNIL + 1,)).astype(np.float32)
-                eq = texpr_to_dict(eq)
-                for var, val in eq.items():
-                    if var != '_':
-                        r, c = var_index[str(var)]
-                        if (r != row_id - 1):
-                            raise NotImplementedError(
-                                f"Affine should only be based on previous layer{row_id} But was on {r}.")
-                        coeffs[c] += val
-                    else:
-                        coeffs[0] += val
-                dims[row_id] += 1
-                affine[row_id, col_id, :] = coeffs
-                # print(f"Afiine->{str(node)}")
-                var_index[str(node)] = (row_id, col_id)
-                col_id += 1
-                # TO-DO: do something more general than assume format X[N][N] for var name
-        elif isinstance(current, Activation):
-            flag = True
-            r, c = var_index[str(current.stmts)]
-            if_activation[r, c] = True
-            # print(f"Relu->{str(current.stmts)}")
-        else:
-            # print(f"Others->{current.stmts}")
-            '''What to do here
-            for stmt in reversed(current.stmts):
-            state = semantics.assume_call_semantics(stmt, state, manager)'''
-            continue
-
 def detailedPrintCondense( d_affine, d_symb, d_active_pattern, d_l1_lb, d_l1_ub, if_activation, symb,
-                          var_index, inv_var_index, l1_lb, l1_ub):
+                          var_index, inv_var_index):
+    l1_ub = cp.asnumpy(d_l1_ub)
+    l1_lb = cp.asnumpy(d_l1_lb)
     print(f"var_index = {var_index}")
     print(f"inv_var_index = {inv_var_index}")
     # Detailed print for DEBUG
@@ -324,7 +266,11 @@ def detailedPrintCondense( d_affine, d_symb, d_active_pattern, d_l1_lb, d_l1_ub,
             print(f"\t\t NO RELU ON LAYER {i}")
     #print(f"activation->{d_active_pattern}")
 
-def miniPrintCondense(d_affine,d_symb,d_active_pattern,d_l1_lb,d_l1_ub,if_activation,l1_lb,l1_ub,symb):
+def miniPrintCondense(d_affine,d_symb,d_active_pattern,d_l1_lb,d_l1_ub,if_activation,symb):
+    l1_ub = cp.asnumpy(d_l1_ub)
+    l1_lb = cp.asnumpy(d_l1_lb)
+    init_id = 4  # len(d_l1_ub) -1
+    print(f"init_id-> {init_id}; lbs -> {d_l1_lb[init_id]}; ubs -> {d_l1_ub[init_id]}")
     for i in range(1, len(d_affine)):
         d_ineq_lte, d_ineq_gte = back_propagate_GPU(d_affine, d_symb, i, if_activation)
         if (if_activation[i][1] == 1):
@@ -334,7 +280,6 @@ def miniPrintCondense(d_affine,d_symb,d_active_pattern,d_l1_lb,d_l1_ub,if_activa
 
         ineq_lte = cp.asnumpy(d_ineq_lte)
         ineq_gte = cp.asnumpy(d_ineq_gte)
-        init_id = 1
         if (if_activation[i, 1] == 1):  # assuming if first node in a layer has activation then all do
             for j in range(1, len(d_affine[0])):
                 if (symb[init_id][i][j][0] == 0.0):
@@ -353,61 +298,63 @@ def noPrintCondense(d_affine, d_symb, i, if_activation, d_active_pattern,d_l1_lb
             relu_compute_GPU(d_lbs, d_ubs, d_symb[:,i], d_active_pattern[:,i], d_l1_lb, d_l1_ub)
 
 def network_condense_GPU(nodes, initial,outputs):
+    L = 0.5
+    U = 20
     # equation[n1][n2] stores the bias and coeff of nodes of previous layer to form x[n1][n2] in order
     # if_activation[n1][n2] stores if there is an activation on x[n1][n2] (only relu considered for now)
-    NO_OF_LAYERS, MAX_NODES_IN_LAYER = getNetShape(nodes)
-    NO_OF_INITIALS = 5
-    print(f"NO_OF_LAYER:{NO_OF_LAYERS}; MAX_NODES_IN_LAYER:{MAX_NODES_IN_LAYER}; NO_OF_INITIALS:{NO_OF_INITIALS}")
-    var_index: dict(str, (int, int)) = dict()
+    NO_OF_LAYERS, MAX_NODES_IN_LAYER = commons.getNetShape(nodes)
+    l1_lb_list, l1_ub_list = commons.fillInitials(initial, L, MAX_NODES_IN_LAYER)
 
-    affine = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1, MAX_NODES_IN_LAYER + 1)).astype(np.float32)
-    symb = np.zeros((NO_OF_INITIALS,NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1, 3)).astype(np.float32)
-    if_activation = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1)).astype(np.float32)
-    active_pattern = np.zeros((NO_OF_INITIALS,NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1)).astype(np.float32)
-    dims = np.ones(NO_OF_LAYERS + 1).astype(np.int32)
+    for i in range(len(l1_ub_list)):
+        d_l1_lb = cp.asarray(l1_lb_list[i])
+        d_l1_ub = cp.asarray(l1_ub_list[i])
+        NO_OF_INITIALS = len(d_l1_lb)
+        print(f"NO_OF_LAYER:{NO_OF_LAYERS}; MAX_NODES_IN_LAYER:{MAX_NODES_IN_LAYER}; NO_OF_INITIALS:{NO_OF_INITIALS}")
+        var_index: dict(str, (int, int)) = dict()
 
-    # obtain the lower bound and upper bound for input layer using "initial"
-    # Assuming "initial" contains input from 0 to nth input in order.
-    i = 1
-    row_id, col_id, flag = (0, 1, False)
-    for var, bound in initial.bounds.items():
-        var_index[str(var)] = (row_id, col_id)
-        col_id += 1
+        affine = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1, MAX_NODES_IN_LAYER + 1)).astype(np.float32)
+        symb = np.zeros((NO_OF_INITIALS,NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1, 3)).astype(np.float32)
+        if_activation = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1)).astype(np.float32)
+        active_pattern = np.zeros((NO_OF_INITIALS,NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1)).astype(np.float32)
+        dims = np.ones(NO_OF_LAYERS + 1).astype(np.int32)
 
-    l1_lb = np.zeros((NO_OF_INITIALS, len(initial.bounds.items())+1)).astype(np.float32)
-    l1_ub = np.zeros((NO_OF_INITIALS, len(initial.bounds.items())+1)).astype(np.float32)
-    for ini in range(NO_OF_INITIALS):
+        # obtain the lower bound and upper bound for input layer using "initial"
+        # Assuming "initial" contains input from 0 to nth input in order.
         i = 1
+        row_id, col_id, flag = (0, 1, False)
         for var, bound in initial.bounds.items():
-            a = random.uniform(bound.lower, bound.upper)
-            b = random.uniform(bound.lower, bound.upper)
-            l1_lb[ini][i] = min(a, b)  # bound.lower
-            l1_ub[ini][i] = max(a, b)  # bound.upper
-            i += 1
-    print(f"l1_lb -> {l1_lb[i]}; l1_ub -> {l1_ub[i]}")
-    fillInput(nodes, affine, dims, if_activation, var_index, MAX_NODES_IN_LAYER)
-    outNodes = set()
-    for output in outputs:
-        outNodes.add(var_index[str(output)][1])
-    inv_var_index = {v: k for k, v in var_index.items()}
+            var_index[str(var)] = (row_id, col_id)
+            col_id += 1
+        '''for ini in range(NO_OF_INITIALS):
+            i = 1
+            for var, bound in initial.bounds.items():
+                a = random.uniform(bound.lower, bound.upper)
+                b = random.uniform(bound.lower, bound.upper)
+                l1_lb[ini][i] = min(a, b)  # bound.lower
+                l1_ub[ini][i] = max(a, b)  # bound.upper
+                i += 1
+        print(f"l1_lb -> {l1_lb[i]}; l1_ub -> {l1_ub[i]}")'''
+        commons.fillInput(nodes, affine, dims, if_activation, var_index, MAX_NODES_IN_LAYER)
+        outNodes = set()
+        for output in outputs:
+            outNodes.add(var_index[str(output)][1])
+        inv_var_index = {v: k for k, v in var_index.items()}
 
-    d_affine = cp.asarray(affine)
-    d_symb = cp.asarray(symb)
-    d_active_pattern = cp.asarray(active_pattern)
-    d_l1_lb = cp.asarray(l1_lb)
-    d_l1_ub = cp.asarray(l1_ub)
-    # Removes NumbaPerformanceWarning and others but slow down everything significantly.
-    warnings.filterwarnings("ignore")
-    #detailedPrintCondense(d_affine, d_symb, d_active_pattern, d_l1_lb, d_l1_ub, if_activation, symb, var_index,inv_var_index, l1_lb, l1_ub)
-    #miniPrintCondense(d_affine, d_symb, d_active_pattern, d_l1_lb, d_l1_ub, if_activation, l1_lb, l1_ub, symb)
-    #noPrintCondense(d_affine, d_symb, i, if_activation, d_active_pattern, d_l1_lb, d_l1_ub)
+        d_affine = cp.asarray(affine)
+        d_symb = cp.asarray(symb)
+        d_active_pattern = cp.asarray(active_pattern)
+        # Removes NumbaPerformanceWarning and others but slow down everything significantly.
+        warnings.filterwarnings("ignore")
+        #detailedPrintCondense(d_affine, d_symb, d_active_pattern, d_l1_lb, d_l1_ub, if_activation, symb, var_index,inv_var_index)
+        #miniPrintCondense(d_affine, d_symb, d_active_pattern, d_l1_lb, d_l1_ub, if_activation, symb)
+        noPrintCondense(d_affine, d_symb, i, if_activation, d_active_pattern, d_l1_lb, d_l1_ub)
 
-    outcome = oneOutput(affine[-1],d_affine, d_symb, if_activation,d_l1_lb,d_l1_ub,outNodes,inv_var_index)
-    #print(f"INSIDE activation -> {d_active_pattern}; dims -> {dims}")
-    active_pattern = cp.asnumpy(d_active_pattern)
-    activated, deactivated = active_convert(active_pattern,dims,inv_var_index)
-    '''for i in range(NO_OF_INITIALS):
-        print(f"l1_lb -> {d_l1_lb[i]}; l1_ub -> {d_l1_ub[i]}")
-        print(f"activation->{active_pattern[i]}")
-        print(f"GPU active:{activated[i]}; deactive:{deactivated[i]}; outcome:{outcome[i]}")
-    # return activated, deactivated, outcome'''
+        outcome = oneOutput(affine[-1],d_affine, d_symb, if_activation,d_l1_lb,d_l1_ub,outNodes,inv_var_index)
+        #print(f"INSIDE activation -> {d_active_pattern}; dims -> {dims}")
+        active_pattern = cp.asnumpy(d_active_pattern)
+        activated, deactivated = active_convert(active_pattern,dims,inv_var_index)
+        '''for i in range(NO_OF_INITIALS):
+            print(f"l1_lb -> {d_l1_lb[i]}; l1_ub -> {d_l1_ub[i]}")
+            print(f"activation->{active_pattern[i]}")
+            print(f"GPU active:{activated[i]}; deactive:{deactivated[i]}; outcome:{outcome[i]}")
+        # return activated, deactivated, outcome'''

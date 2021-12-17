@@ -3,6 +3,7 @@ import math
 import numpy as np
 import cupy as cp
 from numba import cuda
+from libra.optimized import commons
 from libra.optimized.commons import texpr_to_dict, get_bounds_single, ineq_str,ineq_str_direct
 from libra.core.cfg import Node, Function, Activation,Basic
 from libra.core.expressions import VariableIdentifier
@@ -247,66 +248,6 @@ def active_convert(active_status,dims,inv_var_index):
         deactivated.append(deact)
     return activated,deactivated
 
-def getNetShape(nodes):
-    NO_OF_LAYERS = 1
-    MAX_NODES_IN_LAYER = 1
-    CURR_NODED_IN_LAYER = 0
-    flag = False
-    for current in nodes:
-        if isinstance(current, Function):
-            for (node, eq) in zip(current.stmts[0], current.stmts[1]):              #TODO just use the length
-                if (flag):
-                    flag = False
-                    NO_OF_LAYERS += 1
-                    MAX_NODES_IN_LAYER = max(MAX_NODES_IN_LAYER, CURR_NODED_IN_LAYER)
-                    CURR_NODED_IN_LAYER = 0
-                CURR_NODED_IN_LAYER += 1
-        elif isinstance(current, Activation):
-            flag = True
-            continue
-    MAX_NODES_IN_LAYER = max(MAX_NODES_IN_LAYER, CURR_NODED_IN_LAYER)
-    return NO_OF_LAYERS,MAX_NODES_IN_LAYER
-
-def fillInput(nodes,affine,dims,if_activation,var_index,MNIL):
-    row_id,col_id,flag = (1,1,False)
-    # The 4 in relu is for lessThan(slope,y-coeff);greaterThan(slope,y-coeff)
-    # TO-DO: can make the assumption if one node in a layer has relu then all do
-    for current in nodes:
-        if isinstance(current, Function):
-            for (node, eq) in zip(current.stmts[0], current.stmts[1]):
-                if (flag):
-                    flag = False
-                    row_id += 1
-                    col_id = 1
-                coeffs = np.zeros((MNIL + 1,)).astype(np.float32)
-                eq = texpr_to_dict(eq)
-                for var, val in eq.items():
-                    if var != '_':
-                        r, c = var_index[str(var)]
-                        if (r != row_id - 1):
-                            raise NotImplementedError(
-                                f"Affine should only be based on previous layer{row_id} But was on {r}.")
-                        coeffs[c] += val
-                    else:
-                        coeffs[0] += val
-                dims[row_id] += 1
-                affine[row_id, col_id, :] = coeffs
-                # print(f"Afiine->{str(node)}")
-                var_index[str(node)] = (row_id, col_id)
-                col_id += 1
-                # TO-DO: do something more general than assume format X[N][N] for var name
-        elif isinstance(current, Activation):
-            flag = True
-            r, c = var_index[str(current.stmts)]
-            if_activation[r, c] = True
-            # print(f"Relu->{str(current.stmts)}")
-        else:
-            # print(f"Others->{current.stmts}")
-            '''What to do here
-            for stmt in reversed(current.stmts):
-            state = semantics.assume_call_semantics(stmt, state, manager)'''
-            continue
-
 def detailedPrintCondense(d_affine,d_relu,d_active_pattern,d_l1_lb,d_l1_ub,if_activation,relu,var_index,inv_var_index,d_f_act_pattern):
     l1_ub = cp.asnumpy(d_l1_ub)
     l1_lb = cp.asnumpy(d_l1_lb)
@@ -372,64 +313,13 @@ def noPrintCondense(d_affine, d_relu, i, if_activation,d_active_pattern, d_l1_lb
             d_lbs, d_ubs = get_bounds_GPU(d_ineq_lte, d_ineq_gte, d_l1_lb, d_l1_ub)
             relu_compute_GPU(d_lbs, d_ubs, d_relu[:,i], d_active_pattern[:,i],d_f_act_pattern[:,i])
 
-def fillInitials(initial,L,MNIL):
-    bounds = []
-    NO_OF_INITIALS = 0
-    for var, bound in initial.bounds.items():
-        gaps = []
-        rangeU = bound.upper - bound.lower
-        for i in range(math.ceil(rangeU/L)+1):
-            gaps.append(bound.lower + L*i)
-        bounds.append(product(gaps,gaps))
-        NO_OF_INITIALS += 1
-    bounds = product(*bounds)
-    #for b in bounds:
-    #   print(f"Bounds: {b}")
-    l1_lb_a = []
-    l1_ub_a = []
-    l1_lb = []
-    l1_ub = []
-    count = 0;
-    for bound in bounds:
-        l1_lb_t = np.zeros((len(initial.bounds.items()) + 1,))
-        l1_ub_t = np.zeros((len(initial.bounds.items()) + 1,))
-        flag = False
-        for i in range(1,len(initial.bounds.items())+1):
-            l1_lb_t[i] = bound[i-1][0]
-            l1_ub_t[i] = bound[i-1][1]
-            if(l1_lb_t[i]>=l1_ub_t[i]):
-                flag = True
-                break
-        if(flag):
-            continue
-        l1_lb_a.append(l1_lb_t)
-        l1_ub_a.append(l1_ub_t)
-        count += 1
-        if(count == (2**16)):
-            l1_lb_a = np.array(l1_lb_a)
-            l1_ub_a = np.array(l1_ub_a)
-            l1_lb.append(l1_lb_a)
-            l1_ub.append(l1_ub_a)
-            count = 0
-            l1_lb_a = []
-            l1_ub_a = []
-    l1_lb_a = np.array(l1_lb_a)
-    l1_ub_a = np.array(l1_ub_a)
-    l1_lb.append(l1_lb_a)
-    l1_ub.append(l1_ub_a)
-    #print(f"lbs Shape->{l1_lb} ubs Shape->{l1_ub}")
-    for i in range(len(l1_lb[0])):
-        print(f"lbs-> {l1_lb[0][i]}; ubs-> {l1_ub[0][i]}")
-    return l1_lb,l1_ub
-
-
 def network_condense_GPU(nodes, initial,forced_active, forced_inactive,outputs):
     L = 0.5
     U = 20
     # equation[n1][n2] stores the bias and coeff of nodes of previous layer to form x[n1][n2] in order
     # if_activation[n1][n2] stores if there is an activation on x[n1][n2] (only relu considered for now)
-    NO_OF_LAYERS, MAX_NODES_IN_LAYER = getNetShape(nodes)
-    l1_lb_list, l1_ub_list = fillInitials(initial, L, MAX_NODES_IN_LAYER)
+    NO_OF_LAYERS, MAX_NODES_IN_LAYER = commons.getNetShape(nodes)
+    l1_lb_list, l1_ub_list = commons.fillInitials(initial, L, MAX_NODES_IN_LAYER)
 
     for i in range(len(l1_ub_list)):
         d_l1_lb = cp.asarray(l1_lb_list[i])
@@ -467,7 +357,7 @@ def network_condense_GPU(nodes, initial,forced_active, forced_inactive,outputs):
                 l1_lb[ini][i] = min(a, b)  # bound.lower
                 l1_ub[ini][i] = max(a, b)  # bound.upper
                 i += 1'''
-        fillInput(nodes, affine, dims, if_activation, var_index, MAX_NODES_IN_LAYER)
+        commons.fillInput(nodes, affine, dims, if_activation, var_index, MAX_NODES_IN_LAYER)
         outNodes = set()
         for output in outputs:
             outNodes.add(var_index[str(output)][1])
