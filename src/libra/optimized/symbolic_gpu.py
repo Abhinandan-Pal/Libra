@@ -201,13 +201,17 @@ def oneOutput(last,d_affine,d_symb,if_activation,d_l1_lb,d_l1_ub,outNodes,inv_va
                     outcomes[init_id] = stmt
     return outcomes
 
-def active_convert(active_status,dims,inv_var_index):
+def active_convert(active_status,dims,inv_var_index,outcomes):
     activated = []
     deactivated = []
     for init_id in range(len(active_status)):
         node_num = 3
         act = set()
         deact = set()
+        if (outcomes[init_id] != None):
+            activated.append(act)
+            deactivated.append(deact)
+            continue
         for layer_index in range(1,len(dims[1:])):
             for neuron_index in range(1,dims[layer_index]):
                 if(active_status[init_id,layer_index,neuron_index] == 0):
@@ -298,7 +302,7 @@ def noPrintCondense(d_affine, d_symb, i, if_activation, d_active_pattern,d_l1_lb
             relu_compute_GPU(d_lbs, d_ubs, d_symb[:,i], d_active_pattern[:,i], d_l1_lb, d_l1_ub)
 
 def network_condense_GPU(nodes, initial,outputs):
-    L = 0.5
+    L = 0.25
     U = 20
     # equation[n1][n2] stores the bias and coeff of nodes of previous layer to form x[n1][n2] in order
     # if_activation[n1][n2] stores if there is an activation on x[n1][n2] (only relu considered for now)
@@ -352,9 +356,9 @@ def network_condense_GPU(nodes, initial,outputs):
         outcome = oneOutput(affine[-1],d_affine, d_symb, if_activation,d_l1_lb,d_l1_ub,outNodes,inv_var_index)
         #print(f"INSIDE activation -> {d_active_pattern}; dims -> {dims}")
         active_pattern = cp.asnumpy(d_active_pattern)
-        activated, deactivated = active_convert(active_pattern,dims,inv_var_index)
-        '''for i in range(NO_OF_INITIALS):
+        activated, deactivated = active_convert(active_pattern,dims,inv_var_index,outcome)
+        for i in range(NO_OF_INITIALS):
             print(f"l1_lb -> {d_l1_lb[i]}; l1_ub -> {d_l1_ub[i]}")
             print(f"activation->{active_pattern[i]}")
             print(f"GPU active:{activated[i]}; deactive:{deactivated[i]}; outcome:{outcome[i]}")
-        # return activated, deactivated, outcome'''
+        # return activated, deactivated, outcome

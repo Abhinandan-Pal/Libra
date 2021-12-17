@@ -259,12 +259,12 @@ def network_condense_GPU(nodes, initial,domains,forced_active, forced_inactive,o
         #print(f"activation->{d_active_pattern}")
         outcome = oneOutput(d_affine,d_relu_dp,d_relu_neu,d_symb,if_activation,d_l1_lb,d_l1_ub,outNodes,inv_var_index,domains)
         active_pattern = cp.asnumpy(d_active_pattern)
-        activated, deactivated = dpG.active_convert(active_pattern, dims, inv_var_index)
-        '''for i in range(NO_OF_INITIALS):
+        activated, deactivated = dpG.active_convert(active_pattern, dims, inv_var_index,outcome)
+        for i in range(NO_OF_INITIALS):
             print(f"l1_lb -> {d_l1_lb[i]}; l1_ub -> {d_l1_ub[i]}")
             print(f"activation->{active_pattern[i]}")
             print(f"GPU active:{activated[i]}; deactive:{deactivated[i]}; outcome:{outcome[i]}")
-        # return activated, deactivated, outcome'''
+        # return activated, deactivated, outcome
 
 
 

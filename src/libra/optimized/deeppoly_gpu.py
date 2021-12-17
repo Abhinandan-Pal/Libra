@@ -225,13 +225,17 @@ def oneOutput(d_affine,d_relu,if_activation,d_l1_lb,d_l1_ub,outNodes,inv_var_ind
                     outcomes[init_id] = stmt
     return outcomes
 
-def active_convert(active_status,dims,inv_var_index):
+def active_convert(active_status,dims,inv_var_index,outcomes):
     activated = []
     deactivated = []
     for init_id in range(len(active_status)):
         node_num = 3
         act = set()
         deact = set()
+        if(outcomes[init_id]!= None):
+            activated.append(act)
+            deactivated.append(deact)
+            continue
         for layer_index in range(1,len(dims[1:])):
             for neuron_index in range(1,dims[layer_index]):
                 if(active_status[init_id,layer_index,neuron_index] == 0):
@@ -314,7 +318,7 @@ def noPrintCondense(d_affine, d_relu, i, if_activation,d_active_pattern, d_l1_lb
             relu_compute_GPU(d_lbs, d_ubs, d_relu[:,i], d_active_pattern[:,i],d_f_act_pattern[:,i])
 
 def network_condense_GPU(nodes, initial,forced_active, forced_inactive,outputs):
-    L = 0.5
+    L = 0.125
     U = 20
     # equation[n1][n2] stores the bias and coeff of nodes of previous layer to form x[n1][n2] in order
     # if_activation[n1][n2] stores if there is an activation on x[n1][n2] (only relu considered for now)
@@ -342,7 +346,6 @@ def network_condense_GPU(nodes, initial,forced_active, forced_inactive,outputs):
         '''
             Convert forced_active, forced_inactive to f_act_pattern
         '''
-
         i = 1
         row_id, col_id, flag = (0, 1, False)
         for var,bound in initial.bounds.items():
@@ -373,15 +376,15 @@ def network_condense_GPU(nodes, initial,forced_active, forced_inactive,outputs):
         # Removes NumbaPerformanceWarning and others but slow down everything significantly.
         warnings.filterwarnings("ignore")
         #detailedPrintCondense(d_affine,d_relu,d_active_pattern,d_l1_lb,d_l1_ub,if_activation,relu,var_index,inv_var_index,d_f_act_pattern)
-        miniPrintCondense(d_affine, d_relu, d_active_pattern, d_l1_lb, d_l1_ub, if_activation,d_f_act_pattern)
-        #noPrintCondense( d_affine, d_relu, i, if_activation, d_active_pattern, d_l1_lb, d_l1_ub,d_f_act_pattern)
+        #miniPrintCondense(d_affine, d_relu, d_active_pattern, d_l1_lb, d_l1_ub, if_activation,d_f_act_pattern)
+        noPrintCondense( d_affine, d_relu, i, if_activation, d_active_pattern, d_l1_lb, d_l1_ub,d_f_act_pattern)
 
 
         outcome = oneOutput(d_affine, d_relu, if_activation, d_l1_lb, d_l1_ub,outNodes,inv_var_index)
         active_pattern = cp.asnumpy(d_active_pattern)
-        activated, deactivated = active_convert(active_pattern, dims, inv_var_index)
+        activated, deactivated = active_convert(active_pattern, dims, inv_var_index,outcome)
         '''for i in range(NO_OF_INITIALS):
             print(f"l1_lb -> {d_l1_lb[i]}; l1_ub -> {d_l1_ub[i]}")
-            print(f"active_pattern: {active_pattern}")
+            print(f"active_pattern: {active_pattern[i]}")
             print(f"GPU active:{activated[i]}; deactive:{deactivated[i]}; outcome:{outcome[i]}")'''
         #return activated, deactivated, outcome
