@@ -2,7 +2,7 @@ import math
 from itertools import product
 import numpy as np
 from apronpy.texpr0 import TexprRtype, TexprRdir, TexprDiscr, TexprOp
-from libra.core.cfg import Node, Function, Activation,Basic
+
 from apronpy.texpr1 import PyTexpr1
 from apronpy.var import PyVar
 from copy import deepcopy
@@ -116,9 +116,7 @@ def get_bounds_single(l1_layer_lte,l1_layer_gte,node_num:int , l1_lb,l1_ub,relu_
 
 def get_bounds_single_neurify(l1_layer_lte,l1_layer_gte,node_num:int , l1_lb,l1_ub,relu_val=[1,0,1,0]):
     l1_lte = l1_layer_lte[node_num]*relu_val[0]
-
     l1_lte[0] += relu_val[1]
-
     l1_gte = l1_layer_gte[node_num]*relu_val[2]
     l1_gte[0] += relu_val[3]
     lb = l1_lte[0]
@@ -135,75 +133,15 @@ def get_bounds_single_neurify(l1_layer_lte,l1_layer_gte,node_num:int , l1_lb,l1_
             ub += l1_gte[i] * l1_lb[i][1]
     return lb, ub
 
-def getNetShape(nodes):
-    NO_OF_LAYERS = 1
-    MAX_NODES_IN_LAYER = 1
-    CURR_NODED_IN_LAYER = 0
-    flag = False
-    for current in nodes:
-        if isinstance(current, Function):
-            for (node, eq) in zip(current.stmts[0], current.stmts[1]):              #TODO just use the length
-                if (flag):
-                    flag = False
-                    NO_OF_LAYERS += 1
-                    MAX_NODES_IN_LAYER = max(MAX_NODES_IN_LAYER, CURR_NODED_IN_LAYER)
-                    CURR_NODED_IN_LAYER = 0
-                CURR_NODED_IN_LAYER += 1
-        elif isinstance(current, Activation):
-            flag = True
-            continue
-    MAX_NODES_IN_LAYER = max(MAX_NODES_IN_LAYER, CURR_NODED_IN_LAYER)
-    return NO_OF_LAYERS,MAX_NODES_IN_LAYER
-
-def fillInput(nodes,affine,dims,if_activation,var_index,MNIL):
-    row_id,col_id,flag = (1,1,False)
-    # The 4 in relu is for lessThan(slope,y-coeff);greaterThan(slope,y-coeff)
-    # TO-DO: can make the assumption if one node in a layer has relu then all do
-    for current in nodes:
-        if isinstance(current, Function):
-            for (node, eq) in zip(current.stmts[0], current.stmts[1]):
-                if (flag):
-                    flag = False
-                    row_id += 1
-                    col_id = 1
-                coeffs = np.zeros((MNIL + 1,)).astype(np.float32)
-                eq = texpr_to_dict(eq)
-                for var, val in eq.items():
-                    if var != '_':
-                        r, c = var_index[str(var)]
-                        if (r != row_id - 1):
-                            raise NotImplementedError(
-                                f"Affine should only be based on previous layer{row_id} But was on {r}.")
-                        coeffs[c] += val
-                    else:
-                        coeffs[0] += val
-                dims[row_id] += 1
-                affine[row_id, col_id, :] = coeffs
-                # print(f"Afiine->{str(node)}")
-                var_index[str(node)] = (row_id, col_id)
-                col_id += 1
-                # TO-DO: do something more general than assume format X[N][N] for var name
-        elif isinstance(current, Activation):
-            flag = True
-            r, c = var_index[str(current.stmts)]
-            if_activation[r, c] = True
-            # print(f"Relu->{str(current.stmts)}")
-        else:
-            # print(f"Others->{current.stmts}")
-            '''What to do here
-            for stmt in reversed(current.stmts):
-            state = semantics.assume_call_semantics(stmt, state, manager)'''
-            continue
-
-def fillInitials(initial,L,MNIL):
+def fillInitials(initial,L):
     bounds = []
     NO_OF_INITIALS = 0
-    print(f"{initial.bounds.items()}")
-    for var, bound in initial.bounds.items():
+    #print(f"{initial.items()}")
+    for var, bound in initial.items():
         gaps = []
-        rangeU = bound.upper - bound.lower
+        rangeU = bound[1] - bound[0]
         for i in range(math.ceil(rangeU/L)+1):
-            gaps.append(bound.lower + L*i)
+            gaps.append(bound[0] + L*i)
         bounds.append(product(gaps,gaps))
         NO_OF_INITIALS += 1
     bounds = product(*bounds)
@@ -212,11 +150,11 @@ def fillInitials(initial,L,MNIL):
     l1_lb_a,l1_ub_a,l1_lb,l1_ub = [],[],[],[]
     count = 0;
     for bound in bounds:
-        l1_lb_t = np.zeros((len(initial.bounds.items()) + 1,))
-        l1_ub_t = np.zeros((len(initial.bounds.items()) + 1,))
+        l1_lb_t = np.zeros((len(initial.items()) + 1,))
+        l1_ub_t = np.zeros((len(initial.items()) + 1,))
         flag = False
         #print(f"{count}")
-        for i in range(1,len(initial.bounds.items())+1):
+        for i in range(1,len(initial.items())+1):
             l1_lb_t[i] = bound[i-1][0]
             l1_ub_t[i] = bound[i-1][1]
             if(l1_lb_t[i]>l1_ub_t[i]):
@@ -236,7 +174,38 @@ def fillInitials(initial,L,MNIL):
     l1_lb_a,l1_ub_a = np.array(l1_lb_a),np.array(l1_ub_a)
     l1_lb.append(l1_lb_a)
     l1_ub.append(l1_ub_a)
-    #print(f"lbs Shape->{l1_lb} ubs Shape->{l1_ub}")
-    #for i in range(len(l1_lb[0])):
-        #print(f"lbs-> {l1_lb[0][i]}; ubs-> {l1_ub[0][i]}")
-    return l1_lb,l1_ub
+    '''print(f"lbs Shape->{len(l1_lb)} ubs Shape->{len(l1_ub)}")
+    for i in range(len(l1_lb[0])):
+        print(f"lbs-> {l1_lb[0][i]}; ubs-> {l1_ub[0][i]}")'''
+    return l1_lb, l1_ub
+
+def getNetShape(layers):
+    NO_OF_LAYERS = len(layers)
+    MAX_NODES_IN_LAYER = 0
+    flag = False
+    for layer in layers:
+        for coeffs in layer.values():              #TODO just use the length
+            MAX_NODES_IN_LAYER = max(MAX_NODES_IN_LAYER, len(coeffs)-1)     #-1 as one of the coeff is from base term
+    return NO_OF_LAYERS,MAX_NODES_IN_LAYER
+
+def fillInput(layers,affine,dims,if_activation,var_index,MNIL):
+    row_id,col_id = (1,1)
+    for layer in layers:
+        for lhs, eq in layer.items():
+            coeffs = np.zeros((MNIL + 1,)).astype(np.float32)
+            for var, val in eq.items():
+                if var != '_':
+                    r, c = var_index[str(var)]
+                    if (r != row_id - 1):
+                        raise NotImplementedError(f"Affine should only be based on previous layer {row_id} But was on {r}.")
+                    coeffs[c] += val
+                else:
+                    coeffs[0] += val
+            dims[row_id] += 1
+            affine[row_id, col_id, :] = coeffs
+            var_index[str(lhs)] = (row_id, col_id)
+            col_id += 1
+        row_id += 1
+        col_id = 1
+    if_activation[row_id-1] = 0
+

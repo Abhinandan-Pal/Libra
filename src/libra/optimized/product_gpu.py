@@ -268,3 +268,4 @@ def network_condense_GPU(nodes, initial,domains,forced_active, forced_inactive,o
 
 
 
+
