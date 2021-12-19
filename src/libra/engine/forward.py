@@ -561,7 +561,7 @@ class ForwardInterpreter(Interpreter):
         #deeppoly_gpu.network_condense_GPU(nodes, initial,forced_active=None, forced_inactive=None, outputs=outputs)
         #product_gpu.network_condense_GPU(nodes, initial, {"Neurify", "DeepPoly", "Symbolic"},forced_active=None, forced_inactive=None, outputs=outputs)
         time_sec = time.time()
-        deeppoly_gpu.network_condense_GPU(nodes, initial,forced_active=None, forced_inactive=None, outputs=outputs)
+        product_gpu.network_condense_GPU(nodes, initial, {"Neurify", "DeepPoly", "Symbolic"},forced_active=None, forced_inactive=None, outputs=outputs)
         time_sec = time.time() - time_sec
         print(f"GPU time: {time_sec}\n\n")
         # till here

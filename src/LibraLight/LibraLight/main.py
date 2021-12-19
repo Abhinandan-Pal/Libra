@@ -13,6 +13,9 @@ from keras2libra import parse_keras
 from preanalysis import worker1
 import config
 from optimized import deeppoly_gpu as dpG
+from optimized import symbolic_gpu as symG
+from optimized import neurify_gpu as neuG
+from optimized import product_gpu as prodG
 
 preanalysis_time = None
 analysis_time = None
@@ -274,15 +277,17 @@ def toy():
     ranges1[config.sensitive] = (config.values[0][0], config.values[1][1])
     ranges1['x01'] = (0, 1)
     ranges2 = dict()
-    ranges2[config.sensitive] = (config.values[0][0], config.values[1][1])
     ranges2['x01'] = (0, 1)
+    ranges2[config.sensitive] = (config.values[0][0], config.values[1][1])
     # 2. call init with the ranges dictionary
     from abstract_domain import init
     initial1 = init(ranges1)
     initial2 = init(ranges2)
     print(f"{ranges2}")
+    #symG.analyze(initial1, config.inputs, config.layers, config.outputs)
+    #prodG.analyze(initial1, config.inputs, config.layers, config.outputs, domains={"Symbolic"})
     time_sec = time.time()
-    dpG.analyze(initial2, config.inputs, config.layers, config.outputs)
+    prodG.analyze(initial1, config.inputs, config.layers, config.outputs, domains={"DeepPoly","Symbolic","Neurify"})
     time_sec = time.time() - time_sec
     print(f"GPU time: {time_sec}\n\n")
     # we can now run the forward analysis for each initial

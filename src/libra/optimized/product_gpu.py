@@ -121,7 +121,7 @@ def fillInput(nodes,affine,dims,if_activation,var_index,MNIL):
 def miniPrintCondense(d_affine, if_activation, d_l1_lb,d_l1_ub,domains,d_relu_dp,d_symb,d_relu_neu,d_active_pattern,d_f_act_pattern):
     d_lbsL = cp.zeros((len(domains), len(d_relu_dp), len(d_affine[0])))
     d_ubsL = cp.zeros((len(domains), len(d_relu_dp), len(d_affine[0])))
-    init_id = 1
+    init_id = 64
     print(f"init_id-> {init_id}")
     for i in range(1, len(d_affine)):
         j = 0
@@ -189,7 +189,7 @@ def noPrintCondense(d_affine, if_activation, d_l1_lb,d_l1_ub,domains,d_relu_dp,d
     #print(f"NEU:\n{d_active_pattern_neu}")
 
 def network_condense_GPU(nodes, initial,domains,forced_active, forced_inactive,outputs):
-    L = 0.5
+    L = 0.25
     U = 20
     # equation[n1][n2] stores the bias and coeff of nodes of previous layer to form x[n1][n2] in order
     # if_activation[n1][n2] stores if there is an activation on x[n1][n2] (only relu considered for now)
@@ -260,11 +260,11 @@ def network_condense_GPU(nodes, initial,domains,forced_active, forced_inactive,o
         outcome = oneOutput(d_affine,d_relu_dp,d_relu_neu,d_symb,if_activation,d_l1_lb,d_l1_ub,outNodes,inv_var_index,domains)
         active_pattern = cp.asnumpy(d_active_pattern)
         activated, deactivated = dpG.active_convert(active_pattern, dims, inv_var_index,outcome)
-        for i in range(NO_OF_INITIALS):
+        '''for i in range(NO_OF_INITIALS):
             print(f"l1_lb -> {d_l1_lb[i]}; l1_ub -> {d_l1_ub[i]}")
             print(f"activation->{active_pattern[i]}")
             print(f"GPU active:{activated[i]}; deactive:{deactivated[i]}; outcome:{outcome[i]}")
-        # return activated, deactivated, outcome
+        # return activated, deactivated, outcome'''
 
 
 
