@@ -252,7 +252,7 @@ def toy():
     ]
     config.outputs = ('x31', 'x32')
 
-    config.bounds = {'x01': (-1, 1), 'x02': (-1, 1)}
+    config.bounds = {'x01': (0, 1), 'x02': (0, 1)}
     config.continuous = ['x01', 'x02']
 
     set_sensitive(2)
@@ -272,7 +272,7 @@ def toy():
     # e.g., L = 1
     ranges1 = dict()
     ranges1[config.sensitive] = (config.values[0][0], config.values[1][1])
-    ranges1['x01'] = (-1, 0)
+    ranges1['x01'] = (0, 1)
     ranges2 = dict()
     ranges2[config.sensitive] = (config.values[0][0], config.values[1][1])
     ranges2['x01'] = (0, 1)

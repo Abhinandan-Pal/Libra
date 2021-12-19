@@ -11,7 +11,7 @@ from libra.engine.bias_analysis import AbstractDomain
 from libra.main import checker
 
 spec = ''
-nn = 'libra/tests/toy.py'
+nn = 'libra/tests/example.py'
 if len(sys.argv) > 1:
     domain = checker(sys.argv[1])
 else:

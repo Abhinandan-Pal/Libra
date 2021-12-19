@@ -210,23 +210,29 @@ def fillInitials(initial,L,MNIL):
     #for b in bounds:
     #   print(f"Bounds: {b}")
     l1_lb_a,l1_ub_a,l1_lb,l1_ub = [],[],[],[]
-    count = 0;
+    count = 0
+    flag = False
+    i = 1
     for bound in bounds:
-        l1_lb_t = np.zeros((len(initial.bounds.items()) + 1,))
-        l1_ub_t = np.zeros((len(initial.bounds.items()) + 1,))
+        if(flag):
+            if (bound[i - 1][0] > bound[i - 1][1]):
+                continue
         flag = False
-        #print(f"{count}")
         for i in range(1,len(initial.bounds.items())+1):
-            l1_lb_t[i] = bound[i-1][0]
-            l1_ub_t[i] = bound[i-1][1]
-            if(l1_lb_t[i]>l1_ub_t[i]):
+            if(bound[i - 1][0]>bound[i - 1][1]):
                 flag = True
                 break
-        if(flag):
+        if (flag):
             continue
+        l1_lb_t = np.zeros((len(initial.bounds.items()) + 1,))
+        l1_ub_t = np.zeros((len(initial.bounds.items()) + 1,))
+        for i in range(1,len(initial.bounds.items())+1):
+            l1_lb_t[i] = bound[i - 1][0]
+            l1_ub_t[i] = bound[i - 1][1]
         l1_lb_a.append(l1_lb_t)
         l1_ub_a.append(l1_ub_t)
         count += 1
+        print(f"{count}")
         if(count == (2**16)):
             l1_lb_a,l1_ub_a = np.array(l1_lb_a),np.array(l1_ub_a)
             l1_lb.append(l1_lb_a)

@@ -170,7 +170,7 @@ def back_relu_GPU(d_relu_layer, d_ln_coeff_lte, d_ln_coeff_gte):
 def back_propagate_GPU1(d_ln_coeff_lte, d_ln_coeff_gte, d_affine, d_relu, layer: int, if_activation):
     while (layer != 1):  # layer zero is input and layer one is in already in terms of input
         # First relu of previous layer
-        if (if_activation[layer - 1][1] == True):
+        if (if_activation[layer - 1] == True):
             back_relu_GPU(d_relu[:, layer - 1], d_ln_coeff_lte, d_ln_coeff_gte)
         # Then affine of previous layer
         d_ineq_prev_gte = d_affine[layer - 1]
@@ -210,7 +210,7 @@ def oneOutput(d_affine, d_relu, if_activation, d_l1_lb, d_l1_ub, outNodes, inv_v
         layer = len(d_affine)
         while (layer != 1):  # layer zero is input and layer one is in already in terms of input
             # First relu of previous layer
-            if (if_activation[layer - 1][1] == True):
+            if (if_activation[layer - 1] == True):
                 back_relu_GPU(d_relu[layer - 1], d_ln_coeff_lte, d_ln_coeff_gte)
             # Then affine of previous layer
             d_ineq_prev_gte = d_affine[layer - 1]
@@ -273,7 +273,7 @@ def detailedPrintCondense(d_affine, d_relu, d_active_pattern, d_l1_lb, d_l1_ub, 
             print(
                 f"Node: {j} -> if_activation: {if_activation[i, j]}\n eq: {ineq_str(d_affine[i, j], i, j, '=', i - 1, inv_var_index)} ")
         d_ineq_lte, d_ineq_gte = back_propagate_GPU(d_affine, d_relu, i, if_activation)
-        if (if_activation[i][1] == 1):
+        if (if_activation[i] == 1):
             d_lbs, d_ubs = get_bounds_GPU(d_ineq_lte, d_ineq_gte, d_l1_lb, d_l1_ub)
             relu_compute_GPU(d_lbs, d_ubs, d_relu[:, i], d_active_pattern[:, i], d_f_act_pattern[:, i])
             relu = cp.asnumpy(d_relu)
@@ -287,7 +287,7 @@ def detailedPrintCondense(d_affine, d_relu, d_active_pattern, d_l1_lb, d_l1_ub, 
             print(f" eq GTE L1: {ineq_str(ineq_gte[init_id][j], i, j, '<=', 0, inv_var_index)}")
             print(
                 f" eq (LB,UB): {get_bounds_single(ineq_lte[init_id], ineq_gte[init_id], j, l1_lb[init_id], l1_ub[init_id])}")
-        if (if_activation[i, 1] == 1):  # assuming if first node in a layer has activation then all do
+        if (if_activation[i] == 1):  # assuming if first node in a layer has activation then all do
             print(f"\t RELU-LAYER {i}")
             for j in range(1, len(d_affine[0])):
                 print(f"\tNode {j}")
@@ -304,11 +304,11 @@ def detailedPrintCondense(d_affine, d_relu, d_active_pattern, d_l1_lb, d_l1_ub, 
 def miniPrintCondense(d_affine, d_relu, d_active_pattern, d_l1_lb, d_l1_ub, if_activation, d_f_act_pattern):
     l1_ub = cp.asnumpy(d_l1_ub)
     l1_lb = cp.asnumpy(d_l1_lb)
-    init_id = 14  # len(d_l1_ub) -1
+    init_id = 64  # len(d_l1_ub) -1
     print(f"init_id-> {init_id}; lbs -> {d_l1_lb[init_id]}; ubs -> {d_l1_ub[init_id]}")
     for i in range(1, len(d_affine)):
         d_ineq_lte, d_ineq_gte = back_propagate_GPU(d_affine, d_relu, i, if_activation)
-        if (if_activation[i][1] == 1):
+        if (if_activation[i] == 1):
             d_lbs, d_ubs = get_bounds_GPU(d_ineq_lte, d_ineq_gte, d_l1_lb, d_l1_ub)
             relu_compute_GPU(d_lbs, d_ubs, d_relu[:, i], d_active_pattern[:, i], d_f_act_pattern[:, i])
             relu = cp.asnumpy(d_relu)
@@ -316,7 +316,7 @@ def miniPrintCondense(d_affine, d_relu, d_active_pattern, d_l1_lb, d_l1_ub, if_a
         ineq_lte = cp.asnumpy(d_ineq_lte)
         ineq_gte = cp.asnumpy(d_ineq_gte)
 
-        if (if_activation[i, 1] == 1):  # assuming if first node in a layer has activation then all do
+        if (if_activation[i] == 1):  # assuming if first node in a layer has activation then all do
             for j in range(1, len(d_affine[0])):
                 print(
                     f"Relu {i}:{j} eq (LB,UB): {commons.get_bounds_single(ineq_lte[init_id], ineq_gte[init_id], j, l1_lb[init_id], l1_ub[init_id], relu_val=relu[init_id][i][j])}")
@@ -329,12 +329,12 @@ def miniPrintCondense(d_affine, d_relu, d_active_pattern, d_l1_lb, d_l1_ub, if_a
 def noPrintCondense(d_affine, d_relu, i, if_activation, d_active_pattern, d_l1_lb, d_l1_ub, d_f_act_pattern):
     for i in range(1, len(d_affine)):
         d_ineq_lte, d_ineq_gte = back_propagate_GPU(d_affine, d_relu, i, if_activation)  # place inside if and
-        if (if_activation[i][1] == 1):  # TODO: adjust for forced activate.
+        if (if_activation[i] == 1):  # TODO: adjust for forced activate.
             d_lbs, d_ubs = get_bounds_GPU(d_ineq_lte, d_ineq_gte, d_l1_lb, d_l1_ub)
             relu_compute_GPU(d_lbs, d_ubs, d_relu[:, i], d_active_pattern[:, i], d_f_act_pattern[:, i])
 
 def analyze(initial, inputs, layers, outputs):
-    L = 0.125
+    L = 0.25
     U = 20
     #print(f"inintial: {initial};\ninputs: {inputs};\nlayers: {layers};\noutputs: {outputs}")
     #print(f"layers: {layers[0]}")
@@ -350,7 +350,7 @@ def analyze(initial, inputs, layers, outputs):
 
         var_index: dict(str, (int, int)) = dict()
         affine = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1, MAX_NODES_IN_LAYER + 1)).astype(np.float32)
-        if_activation = np.ones((NO_OF_LAYERS + 1,MAX_NODES_IN_LAYER + 1)).astype(np.int16)
+        if_activation = np.ones((NO_OF_LAYERS + 1)).astype(np.int16)
         dims = np.ones(NO_OF_LAYERS + 1).astype(np.int32)
         f_act_pattern = np.zeros((NO_OF_INITIALS, NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1)).astype(np.int16)
 
@@ -360,7 +360,7 @@ def analyze(initial, inputs, layers, outputs):
             var_index[str(var)] = (row_id, col_id)
             col_id += 1
         commons.fillInput(layers, affine, dims, if_activation, var_index, MAX_NODES_IN_LAYER)
-        print(f"l1_lb: {d_l1_lb[50]}; l1_ub: {d_l1_ub[50]}")
+        #print(f"l1_lb: {d_l1_lb[50]}; l1_ub: {d_l1_ub[50]}")
         print(f"var_index: {var_index}")
         print(f"affine: {affine}")
         outNodes = set()
@@ -378,8 +378,8 @@ def analyze(initial, inputs, layers, outputs):
         # Removes NumbaPerformanceWarning and others but slow down everything significantly.
         warnings.filterwarnings("ignore")
         # detailedPrintCondense(d_affine,d_relu,d_active_pattern,d_l1_lb,d_l1_ub,if_activation,relu,var_index,inv_var_index,d_f_act_pattern)
-        # miniPrintCondense(d_affine, d_relu, d_active_pattern, d_l1_lb, d_l1_ub, if_activation,d_f_act_pattern)
-        noPrintCondense(d_affine, d_relu, i, if_activation, d_active_pattern, d_l1_lb, d_l1_ub, d_f_act_pattern)
+        miniPrintCondense(d_affine, d_relu, d_active_pattern, d_l1_lb, d_l1_ub, if_activation,d_f_act_pattern)
+        # noPrintCondense(d_affine, d_relu, i, if_activation, d_active_pattern, d_l1_lb, d_l1_ub, d_f_act_pattern)
 
         outcome = oneOutput(d_affine, d_relu, if_activation, d_l1_lb, d_l1_ub, outNodes, inv_var_index)
         active_pattern = cp.asnumpy(d_active_pattern)
