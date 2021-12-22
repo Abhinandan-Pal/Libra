@@ -55,7 +55,7 @@ def oneOutput(d_affine,d_relu_dp,d_relu_neu,d_symb,if_activation,d_l1_lb,d_l1_ub
 def miniPrintCondense(d_affine, if_activation, d_l1_lb,d_l1_ub,domains,d_relu_dp,d_symb,d_relu_neu,d_active_pattern,NO_OF_INITIALS):
     d_lbsL = cp.zeros((len(domains), NO_OF_INITIALS, len(d_affine[0])))
     d_ubsL = cp.zeros((len(domains), NO_OF_INITIALS, len(d_affine[0])))
-    init_id = 64
+    init_id = 0
     print(f"init_id-> {init_id}; lbs -> {d_l1_lb[init_id]}; ubs -> {d_l1_ub[init_id]}")
     for i in range(1, len(d_affine)):
         j = 0
@@ -121,15 +121,20 @@ def noPrintCondense(d_affine, if_activation, d_l1_lb,d_l1_ub,domains,d_relu_dp,d
     #print(f"SYM:\n{d_active_pattern_symb}")
     #print(f"NEU:\n{d_active_pattern_neu}")
 
-def analyze(initial, inputs, layers, outputs,domains):
-    L = 0.25
+def analyze(L,initial,sensative, inputs, layers, outputs,domains):
     U = 20
     # equation[n1][n2] stores the bias and coeff of nodes of previous layer to form x[n1][n2] in order
     # if_activation[n1][n2] stores if there is an activation on x[n1][n2] (only relu considered for now)
-    l1_lb_list, l1_ub_list = commons.fillInitials(initial[0], L)
+    l1_lb_list, l1_ub_list = commons.fillInitials(initial[0],sensative, L)
     NO_OF_LAYERS, MAX_NODES_IN_LAYER = commons.getNetShape(layers)
     print(f"DOMAINS -> {domains}")
+    s = ""
+    for l1_lb in l1_lb_list:
+        s += " + " + str(l1_lb.shape[0])
+    print(f"Intial batches: {s}")
     for i in range(len(l1_ub_list)):
+        if(len(l1_ub_list[i]) == 0):
+            continue
         d_l1_lb = cp.asarray(l1_lb_list[i])
         d_l1_ub = cp.asarray(l1_ub_list[i])
         NO_OF_INITIALS = len(d_l1_lb)
@@ -147,7 +152,6 @@ def analyze(initial, inputs, layers, outputs,domains):
         for var, bound in initial[0].items():
             var_index[str(var)] = (row_id, col_id)
             col_id += 1
-
         commons.fillInput(layers, affine, dims, if_activation, var_index, MAX_NODES_IN_LAYER)
         outNodes = set()
         for output in outputs:
@@ -168,8 +172,8 @@ def analyze(initial, inputs, layers, outputs,domains):
 
         # Removes NumbaPerformanceWarning and others but slow down everything significantly.
         warnings.filterwarnings("ignore")
-        miniPrintCondense(d_affine, if_activation, d_l1_lb,d_l1_ub,domains,d_relu_dp,d_symb,d_relu_neu,d_active_pattern,NO_OF_INITIALS)
-        #noPrintCondense(d_affine, if_activation, d_l1_lb,d_l1_ub,domains,d_relu_dp,d_symb,d_relu_neu,d_active_pattern,NO_OF_INITIALS)
+        #miniPrintCondense(d_affine, if_activation, d_l1_lb,d_l1_ub,domains,d_relu_dp,d_symb,d_relu_neu,d_active_pattern,NO_OF_INITIALS)
+        noPrintCondense(d_affine, if_activation, d_l1_lb,d_l1_ub,domains,d_relu_dp,d_symb,d_relu_neu,d_active_pattern,NO_OF_INITIALS)
 
         #print(f"activation->{d_active_pattern}")
         outcome = oneOutput(d_affine,d_relu_dp,d_relu_neu,d_symb,if_activation,d_l1_lb,d_l1_ub,outNodes,inv_var_index,domains)
@@ -179,7 +183,7 @@ def analyze(initial, inputs, layers, outputs,domains):
             print(f"l1_lb -> {d_l1_lb[i]}; l1_ub -> {d_l1_ub[i]}")
             print(f"activation->{active_pattern[i]}")
             print(f"GPU active:{activated[i]}; deactive:{deactivated[i]}; outcome:{outcome[i]}")'''
-        # return activated, deactivated, outcome
+        #return activated, deactivated, outcome
 
 
 

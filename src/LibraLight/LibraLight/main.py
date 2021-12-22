@@ -16,6 +16,7 @@ from optimized import deeppoly_gpu as dpG
 from optimized import symbolic_gpu as symG
 from optimized import neurify_gpu as neuG
 from optimized import product_gpu as prodG
+import test
 
 preanalysis_time = None
 analysis_time = None
@@ -275,7 +276,7 @@ def toy():
     # e.g., L = 1
     ranges1 = dict()
     ranges1[config.sensitive] = (config.values[0][0], config.values[1][1])
-    ranges1['x01'] = (0, 1)
+    ranges1['x01'] = (-1, 0)
     ranges2 = dict()
     ranges2['x01'] = (0, 1)
     ranges2[config.sensitive] = (config.values[0][0], config.values[1][1])
@@ -287,7 +288,7 @@ def toy():
     #symG.analyze(initial1, config.inputs, config.layers, config.outputs)
     #prodG.analyze(initial1, config.inputs, config.layers, config.outputs, domains={"Symbolic"})
     time_sec = time.time()
-    prodG.analyze(initial1, config.inputs, config.layers, config.outputs, domains={"DeepPoly","Symbolic","Neurify"})
+    prodG.analyze(initial2,config.sensitive, config.inputs, config.layers, config.outputs, domains={"DeepPoly","Symbolic","Neurify"})
     time_sec = time.time() - time_sec
     print(f"GPU time: {time_sec}\n\n")
     # we can now run the forward analysis for each initial
@@ -308,5 +309,5 @@ def toy():
 if __name__ == '__main__':
     set_start_method("fork", force=True)
 
-    toy()
+    test.toy2()
     # test1()

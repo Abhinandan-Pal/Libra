@@ -98,7 +98,7 @@ def back_affine_GPU(d_ineq_prev_lte, d_ineq_prev_gte, d_ln_coeff_lte, d_ln_coeff
     d_l1_lte = cp.asarray(l1_lte)
     d_l1_gte = cp.asarray(l1_gte)
 
-    cuda_iters = (len(d_l1_lte), len(d_l1_lte[1]), len(d_ineq_prev_lte[1]))
+    cuda_iters = (len(d_l1_lte), len(d_l1_lte[0]), len(d_ineq_prev_lte[0]))
     tpb = (min(16, cuda_iters[0]), min(8, cuda_iters[1]), min(8, cuda_iters[2]))
     bpg = (
     int(np.ceil(cuda_iters[0] / tpb[0])), int(np.ceil(cuda_iters[1] / tpb[1])), int(np.ceil(cuda_iters[2] / tpb[2])))

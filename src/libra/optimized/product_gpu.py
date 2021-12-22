@@ -121,7 +121,7 @@ def fillInput(nodes,affine,dims,if_activation,var_index,MNIL):
 def miniPrintCondense(d_affine, if_activation, d_l1_lb,d_l1_ub,domains,d_relu_dp,d_symb,d_relu_neu,d_active_pattern,d_f_act_pattern):
     d_lbsL = cp.zeros((len(domains), len(d_relu_dp), len(d_affine[0])))
     d_ubsL = cp.zeros((len(domains), len(d_relu_dp), len(d_affine[0])))
-    init_id = 64
+    init_id = 1
     print(f"init_id-> {init_id}")
     for i in range(1, len(d_affine)):
         j = 0
@@ -253,8 +253,8 @@ def network_condense_GPU(nodes, initial,domains,forced_active, forced_inactive,o
 
         # Removes NumbaPerformanceWarning and others but slow down everything significantly.
         warnings.filterwarnings("ignore")
-        miniPrintCondense(d_affine, if_activation, d_l1_lb,d_l1_ub,domains,d_relu_dp,d_symb,d_relu_neu,d_active_pattern,d_f_act_pattern)
-        #noPrintCondense(d_affine, if_activation, d_l1_lb,d_l1_ub,domains,d_relu_dp,d_symb,d_relu_neu,d_active_pattern,d_f_act_pattern)
+        #miniPrintCondense(d_affine, if_activation, d_l1_lb,d_l1_ub,domains,d_relu_dp,d_symb,d_relu_neu,d_active_pattern,d_f_act_pattern)
+        noPrintCondense(d_affine, if_activation, d_l1_lb,d_l1_ub,domains,d_relu_dp,d_symb,d_relu_neu,d_active_pattern,d_f_act_pattern)
 
         #print(f"activation->{d_active_pattern}")
         outcome = oneOutput(d_affine,d_relu_dp,d_relu_neu,d_symb,if_activation,d_l1_lb,d_l1_ub,outNodes,inv_var_index,domains)

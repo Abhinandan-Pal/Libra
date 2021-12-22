@@ -201,10 +201,14 @@ def fillInitials(initial,L,MNIL):
     print(f"{initial.bounds.items()}")
     for var, bound in initial.bounds.items():
         gaps = []
-        rangeU = bound.upper - bound.lower
-        for i in range(math.ceil(rangeU/L)+1):
-            gaps.append(bound.lower + L*i)
-        bounds.append(product(gaps,gaps))
+
+        if math.isclose(bound.lower,bound.upper):
+            gaps.append((bound.lower, bound.lower))
+        else:
+            rangeU = bound.upper - bound.lower
+            for i in range(math.ceil(rangeU/L)):
+                gaps.append((bound.lower + L*i,bound.lower + L*(i+1)))
+        bounds.append(gaps)
         NO_OF_INITIALS += 1
     bounds = product(*bounds)
     #for b in bounds:
@@ -214,25 +218,11 @@ def fillInitials(initial,L,MNIL):
     flag = False
     i = 1
     for bound in bounds:
-        if(flag):
-            if (bound[i - 1][0] > bound[i - 1][1]):
-                continue
-        flag = False
-        for i in range(1,len(initial.bounds.items())+1):
-            if(bound[i - 1][0]>bound[i - 1][1]):
-                flag = True
-                break
-        if (flag):
-            continue
-        l1_lb_t = np.zeros((len(initial.bounds.items()) + 1,))
-        l1_ub_t = np.zeros((len(initial.bounds.items()) + 1,))
-        for i in range(1,len(initial.bounds.items())+1):
-            l1_lb_t[i] = bound[i - 1][0]
-            l1_ub_t[i] = bound[i - 1][1]
-        l1_lb_a.append(l1_lb_t)
-        l1_ub_a.append(l1_ub_t)
-        count += 1
         print(f"{count}")
+        l1_lb_a.append(np.asarray(bound[:][0]))
+        l1_ub_a.append(np.asarray(bound[:][1]))
+        count += 1
+
         if(count == (2**16)):
             l1_lb_a,l1_ub_a = np.array(l1_lb_a),np.array(l1_ub_a)
             l1_lb.append(l1_lb_a)
@@ -243,6 +233,6 @@ def fillInitials(initial,L,MNIL):
     l1_lb.append(l1_lb_a)
     l1_ub.append(l1_ub_a)
     #print(f"lbs Shape->{l1_lb} ubs Shape->{l1_ub}")
-    #for i in range(len(l1_lb[0])):
-        #print(f"lbs-> {l1_lb[0][i]}; ubs-> {l1_ub[0][i]}")
+    for i in range(len(l1_lb[0])):
+        print(f"lbs-> {l1_lb[0][i]}; ubs-> {l1_ub[0][i]}")
     return l1_lb,l1_ub
