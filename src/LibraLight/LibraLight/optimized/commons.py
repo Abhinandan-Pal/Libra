@@ -80,6 +80,7 @@ def fillInitials(initial,sensative,L):
     for var, bound in initial.items():
         gaps = []
         if(str(var) == str(sensative)):
+            print(f"SENSATIVE: {var}")
             gaps.append((bound[0], bound[1]))
         elif math.isclose(bound[1],bound[0]):
             gaps.append((bound[0], bound[0]))
@@ -128,7 +129,7 @@ def getNetShape(layers):
             MAX_NODES_IN_LAYER = max(MAX_NODES_IN_LAYER, len(coeffs)-1)     #-1 as one of the coeff is from base term
     return NO_OF_LAYERS,MAX_NODES_IN_LAYER
 
-def fillInput(layers,affine,dims,if_activation,var_index,MNIL):
+def fillInput(layers,activations,affine,dims,if_activation,var_index,MNIL):
     row_id,col_id = (1,1)
     for layer in layers:
         for lhs, eq in layer.items():
@@ -147,5 +148,7 @@ def fillInput(layers,affine,dims,if_activation,var_index,MNIL):
             col_id += 1
         row_id += 1
         col_id = 1
-    if_activation[row_id-1] = 0
+    for var in activations:
+        if_activation[var_index[var]] = 1
+
 

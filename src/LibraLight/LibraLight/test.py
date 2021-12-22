@@ -37,20 +37,20 @@ def toy():
 
     ranges = dict()
     ranges[config.sensitive] = (config.values[0][0], config.values[1][1])
-    ranges['x01'] = (-1, 1)
+    ranges['x01'] = (0, 1)
     # 2. call init with the ranges dictionary
     from abstract_domain import init
     initial = init(ranges)
     print(f"{ranges}")
     #symG.analyze(initial1, config.inputs, config.layers, config.outputs)
     #prodG.analyze(initial1, config.inputs, config.layers, config.outputs, domains={"Symbolic"})
-    L= 0.125
+    L= 1
     time_sec = time.time()
-    activated, deactivated, outcome = prodG.analyze(L,initial,config.sensitive, config.inputs, config.layers, config.outputs, domains={"DeepPoly","Symbolic","Neurify"})
+    prodG.analyze(L, initial, config.sensitive, config.inputs, config.layers,config.activations, config.outputs, domains={"DeepPoly","Neurify","Symbolic"})
     time_sec = time.time() - time_sec
     print(f"GPU time: {time_sec}\n\n")
-    for i in range(len(activated)):
-        print(f"GPU -> active:{activated[i]}; deactive:{deactivated[i]}; outcome:{outcome[i]}")
+    #for i in range(len(activated)):
+    #    print(f"GPU -> active:{activated[i]}; deactive:{deactivated[i]}; outcome:{outcome[i]}")
 
 
 def toy2():
@@ -125,7 +125,7 @@ def toy2():
     ]
     config.outputs = ('x50', 'x51')
 
-    config.bounds = {'x00': (-1, 1),'x01': (0, 1), 'x02': (0, 1),'x03': (0, 1), 'x04': (0, 1),'x05': (0, 1), 'x06': (0, 1),'x07': (0, 1), 'x08': (0, 1),'x09': (0, 1), 'x010': (0, 1),'x011': (0, 1)}
+    config.bounds = {'x00': (-1, 1),'x01': (-1, 1), 'x02': (-1, 1),'x03': (-1, 1), 'x04': (-1, 1),'x05': (-1, 1), 'x06': (-1, 1),'x07': (1, 1), 'x08': (-1, -1),'x09': (-1, -1), 'x010': (-1, -1),'x011': (1, 1)}
     config.continuous = ['x00','x01', 'x02','x03','x04', 'x05','x06','x07','x08', 'x09','x010','x011']
 
     set_sensitive(2)
@@ -142,12 +142,13 @@ def toy2():
     from abstract_domain import init
     initial = init(ranges)
     print(f"{ranges}")
-    #symG.analyze(initial1, config.inputs, config.layers, config.outputs)
-    #prodG.analyze(initial1, config.inputs, config.layers, config.outputs, domains={"Symbolic"})
     L= 0.25
     time_sec = time.time()
-    prodG.analyze(L,initial,config.sensitive, config.inputs, config.layers, config.outputs, domains={"DeepPoly"})
+    activatedL, deactivatedL, outcomeL = prodG.analyze(L, initial, config.sensitive, config.inputs, config.layers,config.activations, config.outputs, domains={"DeepPoly","Neurify","Symbolic"})
+    #dpG.analyze(L,initial,config.sensitive, config.inputs, config.layers,config.activations, config.outputs)
     time_sec = time.time() - time_sec
     print(f"GPU time: {time_sec}\n\n")
-    #for i in range(len(activated)):
-    #    print(f"GPU -> active:{activated[i]}; deactive:{deactivated[i]}; outcome:{outcome[i]}")
+    for i in range(len(activatedL)):
+        for j in range(len(activatedL[0])):
+            #print(f"GPU [{i},{j}] -> active:{activatedL[i][j]}; deactive:{deactivatedL[i][j]}; outcome:{outcomeL[i][j]}")
+            pass
