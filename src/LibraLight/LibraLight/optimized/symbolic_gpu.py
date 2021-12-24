@@ -174,17 +174,10 @@ def oneOutput(last,d_affine,d_symb,if_activation,d_l1_lb,d_l1_ub,outNodes,inv_va
         d_ln_coeff_lte = cp.asarray(ln_coeff_lte)
         d_ln_coeff_gte = d_ln_coeff_lte.copy().astype('float32')
         layer = len(d_affine)
-        while (layer != 1):  # layer zero is input and layer one is in already in terms of input
-            # First relu of previous layer
-            if (any(if_activation[layer - 1])):
-                back_relu_GPU(d_symb[:,layer - 1], d_ln_coeff_lte, d_ln_coeff_gte)
-            # Then affine of previous layer
-            d_ineq_prev_gte = d_affine[layer - 1]
-            d_ineq_prev_lte = d_affine[layer - 1]
-            d_ln_coeff_lte, d_ln_coeff_gte = back_affine_GPU(d_ineq_prev_lte, d_ineq_prev_gte, d_ln_coeff_lte,
-                                                            d_ln_coeff_gte,d_symb[:,layer - 1])
-            layer -= 1
-        d_lbs,d_ubs = get_bounds_GPU(d_ln_coeff_lte,d_ln_coeff_gte,d_l1_lb,d_l1_ub)
+        d_ineq_lte, d_ineq_gte = back_propagate_GPU1(d_ln_coeff_lte, d_ln_coeff_gte, d_affine, d_symb, layer,
+                                                     if_activation)
+        d_lbs, d_ubs = get_bounds_GPU(d_ineq_lte, d_ineq_gte, d_l1_lb, d_l1_ub)
+
         lbs = cp.asnumpy(d_lbs)
 
         #print(f"DEBUG OUTCOME Node{out1} --> lbs:{d_lbs}; ubs:{d_ubs}")

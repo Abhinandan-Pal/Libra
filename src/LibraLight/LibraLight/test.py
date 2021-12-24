@@ -5,6 +5,8 @@ from optimized import symbolic_gpu as symG
 from optimized import neurify_gpu as neuG
 from optimized import product_gpu as prodG
 from main import set_sensitive
+from preanalysis_gpu import preanalysis
+
 
 def toy():
     config.inputs = ['x01', 'x02']
@@ -43,14 +45,9 @@ def toy():
     initial = init(ranges)
     print(f"{ranges}")
     #symG.analyze(initial1, config.inputs, config.layers, config.outputs)
-    #prodG.analyze(initial1, config.inputs, config.layers, config.outputs, domains={"Symbolic"})
+    #prodG.analyze(L, initial, config.sensitive, config.inputs, config.layers,config.activations, config.outputs, domains={"DeepPoly","Neurify","Symbolic"})
     L= 1
-    time_sec = time.time()
-    prodG.analyze(L, initial, config.sensitive, config.inputs, config.layers,config.activations, config.outputs, domains={"DeepPoly","Neurify","Symbolic"})
-    time_sec = time.time() - time_sec
-    print(f"GPU time: {time_sec}\n\n")
-    #for i in range(len(activated)):
-    #    print(f"GPU -> active:{activated[i]}; deactive:{deactivated[i]}; outcome:{outcome[i]}")
+    preanalysis(config,initial, 1, 0.25, 2)
 
 
 def toy2():
@@ -142,7 +139,7 @@ def toy2():
     from abstract_domain import init
     initial = init(ranges)
     print(f"{ranges}")
-    L= 0.25
+    L= 1
     time_sec = time.time()
     activatedL, deactivatedL, outcomeL = prodG.analyze(L, initial, config.sensitive, config.inputs, config.layers,config.activations, config.outputs, domains={"DeepPoly","Neurify","Symbolic"})
     #dpG.analyze(L,initial,config.sensitive, config.inputs, config.layers,config.activations, config.outputs)
@@ -150,5 +147,6 @@ def toy2():
     print(f"GPU time: {time_sec}\n\n")
     for i in range(len(activatedL)):
         for j in range(len(activatedL[0])):
-            #print(f"GPU [{i},{j}] -> active:{activatedL[i][j]}; deactive:{deactivatedL[i][j]}; outcome:{outcomeL[i][j]}")
+            print(f"GPU [{i},{j}] -> active:{activatedL[i][j]}; deactive:{deactivatedL[i][j]}; outcome:{outcomeL[i][j]}")
             pass
+

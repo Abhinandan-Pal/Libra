@@ -16,6 +16,7 @@ from optimized import deeppoly_gpu as dpG
 from optimized import symbolic_gpu as symG
 from optimized import neurify_gpu as neuG
 from optimized import product_gpu as prodG
+from preanalysis_gpu import preanalysis as preAG
 import test
 
 preanalysis_time = None
@@ -40,6 +41,12 @@ def set_sensitive(sensitive):
     del config.bounds[config.sensitive]
     config.continuous.remove(config.sensitive)
 
+def set_sensitive_GPU(sensitive):
+    config.sensitive = 'x0{}'.format(sensitive)
+    lower, upper = config.bounds[config.sensitive][0], config.bounds[config.sensitive][1]
+    middle = lower + (upper - lower) / 2
+    config.values = ((lower, middle), (middle, upper))
+    config.continuous.remove(config.sensitive)
 
 def print_result(result, time1, time2):
     _, _, _, _, _, _, _, fair, biased, feasible, _, _, _ = result
@@ -87,6 +94,7 @@ def preanalysis(shared):
         sset = lambda s: '{{{}}}'.format(', '.join('{}'.format(e) for e in s))
         print(sset(key[0]), '|', sset(key[1]), '->', len(pack))
     #
+    print(f"{patterns}")
     compressed = dict()
     for key1, pack1 in sorted(patterns.items(), key=lambda v: len(v[1]), reverse=False):
         unmerged = True
@@ -155,8 +163,7 @@ def analysis(prioritized, shared):
     return json_out.copy(), analysis_time
 
 
-def do(out_name):
-
+def do(out_name,ifGPU):
     print(Fore.BLUE + '\n||==================================||')
     print('|| domain: {}'.format(config.domain))
     print('|| min_difference: {}'.format(config.min_difference))
@@ -166,22 +173,28 @@ def do(out_name):
     print('|| cpus: {}'.format(config.cpu))
     print('||==================================||', Style.RESET_ALL)
 
-    patterns = Manager().dict()     # packing of abstract activation patterns
-    partitions = Value('i', 0)      # number of input partitions
-    discarded = Value('i', 0)       # number of discarded input partitions
-    difference = Value('d', 2)      # current L
-    unstable = Value('i', 0)        # current U
-    fair = Value('d', 0.0)          # percentage that is fair
-    biased = Value('d', 0.0)        # percentage that is biased
-    feasible = Value('d', 0.0)      # percentage that could be analyzed
-    explored = Value('d', 0.0)      # percentage that was explored
+    patterns = Manager().dict()  # packing of abstract activation patterns
+    partitions = Value('i', 0)  # number of input partitions
+    discarded = Value('i', 0)  # number of discarded input partitions
+    difference = Value('d', 2)  # current L
+    unstable = Value('i', 0)  # current U
+    fair = Value('d', 0.0)  # percentage that is fair
+    biased = Value('d', 0.0)  # percentage that is biased
+    feasible = Value('d', 0.0)  # percentage that could be analyzed
+    explored = Value('d', 0.0)  # percentage that was explored
     json_out = Manager().dict()
-    shared = (patterns, partitions, discarded, config.min_difference, difference, unstable, config.max_unstable, fair, biased, feasible, explored, json_out, Lock())
+    shared = (
+    patterns, partitions, discarded, config.min_difference, difference, unstable, config.max_unstable, fair, biased,
+    feasible, explored, json_out, Lock())
 
     print(Fore.BLUE + '\n||==============||')
     print('|| Pre-Analysis ||')
     print('||==============||\n', Style.RESET_ALL)
-    prioritized, time1 = preanalysis(shared)
+
+    if(ifGPU):
+        prioritized, time1 = preAG(config, config.start_difference, config.min_difference, config.max_unstable )
+    else:
+        prioritized, time1 = preanalysis(shared)
 
     print(Fore.BLUE + '\n||==========||')
     print('|| Analysis ||')
@@ -197,7 +210,7 @@ def do(out_name):
     return shared, time1, time2
 
 
-def test1():
+def test1(ifGPU):
     config.threshold = 2550
 
     toy_model = Sequential()
@@ -217,27 +230,29 @@ def test1():
 
     MIN_ = np.array([0, 40.000, -73.000, -2000.000, 20.018, -45, -2, 0, 0, 0, 0, 0])
     MAX_ = np.array([1, 105.000, 40.000, 15100.000, 219.985, 15.000, 2.000, 1, 1, 1, 1, 1])
-    X_min = [0, 40, -73, -2000, 20.018, -45, -2, 0, 1, 0, 1, 1]
-    X_max = [1, 83, 40, 15100, 219.985, 15, 2, 0, 1, 0, 1, 1]
+    X_min = [0, 40, -73, -2000, 20.018, -45, -2, 0, 1, 0, 1, 1]  # last 5 here 10011/00111/01011/[][][]00
+    X_max = [1, 105, 40, 15100, 219.985, 15, 2, 0, 1, 0, 1, 1]
     c_min = (MAX_ - X_min) / (MAX_ - MIN_)
     c_max = (MAX_ - X_max) / (MAX_ - MIN_)
     x_min = -c_min + (1 - c_min)
     x_max = -c_max + (1 - c_max)
     set_domain(x_min, x_max)
 
-    set_sensitive(0)
+    if (ifGPU):
+        set_sensitive_GPU(0)
+    else:
+        set_sensitive(0)
 
     config.min_difference = 0.25
     config.start_difference = 2
     config.start_unstable = 2
     config.max_unstable = 2
 
-    result, time1, time2 = do('test1')
+    result, time1, time2 = do('test1',ifGPU)
     print_result(result, time1, time2)
 
 
-def toy():
-
+def toy(ifGPU):
     config.inputs = ['x01', 'x02']
     config.activations = ['x11', 'x12', 'x21', 'x22']
     config.layers = [
@@ -258,23 +273,25 @@ def toy():
 
     config.bounds = {'x01': (0, 1), 'x02': (0, 1)}
     config.continuous = ['x01', 'x02']
-
-    set_sensitive(2)
+    if(ifGPU):
+        set_sensitive_GPU(2)
+    else:
+        set_sensitive(2)
 
     config.min_difference = 0.25
     config.start_difference = 2
     config.start_unstable = 2
     config.max_unstable = 2
 
-    # result, time1, time2 = do('toy')
-    # print_result(result, time1, time2)
+    result, time1, time2 = do('toy',ifGPU)
+    print_result(result, time1, time2)
 
     # how to create initial states
     # 1. create one or more ranges dictionary:
     # the variable whose name is equal to config.sensitive must always range (config.values[0][0], config.values[1][1])
     # all other variables can be split in ranges of size L
     # e.g., L = 1
-    ranges1 = dict()
+    '''ranges1 = dict()
     ranges1[config.sensitive] = (config.values[0][0], config.values[1][1])
     ranges1['x01'] = (-1, 0)
     ranges2 = dict()
@@ -287,10 +304,10 @@ def toy():
     print(f"{ranges2}")
     #symG.analyze(initial1, config.inputs, config.layers, config.outputs)
     #prodG.analyze(initial1, config.inputs, config.layers, config.outputs, domains={"Symbolic"})
-    time_sec = time.time()
-    prodG.analyze(initial2,config.sensitive, config.inputs, config.layers, config.outputs, domains={"DeepPoly","Symbolic","Neurify"})
-    time_sec = time.time() - time_sec
-    print(f"GPU time: {time_sec}\n\n")
+    #time_sec = time.time()
+    #prodG.analyze(initial2,config.sensitive, config.inputs, config.layers, config.outputs, domains={"DeepPoly","Symbolic","Neurify"})
+    #time_sec = time.time() - time_sec
+    #print(f"GPU time: {time_sec}\n\n")
     # we can now run the forward analysis for each initial
     from abstract_domain import analyze
     active1, inactive1, outcome1, (polarity1, symbols1) = analyze(initial1, config.inputs, config.layers, config.outputs)
@@ -303,11 +320,12 @@ def toy():
     print('outcome2:', outcome2)
     # (just printing the results for now, we should later do something with these results, I will tell you)
 
-    # the idea is to be able to run the above analysis in parallel for MANY initials as discussed
+    # the idea is to be able to run the above analysis in parallel for MANY initials as discussed'''
 
 
 if __name__ == '__main__':
     set_start_method("fork", force=True)
-
-    test.toy2()
-    # test1()
+    ifGPU = True
+    toy(ifGPU)
+    #test.toy()
+    #test1(ifGPU)
