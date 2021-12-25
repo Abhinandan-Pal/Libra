@@ -89,11 +89,44 @@ def convertInitial(bounds,var_index,sensitive):
         col_id += 1
     return l1_lb,l1_ub,sens
 
+def splitInitial2(l1_lbL,l1_ubL,sensitive):
+    #print(f"l1_lbL: {l1_lbL}; l1_ubL: {l1_ubL}")
+    l1_lbLN = []
+    l1_ubLN = []
+    l1_lb_a, l1_ub_a, l1_lbLN, l1_ubLN = [], [], [], []
+    count = 0
+    for (l1_lb, l1_ub) in zip(l1_lbL, l1_ubL):
+
+        for index in range(len(l1_lb)):
+            #print(f"c = {count}")
+            if(index == sensitive) or math.isclose(l1_lb[index], l1_ub[index]):
+                continue
+            lb1,ub1,lb2,ub2 = l1_lb.copy(), l1_ub.copy(),l1_lb.copy(),l1_ub.copy()
+            mid = l1_lb[index] + (l1_ub[index]-l1_lb[index])/2
+            ub1[index] = mid
+            lb2[index] = mid
+            l1_lb_a.append(lb1)
+            l1_lb_a.append(lb2)
+            l1_ub_a.append(ub1)
+            l1_ub_a.append(ub2)
+            count += 2
+            if (count == (2 ** 16)):
+                l1_lb_a, l1_ub_a = np.array(l1_lb_a), np.array(l1_ub_a)
+                l1_lbLN.append(l1_lb_a)
+                l1_ubLN.append(l1_ub_a)
+                l1_lb_a, l1_ub_a = [], []
+                count = 0
+    l1_lb_a, l1_ub_a = np.array(l1_lb_a), np.array(l1_ub_a)
+    l1_lbLN.append(l1_lb_a)
+    l1_ubLN.append(l1_ub_a)
+    #print(f"l1_lbL: {l1_lb_a}; l1_ubL: {l1_ub_a}")
+    return l1_lbLN, l1_ubLN
+
 def splitInitial(l1_lbL,l1_ubL,sensitive):
     bounds = []
-    NO_OF_INITIALS = 0
-    #print(f"SPLIT lb:{l1_lbL} ub:{l1_ubL}")
+    #NO_OF_INITIALS = 0
     for (l1_lb, l1_ub) in zip(l1_lbL, l1_ubL):
+        bnd = []
         for index in range(len(l1_lb)):
             gaps = []
             if (index == sensitive):
@@ -104,15 +137,16 @@ def splitInitial(l1_lbL,l1_ubL,sensitive):
                 mid = l1_lb[index] + (l1_ub[index]-l1_lb[index])/2
                 gaps.append((l1_lb[index], mid))
                 gaps.append((mid, l1_ub[index]))
-            bounds.append(gaps)
-            NO_OF_INITIALS += 1
-    bounds = product(*bounds)
+            bnd.append(gaps)
+            #NO_OF_INITIALS += 1
+        bnd = product(*bnd)
+        bounds.extend(bnd)
     #for b in bounds:
     #   print(f"Bounds lb: {b}")
     l1_lb_a, l1_ub_a, l1_lb, l1_ub = [], [], [], []
     count = 0;
     for bound in bounds:
-        # print(f"{count}")
+        #print(f"{count}")
         l1_lb_t = np.zeros((len(l1_lbL[0]) ,))
         l1_ub_t = np.zeros((len(l1_lbL[0]),))
         for i in range(len(l1_lbL[0])):

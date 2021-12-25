@@ -192,21 +192,27 @@ def do(out_name,ifGPU):
     print('||==============||\n', Style.RESET_ALL)
 
     if(ifGPU):
-        prioritized, time1 = preAG(config, config.start_difference, config.min_difference, config.max_unstable )
+        json_out,prioritized, time1 = preAG(json_out,config, config.start_difference, config.min_difference, config.max_unstable )
+        shared = (patterns, partitions, discarded, config.min_difference, difference, unstable, config.max_unstable, fair,biased,feasible, explored, json_out, Lock())
     else:
         prioritized, time1 = preanalysis(shared)
+        patterns, partitions, discarded, min_difference, difference, unstable, max_unstable, fair, biased, feasible, explored, json_out, lock = shared
+        print(f"biased % = {biased}; feasible % = {feasible}; fair % = {fair}")
 
-    print(Fore.BLUE + '\n||==========||')
-    print('|| Analysis ||')
+
+    print(f"Prioritized : {prioritized}\n Time: {time1}")
+
     print('||==========||\n', Style.RESET_ALL)
+
+    #result = json_out.copy()
     result, time2 = analysis(prioritized, shared)
+
 
     minL, startL = config.min_difference, config.start_difference
     startU, maxU = config.start_unstable, config.max_unstable
     out_file = 'result-{}_{}_{}-{}_{}-{}.json'.format(out_name, config.threshold, minL, startL, startU, maxU)
     with open(out_file, 'w', encoding='utf8') as f:
         json.dump(result, f, indent=4, separators=(',', ':'), ensure_ascii=False)
-
     return shared, time1, time2
 
 
@@ -243,7 +249,7 @@ def test1(ifGPU):
     else:
         set_sensitive(0)
 
-    config.min_difference = 0.25
+    config.min_difference = 0.0625
     config.start_difference = 2
     config.start_unstable = 2
     config.max_unstable = 2
@@ -279,7 +285,7 @@ def toy(ifGPU):
         set_sensitive(2)
 
     config.min_difference = 0.25
-    config.start_difference = 2
+    config.start_difference = 1
     config.start_unstable = 2
     config.max_unstable = 2
 

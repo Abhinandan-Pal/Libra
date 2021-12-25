@@ -5,28 +5,29 @@ from optimized import symbolic_gpu as symG
 from optimized import neurify_gpu as neuG
 from optimized import product_gpu as prodG
 from optimized import commons as comG
+import json
 
-unbiased = []
 feasible = dict()
-unfeasible = []
 unbiasedP = 0
 feasibleP = 0
 unfeasibleP = 0
 
-def preanalysis(config,L_start,L_min,U):
+def preanalysis(json_out,config,L_start,L_min,U):
     print(f"L_start:{L_start}; L_min:{L_min}; U:{U}")
+    json_out["fair"] = []
+    json_out["unknown"] = []
     time_sec = time.time()
     netGPU = comG.createNetworkGPU(config.layers,config.bounds,config.activations,config.sensitive,config.outputs)
-    iterPreanalysis(None,None,netGPU,L_start/2,U,L_min,config.sensitive,100.0)
+    iterPreanalysis(json_out,None,None,netGPU,L_start/2,U,L_min,config.sensitive,100.0)
     time_sec = time.time() - time_sec
     print(f"GPU time: {time_sec}\n\n")
-    print(f"Unbiased % = {unbiasedP}; feasible % = {feasibleP}; Unfeasible % = {unfeasibleP}")
-    print(f"Unbiased: {unbiased}")
-    print(f"Unfeasible: {unfeasible}")
+    print(f"fair % = {unbiasedP}; feasible % = {unbiasedP+feasibleP}; Unfeasible % = {unfeasibleP}")
+    #print(f"Unbiased: {unbiased}")
+    #print(f"Unfeasible: {unfeasible}")
     print(f"feasible: {feasible}")
     prioritized = priorityFeasible(compressFeasible(feasible))
-    print(f"Prioritized: {prioritized}")
-    return prioritized,time_sec
+    #print(f"Prioritized: {prioritized}")
+    return json_out,prioritized,time_sec
 
 def convertBound(lbL,ubL,inv_var_index,sensitive):
     bound = dict()
@@ -36,17 +37,34 @@ def convertBound(lbL,ubL,inv_var_index,sensitive):
             bound[var] = (lbL[i],ubL[i])
     return frozenset(bound.items())
 
+def boundDict(lbL,ubL,inv_var_index,sensitive):
+    jsonDict = dict()
+    bound = dict()
+    for i in range(1, len(lbL)):
+        var = inv_var_index[(0, i)]
+        if (str(var) != str(sensitive)):
+            temp = dict()
+            temp["lower bound"] = lbL[i]
+            temp["upper bound"] = ubL[i]
+            jsonDict[var] = temp
+            bound[var] = (lbL[i], ubL[i])
+    return jsonDict,frozenset(bound.items())
 
 
-def iterPreanalysis(l1_lbL,l1_ubL,netGPU,L,U,L_min,sensitive,percent):
+def iterPreanalysis(json_out,l1_lbL,l1_ubL,netGPU,L,U,L_min,sensitive,percent):
     global unbiasedP,feasibleP,unfeasibleP
+    print(f"PER:{percent}")
     activatedL, deactivatedL, outcomeL, lbL,ubL,percent,inv_var_index = dpG.analyze(netGPU,l1_lbL,l1_ubL,percent)
     l1_lbN,l1_ubN = [],[]
     for activatedL1, deactivatedL1, outcomeL1, lbL1, ubL1 in zip(activatedL, deactivatedL, outcomeL, lbL, ubL):
         for activated, deactivated, outcome, lb, ub in zip(activatedL1, deactivatedL1, outcomeL1, lbL1, ubL1):
-            print(f"0:{percent} ; 1:{activated} ; 2:{deactivated} ; 3:{outcome} ; 4:{lb} ; 5:{ub}")
+            unknown = len(config.activations) - len(activated) - len(deactivated)
+            print(f"0:{percent} ; 1:{unknown} ; 3:{outcome} ; 4:{lb} ; 5:{ub} ; L:{L}")
             if(outcome != None):        #unbiased
-                unbiased.append((percent,(lb,ub)))
+                jsonBound, _ = boundDict(lb, ub, inv_var_index, sensitive)
+                curr = json_out["fair"]
+                curr.append(jsonBound)
+                json_out["fair"] = curr
                 unbiasedP += percent
                 continue
             unknown = len(config.activations) - len(activated) - len(deactivated)
@@ -54,18 +72,22 @@ def iterPreanalysis(l1_lbL,l1_ubL,netGPU,L,U,L_min,sensitive,percent):
                 activated = frozenset(activated)
                 deactivated = frozenset(deactivated)
                 feasibleP += percent
+                jsonBound, libraBound = boundDict(lb, ub, inv_var_index, sensitive)
                 if ((activated, deactivated) in feasible.keys()):
                     feasible[(activated, deactivated)].add((percent,convertBound(lb,ub,inv_var_index,sensitive)))
                 else:
-                    feasible[(activated, deactivated)] = set([(percent,convertBound(lb,ub,inv_var_index,sensitive))])
+                    feasible[(activated, deactivated)] = set([(percent,libraBound)])
             elif(L/2 >= L_min):
                 l1_lbN.append(lb)
                 l1_ubN.append(ub)
             else:
-                unfeasible.append((lb,ub))
+                jsonBound, _ = boundDict(lb, ub, inv_var_index, sensitive)
+                curr = json_out["unknown"]
+                curr.append(jsonBound)
+                json_out["unknown"] = curr
                 unfeasibleP += percent
     if(len(l1_lbN) != 0):
-        iterPreanalysis(l1_lbN,l1_ubN,netGPU,L/2,U,L_min,sensitive,percent)
+        iterPreanalysis(json_out,l1_lbN,l1_ubN,netGPU,L/2,U,L_min,sensitive,percent)
     
 
 def compressRange(rangeL):
