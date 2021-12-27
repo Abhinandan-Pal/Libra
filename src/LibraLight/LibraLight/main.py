@@ -162,6 +162,14 @@ def analysis(prioritized, shared):
     print('\nDone!')
     return json_out.copy(), analysis_time
 
+def combineJSON(json1,json2):
+    from collections import defaultdict
+    jsonD = defaultdict(list)
+
+    for js in (json1,json2):  # you can list as many input dicts as you want here
+        for key, value in js.items():
+            jsonD[key]+=(value)
+    return jsonD
 
 def do(out_name,ifGPU):
     print(Fore.BLUE + '\n||==================================||')
@@ -182,6 +190,7 @@ def do(out_name,ifGPU):
     biased = Value('d', 0.0)  # percentage that is biased
     feasible = Value('d', 0.0)  # percentage that could be analyzed
     explored = Value('d', 0.0)  # percentage that was explored
+    json_out1 = dict()
     json_out = Manager().dict()
     shared = (
     patterns, partitions, discarded, config.min_difference, difference, unstable, config.max_unstable, fair, biased,
@@ -192,32 +201,37 @@ def do(out_name,ifGPU):
     print('||==============||\n', Style.RESET_ALL)
 
     if(ifGPU):
-        json_out,prioritized, time1 = preAG(json_out,config, config.start_difference, config.min_difference, config.max_unstable )
+        json_out1,prioritized, time1,feasible,fair = preAG(json_out1,config, config.start_difference, config.min_difference, config.max_unstable )
+        fair = Value('d', fair)  # percentage that is fair
+        feasible = Value('d', feasible)  # percentage that could be analyzed
         shared = (patterns, partitions, discarded, config.min_difference, difference, unstable, config.max_unstable, fair,biased,feasible, explored, json_out, Lock())
     else:
         prioritized, time1 = preanalysis(shared)
         patterns, partitions, discarded, min_difference, difference, unstable, max_unstable, fair, biased, feasible, explored, json_out, lock = shared
-        print(f"biased % = {biased}; feasible % = {feasible}; fair % = {fair}")
 
 
-    print(f"Prioritized : {prioritized}\n Time: {time1}")
+
+    #print(f"Prioritized : {prioritized}\n Time: {time1}")
 
     print('||==========||\n', Style.RESET_ALL)
 
-    #result = json_out.copy()
-    result, time2 = analysis(prioritized, shared)
-
+    if(ifGPU):
+        result,time2 = json_out1.copy(),0.0
+    else:
+        result, time2 = json_out.copy(), 0.0
+    #result, time2 = analysis(prioritized, shared)
+    #result = combineJSON(json_out1, result)
 
     minL, startL = config.min_difference, config.start_difference
     startU, maxU = config.start_unstable, config.max_unstable
-    out_file = 'result-{}_{}_{}-{}_{}-{}.json'.format(out_name, config.threshold, minL, startL, startU, maxU)
+    out_file = 'jsonFiles/result-{}_{}_{}-{}_{}-{}-{}.json'.format(out_name, config.threshold, minL, startL, startU, maxU,ifGPU)
     with open(out_file, 'w', encoding='utf8') as f:
         json.dump(result, f, indent=4, separators=(',', ':'), ensure_ascii=False)
     return shared, time1, time2
 
 
 def test1(ifGPU):
-    config.threshold = 2550
+    config.threshold = 2552
 
     toy_model = Sequential()
     toy_model.add(Dense(12, activation='relu'))
@@ -236,8 +250,8 @@ def test1(ifGPU):
 
     MIN_ = np.array([0, 40.000, -73.000, -2000.000, 20.018, -45, -2, 0, 0, 0, 0, 0])
     MAX_ = np.array([1, 105.000, 40.000, 15100.000, 219.985, 15.000, 2.000, 1, 1, 1, 1, 1])
-    X_min = [0, 40, -73, -2000, 20.018, -45, -2, 0, 1, 0, 1, 1]  # last 5 here 10011/00111/01011/[][][]00
-    X_max = [1, 105, 40, 15100, 219.985, 15, 2, 0, 1, 0, 1, 1]
+    X_min = [0, 40, -73, -2000, 20.018, -45, 2, 1, 0, 0, 1, 1]  # last 5 here 11011/10011/00111/01011/[][][]00    -2
+    X_max = [1, 105, 40, 15100, 219.985, 15, 2, 1, 0, 0, 1, 1]
     c_min = (MAX_ - X_min) / (MAX_ - MIN_)
     c_max = (MAX_ - X_max) / (MAX_ - MIN_)
     x_min = -c_min + (1 - c_min)
@@ -249,7 +263,7 @@ def test1(ifGPU):
     else:
         set_sensitive(0)
 
-    config.min_difference = 0.0625
+    config.min_difference = 0.5
     config.start_difference = 2
     config.start_unstable = 2
     config.max_unstable = 2
@@ -284,7 +298,7 @@ def toy(ifGPU):
     else:
         set_sensitive(2)
 
-    config.min_difference = 0.25
+    config.min_difference = 0.0625
     config.start_difference = 1
     config.start_unstable = 2
     config.max_unstable = 2
@@ -332,6 +346,6 @@ def toy(ifGPU):
 if __name__ == '__main__':
     set_start_method("fork", force=True)
     ifGPU = True
-    toy(ifGPU)
+    #toy(ifGPU)
     #test.toy()
-    #test1(ifGPU)
+    test1(ifGPU)

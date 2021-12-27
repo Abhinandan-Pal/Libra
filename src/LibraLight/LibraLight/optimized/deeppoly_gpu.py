@@ -329,7 +329,10 @@ def analyze(netGPU,l1_lbL,l1_ubL,percent):
         l1_ubL = l1_ub
 
     l1_lb_list, l1_ub_list = commons.splitInitial(l1_lbL,l1_ubL,sensitive)
-
+    s = ""
+    for l1_lb in l1_lb_list:
+        s += " + " + str(l1_lb.shape[0])
+    print(f"Intial batches: {s}")
     activatedL, deactivatedL, outcomeL = [], [], []
     for i in range(len(l1_ub_list)):
         if (len(l1_ub_list[i]) == 0):
@@ -356,6 +359,7 @@ def analyze(netGPU,l1_lbL,l1_ubL,percent):
         activatedL.append(activated)
         deactivatedL.append(deactivated)
         outcomeL.append(outcome)
-    print(f"factor:{( len(l1_ub_list)*(len(l1_ub_list[0]))/(len(l1_lbL)) )}")
-    percent = percent/( len(l1_ub_list)*(len(l1_ub_list[0]))/(len(l1_lbL)) )
+    factor = (len(l1_ub_list)-1)*len(l1_ub_list[0]) + len(l1_ub_list[-1])
+    print(f"factor:{(factor/len(l1_lbL) )}")
+    percent = percent/(factor/len(l1_lbL) )
     return activatedL, deactivatedL, outcomeL,l1_lb_list, l1_ub_list,percent,inv_var_index
