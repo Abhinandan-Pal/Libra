@@ -48,7 +48,7 @@ def set_sensitive_GPU(sensitive):
     config.values = ((lower, middle), (middle, upper))
     config.continuous.remove(config.sensitive)
 
-def print_result(result, time1, time2):
+def print_result(result, time1, time2,ifGPU,config,XMAX):
     _, _, _, _, _, _, _, fair, biased, feasible, _, _, _ = result
     print('Analyzed Input Domain Percentage: {}%'.format(feasible.value))
     print('Certified Fair Percentage: {}%'.format(fair.value))
@@ -56,7 +56,17 @@ def print_result(result, time1, time2):
     print('Uncertified Input Domain Percentage: {}%'.format(100 - feasible.value))
     print('Pre-Analysis Time: {}s'.format(time1))
     print('Analysis Time: {}s'.format(time2))
+    file1 = open(f'jsonFiles/{ifGPU}.txt', 'a')
 
+    file1.write(f"\n\nTHRESHOLD: {config.threshold} XMAX: {XMAX[7:]}\n")
+    file1.write('Analyzed Input Domain Percentage: {}% \n'.format(feasible.value))
+    file1.write('Certified Fair Percentage: {}% \n'.format(fair.value))
+    file1.write('Potentially Biased Percentage: {}% \n'.format(biased.value))
+    file1.write('Uncertified Input Domain Percentage: {}% \n'.format(100 - feasible.value))
+    file1.write('Pre-Analysis Time: {}s \n'.format(time1))
+    file1.write('Analysis Time: {}s \n'.format(time2))
+
+    file1.close()
 
 def preanalysis(shared):
     # prepare the queue
@@ -171,7 +181,7 @@ def combineJSON(json1,json2):
             jsonD[key]+=(value)
     return jsonD
 
-def do(out_name,ifGPU):
+def do(out_name,ifGPU,domains):
     print(Fore.BLUE + '\n||==================================||')
     print('|| domain: {}'.format(config.domain))
     print('|| min_difference: {}'.format(config.min_difference))
@@ -201,7 +211,7 @@ def do(out_name,ifGPU):
     print('||==============||\n', Style.RESET_ALL)
 
     if(ifGPU):
-        json_out1,prioritized, time1,feasible,fair = preAG(json_out1,config, config.start_difference, config.min_difference, config.max_unstable )
+        json_out1,prioritized, time1,feasible,fair = preAG(json_out1,config, config.start_difference, config.min_difference, config.max_unstable,domains)
         fair = Value('d', fair)  # percentage that is fair
         feasible = Value('d', feasible)  # percentage that could be analyzed
         shared = (patterns, partitions, discarded, config.min_difference, difference, unstable, config.max_unstable, fair,biased,feasible, explored, json_out, Lock())
@@ -211,7 +221,7 @@ def do(out_name,ifGPU):
 
 
 
-    #print(f"Prioritized : {prioritized}\n Time: {time1}")
+    print(f"Prioritized : {prioritized}\n Time: {time1}")
 
     print('||==========||\n', Style.RESET_ALL)
 
@@ -230,49 +240,59 @@ def do(out_name,ifGPU):
     return shared, time1, time2
 
 
-def test1(ifGPU):
-    config.threshold = 2552
+def test1(ifGPU,domains):
+    def perfom(t,bnds):
+        bnd = []
+        for i in range(0, len(bnds)):
+            bnd.append(int(bnds[i]))
+        config.threshold = t
+        toy_model = Sequential()
+        toy_model.add(Dense(12, activation='relu'))
+        toy_model.add(Dense(12, activation='relu'))
+        toy_model.add(Dense(12, activation='relu'))
+        toy_model.add(Dense(12, activation='relu'))
+        toy_model.add(Dense(1))
+        toy_model.compile('adam', 'mse')
+        toy_model.predict(np.ones((1, 12)))
+        toy_model.load_weights('toy.hd5')
+        inputs, activations, layers, outputs = parse_keras(toy_model, config.threshold)
+        config.inputs = inputs
+        config.activations = activations
+        config.layers = layers
+        config.outputs = outputs
 
-    toy_model = Sequential()
-    toy_model.add(Dense(12, activation='relu'))
-    toy_model.add(Dense(12, activation='relu'))
-    toy_model.add(Dense(12, activation='relu'))
-    toy_model.add(Dense(12, activation='relu'))
-    toy_model.add(Dense(1))
-    toy_model.compile('adam', 'mse')
-    toy_model.predict(np.ones((1, 12)))
-    toy_model.load_weights('toy.hd5')
-    inputs, activations, layers, outputs = parse_keras(toy_model, config.threshold)
-    config.inputs = inputs
-    config.activations = activations
-    config.layers = layers
-    config.outputs = outputs
+        MIN_ = np.array([0, 40.000, -73.000, -2000.000, 20.018, -45, -2, 0, 0, 0, 0, 0])
+        MAX_ = np.array([1, 105.000, 40.000, 15100.000, 219.985, 15.000, 2.000, 1, 1, 1, 1, 1])
+        X_min = [0, 40, -73, -2000, 20.018, -45, 2, bnd[0], bnd[1], bnd[2], bnd[3],
+                 bnd[4]]  # last 5 here 11011/10011/00111/01011/[][][]00    -2
+        X_max = [1, 105, 40, 15100, 219.985, 15, 2, bnd[0], bnd[1], bnd[2], bnd[3], bnd[4]]
+        c_min = (MAX_ - X_min) / (MAX_ - MIN_)
+        c_max = (MAX_ - X_max) / (MAX_ - MIN_)
+        x_min = -c_min + (1 - c_min)
+        x_max = -c_max + (1 - c_max)
+        set_domain(x_min, x_max)
 
-    MIN_ = np.array([0, 40.000, -73.000, -2000.000, 20.018, -45, -2, 0, 0, 0, 0, 0])
-    MAX_ = np.array([1, 105.000, 40.000, 15100.000, 219.985, 15.000, 2.000, 1, 1, 1, 1, 1])
-    X_min = [0, 40, -73, -2000, 20.018, -45, 2, 1, 0, 0, 1, 1]  # last 5 here 11011/10011/00111/01011/[][][]00    -2
-    X_max = [1, 105, 40, 15100, 219.985, 15, 2, 1, 0, 0, 1, 1]
-    c_min = (MAX_ - X_min) / (MAX_ - MIN_)
-    c_max = (MAX_ - X_max) / (MAX_ - MIN_)
-    x_min = -c_min + (1 - c_min)
-    x_max = -c_max + (1 - c_max)
-    set_domain(x_min, x_max)
+        if (ifGPU):
+            set_sensitive_GPU(0)
+        else:
+            set_sensitive(0)
 
-    if (ifGPU):
-        set_sensitive_GPU(0)
-    else:
-        set_sensitive(0)
+        config.min_difference = 0.25
+        config.start_difference = 2
+        config.start_unstable = 2
+        config.max_unstable = 2
 
-    config.min_difference = 0.5
-    config.start_difference = 2
-    config.start_unstable = 2
-    config.max_unstable = 2
+        result, time1, time2 = do('test1', ifGPU,domains)
+        print_result(result, time1, time2, ifGPU, config, X_max)
 
-    result, time1, time2 = do('test1',ifGPU)
-    print_result(result, time1, time2)
+    '''for t in range(2540,2560):
+        for bnds in ("11011","10011","00111","01011","11000","10000","00100","01000"):
+                perfom(t,bnds)'''
+    perfom(2550, "00011")
 
 
-def toy(ifGPU):
+
+def toy(ifGPU,domains):
     config.inputs = ['x01', 'x02']
     config.activations = ['x11', 'x12', 'x21', 'x22']
     config.layers = [
@@ -298,13 +318,13 @@ def toy(ifGPU):
     else:
         set_sensitive(2)
 
-    config.min_difference = 0.0625
+    config.min_difference = 0.25
     config.start_difference = 1
     config.start_unstable = 2
     config.max_unstable = 2
 
-    result, time1, time2 = do('toy',ifGPU)
-    print_result(result, time1, time2)
+    result, time1, time2 = do('toy',ifGPU,domains)
+    #print_result(result, time1, time2)
 
     # how to create initial states
     # 1. create one or more ranges dictionary:
@@ -346,6 +366,8 @@ def toy(ifGPU):
 if __name__ == '__main__':
     set_start_method("fork", force=True)
     ifGPU = True
-    #toy(ifGPU)
+    domains = ["DeepPoly","Symbolic","Neurify"]
+    toy(ifGPU,domains)
     #test.toy()
-    test1(ifGPU)
+    #test1(False,domains)
+    test1(True,domains)

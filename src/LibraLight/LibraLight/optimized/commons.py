@@ -90,9 +90,6 @@ def convertInitial(bounds,var_index,sensitive):
     return l1_lb,l1_ub,sens
 
 def splitInitial2(l1_lbL,l1_ubL,sensitive):
-    #print(f"l1_lbL: {l1_lbL}; l1_ubL: {l1_ubL}")
-    l1_lbLN = []
-    l1_ubLN = []
     l1_lb_a, l1_ub_a, l1_lbLN, l1_ubLN = [], [], [], []
     count = 0
     for (l1_lb, l1_ub) in zip(l1_lbL, l1_ubL):
@@ -119,12 +116,10 @@ def splitInitial2(l1_lbL,l1_ubL,sensitive):
     l1_lb_a, l1_ub_a = np.array(l1_lb_a), np.array(l1_ub_a)
     l1_lbLN.append(l1_lb_a)
     l1_ubLN.append(l1_ub_a)
-    #print(f"l1_lbL: {l1_lb_a}; l1_ubL: {l1_ub_a}")
     return l1_lbLN, l1_ubLN
 
 def splitInitial(l1_lbL,l1_ubL,sensitive):
     bounds = []
-    #NO_OF_INITIALS = 0
     for (l1_lb, l1_ub) in zip(l1_lbL, l1_ubL):
         bnd = []
         for index in range(len(l1_lb)):
@@ -138,7 +133,6 @@ def splitInitial(l1_lbL,l1_ubL,sensitive):
                 gaps.append((l1_lb[index], mid))
                 gaps.append((mid, l1_ub[index]))
             bnd.append(gaps)
-            #NO_OF_INITIALS += 1
         bnd = product(*bnd)
         bounds.extend(bnd)
     #for b in bounds:
@@ -150,7 +144,6 @@ def splitInitial(l1_lbL,l1_ubL,sensitive):
         l1_lb_t = np.zeros((len(l1_lbL[0]) ,))
         l1_ub_t = np.zeros((len(l1_lbL[0]),))
         for i in range(len(l1_lbL[0])):
-            # print(f"Bounds lb: {bound[i][0]} ub: {bound[i][1]}")
             l1_lb_t[i] = bound[i][0]
             l1_ub_t[i] = bound[i][1]
         l1_lb_a.append(l1_lb_t)

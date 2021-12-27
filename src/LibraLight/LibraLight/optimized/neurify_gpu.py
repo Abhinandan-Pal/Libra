@@ -341,35 +341,21 @@ def noPrintCondense(d_affine, d_relu, i, if_activation,d_if_activation,d_active_
             d_lbs_up, d_ubs_up = get_bounds_GPU(d_ineq_gte, d_ineq_gte, d_l1_lb, d_l1_ub)
             relu_compute_GPU(d_lbs_low, d_ubs_low,d_lbs_up, d_ubs_up, d_relu[:,i], d_active_pattern[:,i,:],d_l1_lb,d_l1_ub,d_if_activation[i])
 
-def analyze(L,initial,sensitive, inputs, layers,activations, outputs):
-    U = 20
-    #print(f"inintial: {initial};\ninputs: {inputs};\nlayers: {layers};\noutputs: {outputs}")
-    #print(f"layers: {layers[0]}")
-    # Assuming "initial" contains input from 0 to nth input in order.
-    l1_lb_list, l1_ub_list = commons.fillInitials(initial[0],sensitive, L)
-    NO_OF_LAYERS, MAX_NODES_IN_LAYER = commons.getNetShape(layers)
+def analyze(netGPU,l1_lbL,l1_ubL,percent):
+    d_affine, if_activation, d_if_activation, var_index, inv_var_index, outNodes, dims, l1_lb, l1_ub, sensitive, NO_OF_LAYERS, MAX_NODES_IN_LAYER = netGPU
+    if (l1_lbL == None):
+        l1_lbL = l1_lb
+        l1_ubL = l1_ub
 
-    var_index: dict(str, (int, int)) = dict()
-    affine = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1, MAX_NODES_IN_LAYER + 1)).astype(np.float32)
-    if_activation = np.zeros((NO_OF_LAYERS + 1,MAX_NODES_IN_LAYER + 1)).astype(np.int16)
-    dims = np.ones(NO_OF_LAYERS + 1).astype(np.int32)
-    row_id, col_id, flag = (0, 1, False)
-    for var, bound in initial[0].items():
-        var_index[str(var)] = (row_id, col_id)
-        col_id += 1
-    commons.fillInput(layers, activations, affine, dims, if_activation, var_index, MAX_NODES_IN_LAYER)
-    # print(f"l1_lb: {d_l1_lb[50]}; l1_ub: {d_l1_ub[50]}")
-    print(f"var_index: {var_index}")
-    print(f"affine: {affine}")
-    outNodes = set()
-    for output in outputs:
-        outNodes.add(var_index[str(output)][1])
-    inv_var_index = {v: k for k, v in var_index.items()}
-    # can remove layer 0 as it has no inequations
-    # All these print are for debug mode. Actual will only activation pattern.
-    d_affine = cp.asarray(affine)
-    d_if_activation = cp.asarray(if_activation)
+    l1_lb_list, l1_ub_list = commons.splitInitial(l1_lbL, l1_ubL, sensitive)
+    s = ""
+    for l1_lb in l1_lb_list:
+        s += " + " + str(l1_lb.shape[0])
+    print(f"Intial batches: {s}")
+    activatedL, deactivatedL, outcomeL = [], [], []
     for i in range(len(l1_ub_list)):
+        if (len(l1_ub_list[i]) == 0):
+            continue
         d_l1_lb = cp.asarray(l1_lb_list[i])
         d_l1_ub = cp.asarray(l1_ub_list[i])
         NO_OF_INITIALS = len(d_l1_lb)
@@ -388,8 +374,10 @@ def analyze(L,initial,sensitive, inputs, layers,activations, outputs):
         outcome = oneOutput(d_affine, d_relu, if_activation, d_l1_lb, d_l1_ub, outNodes, inv_var_index)
         active_pattern = cp.asnumpy(d_active_pattern)
         activated, deactivated = active_convert(active_pattern, dims, inv_var_index, outcome)
-        '''for i in range(NO_OF_INITIALS):
-            print(f"l1_lb -> {d_l1_lb[i]}; l1_ub -> {d_l1_ub[i]}")
-            print(f"active_pattern: {active_pattern[i]}")
-            print(f"GPU active:{activated[i]}; deactive:{deactivated[i]}; outcome:{outcome[i]}")'''
-        # return activated, deactivated, outcome
+        activatedL.append(activated)
+        deactivatedL.append(deactivated)
+        outcomeL.append(outcome)
+    factor = (len(l1_ub_list) - 1) * len(l1_ub_list[0]) + len(l1_ub_list[-1])
+    print(f"factor:{(factor / len(l1_lbL))}")
+    percent = percent / (factor / len(l1_lbL))
+    return activatedL, deactivatedL, outcomeL, l1_lb_list, l1_ub_list, percent, inv_var_index

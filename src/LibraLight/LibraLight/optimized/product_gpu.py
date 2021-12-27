@@ -121,42 +121,18 @@ def noPrintCondense(d_affine, if_activation,d_if_activation, d_l1_lb,d_l1_ub,dom
     #print(f"SYM:\n{d_active_pattern_symb}")
     #print(f"NEU:\n{d_active_pattern_neu}")
 
-def analyze(L,initial,sensitive, inputs, layers,activations, outputs,domains):
-    U = 20
-    # equation[n1][n2] stores the bias and coeff of nodes of previous layer to form x[n1][n2] in order
-    # if_activation[n1][n2] stores if there is an activation on x[n1][n2] (only relu considered for now)
-    l1_lb_list, l1_ub_list = commons.fillInitials(initial[0],sensitive, L)
-    NO_OF_LAYERS, MAX_NODES_IN_LAYER = commons.getNetShape(layers)
-    print(f"DOMAINS -> {domains}")
+def analyze(netGPU,l1_lbL,l1_ubL,percent,domains):
+    d_affine, if_activation, d_if_activation, var_index, inv_var_index, outNodes, dims, l1_lb, l1_ub, sensitive, NO_OF_LAYERS, MAX_NODES_IN_LAYER = netGPU
+    if (l1_lbL == None):
+        l1_lbL = l1_lb
+        l1_ubL = l1_ub
+
+    l1_lb_list, l1_ub_list = commons.splitInitial(l1_lbL, l1_ubL, sensitive)
     s = ""
     for l1_lb in l1_lb_list:
         s += " + " + str(l1_lb.shape[0])
     print(f"Intial batches: {s}")
-
-    var_index: dict(str, (int, int)) = dict()
-    affine = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1, MAX_NODES_IN_LAYER + 1)).astype(np.float32)
-    if_activation = np.ones((NO_OF_LAYERS + 1,MAX_NODES_IN_LAYER + 1)).astype(np.float32)
-    dims = np.ones(NO_OF_LAYERS + 1).astype(np.int32)
-
-    # obtain the lower bound and upper bound for input layer using "initial"
-    # Assuming "initial" contains input from 0 to nth input in order.
-    i = 1
-    row_id, col_id, flag = (0, 1, False)
-    for var, bound in initial[0].items():
-        var_index[str(var)] = (row_id, col_id)
-        col_id += 1
-    commons.fillInput(layers, activations, affine, dims, if_activation, var_index, MAX_NODES_IN_LAYER)
-    outNodes = set()
-    for output in outputs:
-        outNodes.add(var_index[str(output)][1])
-    inv_var_index = {v: k for k, v in var_index.items()}
-
-    # can remove layer 0 as it has no inequations
-    # All these print are for debug mode. Actual will only activation pattern.
-    d_symb, d_relu_dp, d_relu_neu = (None, None, None)
-    d_affine = cp.asarray(affine)
-    d_if_activation = cp.asarray(if_activation)
-    activatedL, deactivatedL, outcomeL = [],[],[]
+    activatedL, deactivatedL, outcomeL = [], [], []
     for i in range(len(l1_ub_list)):
         if(len(l1_ub_list[i]) == 0):
             continue
@@ -166,6 +142,7 @@ def analyze(L,initial,sensitive, inputs, layers,activations, outputs,domains):
         print(f"NO_OF_LAYER:{NO_OF_LAYERS}; MAX_NODES_IN_LAYER:{MAX_NODES_IN_LAYER}; NO_OF_INITIALS:{NO_OF_INITIALS}")
 
         d_active_pattern = cp.zeros((NO_OF_INITIALS, NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1))
+        d_relu_dp,d_symb,d_relu_neu = None,None,None
         if ("DeepPoly" in domains):
             d_relu_dp = cp.zeros((NO_OF_INITIALS,NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1, 4))
         if ("Symbolic" in domains):
@@ -182,14 +159,13 @@ def analyze(L,initial,sensitive, inputs, layers,activations, outputs,domains):
         outcome = oneOutput(d_affine,d_relu_dp,d_relu_neu,d_symb,if_activation,d_l1_lb,d_l1_ub,outNodes,inv_var_index,domains)
         active_pattern = cp.asnumpy(d_active_pattern)
         activated, deactivated = dpG.active_convert(active_pattern, dims, inv_var_index,outcome)
-        '''for i in range(NO_OF_INITIALS):
-            print(f"l1_lb -> {d_l1_lb[i]}; l1_ub -> {d_l1_ub[i]}")
-            print(f"activation->{active_pattern[i]}")
-            print(f"GPU active:{activated[i]}; deactive:{deactivated[i]}; outcome:{outcome[i]}")'''
         activatedL.append(activated)
         deactivatedL.append(deactivated)
         outcomeL.append(outcome)
-    return activatedL, deactivatedL, outcomeL
+    factor = (len(l1_ub_list) - 1) * len(l1_ub_list[0]) + len(l1_ub_list[-1])
+    print(f"factor:{(factor / len(l1_lbL))}")
+    percent = percent / (factor / len(l1_lbL))
+    return activatedL, deactivatedL, outcomeL,l1_lb_list, l1_ub_list,percent,inv_var_index
 
 
 

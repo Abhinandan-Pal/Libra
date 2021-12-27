@@ -1,0 +1,4218 @@
+{
+    "fair":[
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":-1.0,
+                    "upper bound":1.0
+                },
+                "x02":{
+                    "lower bound":-1.0,
+                    "upper bound":1.0
+                },
+                "x03":{
+                    "lower bound":-1.0,
+                    "upper bound":1.0
+                },
+                "x04":{
+                    "lower bound":-1.0,
+                    "upper bound":0.0
+                },
+                "x05":{
+                    "lower bound":-1.0,
+                    "upper bound":1.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":-1.0,
+                    "upper bound":1.0
+                },
+                "x02":{
+                    "lower bound":-1.0,
+                    "upper bound":0.0
+                },
+                "x03":{
+                    "lower bound":-1.0,
+                    "upper bound":0.0
+                },
+                "x04":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":-1.0,
+                    "upper bound":0.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":-1.0,
+                    "upper bound":0.0
+                },
+                "x02":{
+                    "lower bound":-1.0,
+                    "upper bound":1.0
+                },
+                "x03":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x04":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":-1.0,
+                    "upper bound":0.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":-1.0,
+                    "upper bound":0.0
+                },
+                "x02":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x03":{
+                    "lower bound":-1.0,
+                    "upper bound":0.0
+                },
+                "x04":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":-1.0,
+                    "upper bound":0.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x02":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x03":{
+                    "lower bound":-1.0,
+                    "upper bound":0.0
+                },
+                "x04":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":-1.0,
+                    "upper bound":0.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":-1.0,
+                    "upper bound":0.0
+                },
+                "x02":{
+                    "lower bound":-1.0,
+                    "upper bound":0.0
+                },
+                "x03":{
+                    "lower bound":-1.0,
+                    "upper bound":0.0
+                },
+                "x04":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":-1.0,
+                    "upper bound":0.0
+                },
+                "x02":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x03":{
+                    "lower bound":-1.0,
+                    "upper bound":0.0
+                },
+                "x04":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":-1.0,
+                    "upper bound":0.0
+                },
+                "x02":{
+                    "lower bound":-1.0,
+                    "upper bound":0.0
+                },
+                "x03":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x04":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x02":{
+                    "lower bound":-1.0,
+                    "upper bound":0.0
+                },
+                "x03":{
+                    "lower bound":-1.0,
+                    "upper bound":0.0
+                },
+                "x04":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x05":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x02":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x03":{
+                    "lower bound":-1.0,
+                    "upper bound":0.0
+                },
+                "x04":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x05":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x02":{
+                    "lower bound":-1.0,
+                    "upper bound":0.0
+                },
+                "x03":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x04":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x05":{
+                    "lower bound":-1.0,
+                    "upper bound":0.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x02":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x03":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x04":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x05":{
+                    "lower bound":-1.0,
+                    "upper bound":0.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":-1.0,
+                    "upper bound":0.0
+                },
+                "x02":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x03":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x04":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x05":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x02":{
+                    "lower bound":-1.0,
+                    "upper bound":0.0
+                },
+                "x03":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x04":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x05":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x02":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x03":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x04":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x05":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x02":{
+                    "lower bound":-1.0,
+                    "upper bound":0.0
+                },
+                "x03":{
+                    "lower bound":-1.0,
+                    "upper bound":0.0
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x02":{
+                    "lower bound":-1.0,
+                    "upper bound":0.0
+                },
+                "x03":{
+                    "lower bound":-1.0,
+                    "upper bound":0.0
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x02":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x03":{
+                    "lower bound":-1.0,
+                    "upper bound":0.0
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x02":{
+                    "lower bound":-1.0,
+                    "upper bound":0.0
+                },
+                "x03":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":-1.0,
+                    "upper bound":0.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x02":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x03":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":-1.0,
+                    "upper bound":0.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":-1.0,
+                    "upper bound":-0.5
+                },
+                "x02":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x03":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":-0.5,
+                    "upper bound":0.0
+                },
+                "x02":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x03":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x02":{
+                    "lower bound":-1.0,
+                    "upper bound":0.0
+                },
+                "x03":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":-1.0,
+                    "upper bound":0.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x02":{
+                    "lower bound":-1.0,
+                    "upper bound":0.0
+                },
+                "x03":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x02":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x03":{
+                    "lower bound":-1.0,
+                    "upper bound":-0.5
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x02":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x03":{
+                    "lower bound":-1.0,
+                    "upper bound":-0.5
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x02":{
+                    "lower bound":-1.0,
+                    "upper bound":0.0
+                },
+                "x03":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":-1.0,
+                    "upper bound":-0.5
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x02":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x03":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":-1.0,
+                    "upper bound":-0.5
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x02":{
+                    "lower bound":-1.0,
+                    "upper bound":0.0
+                },
+                "x03":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x02":{
+                    "lower bound":0.0,
+                    "upper bound":1.0
+                },
+                "x03":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x02":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x03":{
+                    "lower bound":-0.5,
+                    "upper bound":0.0
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x02":{
+                    "lower bound":-1.0,
+                    "upper bound":-0.5
+                },
+                "x03":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":-0.5,
+                    "upper bound":0.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x02":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x03":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":-0.5,
+                    "upper bound":0.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x02":{
+                    "lower bound":-1.0,
+                    "upper bound":-0.5
+                },
+                "x03":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x02":{
+                    "lower bound":-1.0,
+                    "upper bound":-0.5
+                },
+                "x03":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x02":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x03":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x02":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x03":{
+                    "lower bound":-0.5,
+                    "upper bound":0.0
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x05":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x02":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x03":{
+                    "lower bound":-0.5,
+                    "upper bound":0.0
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x05":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x02":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x03":{
+                    "lower bound":-0.5,
+                    "upper bound":0.0
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x05":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x02":{
+                    "lower bound":-0.5,
+                    "upper bound":0.0
+                },
+                "x03":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x05":{
+                    "lower bound":-0.5,
+                    "upper bound":0.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x02":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x03":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x05":{
+                    "lower bound":-0.5,
+                    "upper bound":0.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x02":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x03":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x05":{
+                    "lower bound":-1.0,
+                    "upper bound":-0.5
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x02":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x03":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x05":{
+                    "lower bound":-1.0,
+                    "upper bound":-0.5
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x02":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x03":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x05":{
+                    "lower bound":-0.5,
+                    "upper bound":0.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x02":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x03":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x05":{
+                    "lower bound":-0.5,
+                    "upper bound":0.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x02":{
+                    "lower bound":-0.5,
+                    "upper bound":0.0
+                },
+                "x03":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x05":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x02":{
+                    "lower bound":-0.5,
+                    "upper bound":0.0
+                },
+                "x03":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x05":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x02":{
+                    "lower bound":-0.5,
+                    "upper bound":0.0
+                },
+                "x03":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x04":{
+                    "lower bound":0.75,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x02":{
+                    "lower bound":-1.0,
+                    "upper bound":-0.5
+                },
+                "x03":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x05":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x02":{
+                    "lower bound":-0.5,
+                    "upper bound":0.0
+                },
+                "x03":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x05":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x02":{
+                    "lower bound":-1.0,
+                    "upper bound":-0.5
+                },
+                "x03":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x05":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x02":{
+                    "lower bound":-0.5,
+                    "upper bound":0.0
+                },
+                "x03":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x05":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x02":{
+                    "lower bound":-1.0,
+                    "upper bound":-0.5
+                },
+                "x03":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x05":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x02":{
+                    "lower bound":-0.5,
+                    "upper bound":0.0
+                },
+                "x03":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x05":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x02":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x03":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x05":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x02":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x03":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x05":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x02":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x03":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x04":{
+                    "lower bound":0.75,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x02":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x03":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x05":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x02":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x03":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x05":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x02":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x03":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x05":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x02":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x03":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x05":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x02":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x03":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x05":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x02":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x03":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x05":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x02":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x03":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x05":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x02":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x03":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x05":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x02":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x03":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x05":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x02":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x03":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x04":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x05":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x02":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x03":{
+                    "lower bound":-0.5,
+                    "upper bound":0.0
+                },
+                "x04":{
+                    "lower bound":0.75,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x02":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x03":{
+                    "lower bound":-0.5,
+                    "upper bound":0.0
+                },
+                "x04":{
+                    "lower bound":0.75,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x02":{
+                    "lower bound":-0.5,
+                    "upper bound":0.0
+                },
+                "x03":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x04":{
+                    "lower bound":0.75,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":-0.5,
+                    "upper bound":0.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x02":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x03":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x04":{
+                    "lower bound":0.75,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":-0.5,
+                    "upper bound":0.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x02":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x03":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x04":{
+                    "lower bound":0.75,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":-1.0,
+                    "upper bound":-0.5
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x02":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x03":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x04":{
+                    "lower bound":0.75,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":-1.0,
+                    "upper bound":-0.5
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x02":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x03":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x04":{
+                    "lower bound":0.75,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":-0.5,
+                    "upper bound":0.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.0,
+                    "upper bound":0.25
+                },
+                "x02":{
+                    "lower bound":-0.5,
+                    "upper bound":0.0
+                },
+                "x03":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x04":{
+                    "lower bound":0.75,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x02":{
+                    "lower bound":-1.0,
+                    "upper bound":-0.5
+                },
+                "x03":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x04":{
+                    "lower bound":0.75,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x02":{
+                    "lower bound":-0.5,
+                    "upper bound":0.0
+                },
+                "x03":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x04":{
+                    "lower bound":0.75,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x02":{
+                    "lower bound":-1.0,
+                    "upper bound":-0.5
+                },
+                "x03":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x04":{
+                    "lower bound":0.75,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.0,
+                    "upper bound":0.25
+                },
+                "x02":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x03":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x04":{
+                    "lower bound":0.75,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x02":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x03":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x04":{
+                    "lower bound":0.75,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x02":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x03":{
+                    "lower bound":-0.5,
+                    "upper bound":-0.25
+                },
+                "x04":{
+                    "lower bound":0.75,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x02":{
+                    "lower bound":-0.5,
+                    "upper bound":0.0
+                },
+                "x03":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x04":{
+                    "lower bound":0.75,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x02":{
+                    "lower bound":-1.0,
+                    "upper bound":-0.5
+                },
+                "x03":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x04":{
+                    "lower bound":0.75,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x02":{
+                    "lower bound":0.5,
+                    "upper bound":1.0
+                },
+                "x03":{
+                    "lower bound":0.0,
+                    "upper bound":0.25
+                },
+                "x04":{
+                    "lower bound":0.75,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x02":{
+                    "lower bound":-0.5,
+                    "upper bound":0.0
+                },
+                "x03":{
+                    "lower bound":0.75,
+                    "upper bound":1.0
+                },
+                "x04":{
+                    "lower bound":0.75,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":0.0,
+                    "upper bound":0.25
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        },
+        {
+            "ranges":{
+                "x01":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x02":{
+                    "lower bound":0.0,
+                    "upper bound":0.5
+                },
+                "x03":{
+                    "lower bound":0.0,
+                    "upper bound":0.25
+                },
+                "x04":{
+                    "lower bound":0.75,
+                    "upper bound":1.0
+                },
+                "x05":{
+                    "lower bound":0.5,
+                    "upper bound":0.75
+                },
+                "x06":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x07":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x08":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x09":{
+                    "lower bound":-1.0,
+                    "upper bound":-1.0
+                },
+                "x010":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                },
+                "x011":{
+                    "lower bound":1.0,
+                    "upper bound":1.0
+                }
+            },
+            "outcome":"<="
+        }
+    ]
+}
