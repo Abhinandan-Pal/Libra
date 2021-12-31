@@ -229,8 +229,8 @@ def active_convert(active_status, dims, inv_var_index, outcomes):
     deactivated = []
     for init_id in range(len(active_status)):
         node_num = 3
-        act = set()
-        deact = set()
+        act = []
+        deact = []
         if (outcomes[init_id] != None):
             activated.append(act)
             deactivated.append(deact)
@@ -239,12 +239,14 @@ def active_convert(active_status, dims, inv_var_index, outcomes):
             for neuron_index in range(1, dims[layer_index]):
                 if (active_status[init_id, layer_index, neuron_index] == 0):
                     stmt = inv_var_index[(layer_index, neuron_index)]
-                    deact.add(stmt)
+                    deact.append(stmt)
                 elif (active_status[init_id, layer_index, neuron_index] == 1):
                     stmt = inv_var_index[(layer_index, neuron_index)]
-                    act.add(stmt)
+                    act.append(stmt)
                 node_num += 1
             node_num += 1
+        act = tuple(act)
+        deact = tuple(deact)
         activated.append(act)
         deactivated.append(deact)
     return activated, deactivated

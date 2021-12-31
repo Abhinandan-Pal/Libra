@@ -6,10 +6,11 @@ from optimized import neurify_gpu as neuG
 from optimized import product_gpu as prodG
 from optimized import commons as comG
 from colorama import Style, Fore
+from collections import OrderedDict
+from OrderedSet import OrderedSet
 
 
-
-feasible = dict()
+feasible = OrderedDict()
 unbiasedP = 0
 feasibleP = 0
 unfeasibleP = 0
@@ -19,7 +20,7 @@ unfeasible = []
 
 def preanalysis(json_out,config,L_start,L_min,U,domains):
     global feasible,unbiasedP,feasibleP,unfeasibleP,unbiased,unfeasible
-    feasible,unbiasedP,feasibleP,unfeasibleP,unbiased,unfeasible = dict(),0,0,0,[],[]
+    feasible,unbiasedP,feasibleP,unfeasibleP,unbiased,unfeasible = OrderedDict(),0,0,0,[],[]
     print(f"L_start:{L_start}; L_min:{L_min}; U:{U}")
     json_out["fair"] = []
     json_out["unknown"] = []
@@ -30,7 +31,7 @@ def preanalysis(json_out,config,L_start,L_min,U,domains):
 
     unbiased = compressRange(unbiased)
     unfeasible = compressRange(unfeasible)
-    #feasible = compressRangeFeasible(feasible)
+    feasible = compressRangeFeasible(feasible)
 
     inv_var_index = netGPU[4]
     feasible = convertFeasible(feasible, inv_var_index, config.sensitive)
@@ -69,8 +70,8 @@ def iterPreanalysis(l1_lbL,l1_ubL,netGPU,L,U,L_min,sensitive,percent,domains):
                 print(Fore.YELLOW + f"Progress : {unbiasedP+feasibleP}% of {exploredP}% ({unbiasedP}% fair)", Style.RESET_ALL)
                 continue
             if(unknown<=U):
-                activated = frozenset(activated)
-                deactivated = frozenset(deactivated)
+                #activated = frozenset(activated)
+                #deactivated = frozenset(deactivated)
                 feasibleP += percent
                 exploredP += percent
                 print(Fore.LIGHTYELLOW_EX + f"Possible Bias in {ppRan}",Style.RESET_ALL)
@@ -94,18 +95,18 @@ def iterPreanalysis(l1_lbL,l1_ubL,netGPU,L,U,L_min,sensitive,percent,domains):
         iterPreanalysis(l1_lbN,l1_ubN,netGPU,L/2,U,L_min,sensitive,percent,domains)
 
 def boundDict1(lbL,ubL,inv_var_index,sensitive):
-    jsonDict = dict()
+    jsonDict = OrderedDict()
     for i in range(1, len(lbL)):
         var = inv_var_index[(0, i)]
         if (str(var) != str(sensitive)):
-            temp = dict()
+            temp = OrderedDict()
             temp["lower bound"] = lbL[i]
             temp["upper bound"] = ubL[i]
             jsonDict[var] = temp
     return jsonDict
 
 def boundDict2(lbL,ubL,inv_var_index,sensitive):
-    bound = dict()
+    bound = OrderedDict()
     for i in range(1, len(lbL)):
         var = inv_var_index[(0, i)]
         if (str(var) != str(sensitive)):
@@ -115,7 +116,7 @@ def boundDict2(lbL,ubL,inv_var_index,sensitive):
 def updateJSON(json_out,inv_var_index, sensitive,unbiased,unfeasible):
     def genTemp(bound):
         lb, ub, percent, outcome = bound
-        temp = dict()
+        temp = OrderedDict()
         temp["ranges"] = boundDict1(lb, ub, inv_var_index, sensitive)
         temp["outcome"] = outcome
         temp["percent"] = percent
@@ -126,22 +127,23 @@ def updateJSON(json_out,inv_var_index, sensitive,unbiased,unfeasible):
         json_out["unknown"].append(genTemp(bound))
 
 def convertBound(lbL,ubL,inv_var_index,sensitive):
-    bound = dict()
+    bound = OrderedDict()
     for i in range(1,len(lbL)):
         var = inv_var_index[(0,i)]
         if(str(var) != str(sensitive)):
             bound[var] = (lbL[i],ubL[i])
-    return frozenset(bound.items())
-
-
+    bound = [(k, v) for k, v in bound.items()]
+    bound = tuple(bound)
+    return bound #frozenset(bound)
 
 def convertFeasible(feasibles,inv_var_index,sensitive):
-    feasiblesN = dict()
+    feasiblesN = OrderedDict()
     for key,feasibleL in feasibles.items():
-        temp = set()
+        temp = []
         for feasible in feasibleL:
             lb, ub, percent, outcome = feasible
-            temp.add( (percent,convertBound(lb,ub,inv_var_index,sensitive) ) )
+            bound = convertBound(lb,ub,inv_var_index,sensitive)
+            temp.append((percent, bound) )
         feasiblesN[key] = temp
     return feasiblesN
 
@@ -181,14 +183,14 @@ def compressRange(rangeL):
     return rangeLN
 
 def compressRangeFeasible(feasibles):
-    feasiblesN = dict()
+    feasiblesN = OrderedDict()
     for key,feasible in feasibles.items():
         ranges = compressRange(feasible)
         feasiblesN[key] = ranges
     return feasiblesN
 
 def compressFeasible(patterns):
-    compressed = dict()
+    compressed = OrderedDict()
     for key1, pack1 in sorted(patterns.items(), key=lambda v: len(v[1]), reverse=False):
         unmerged = True
         for key2 in compressed:

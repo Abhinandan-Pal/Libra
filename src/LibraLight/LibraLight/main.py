@@ -235,8 +235,9 @@ def do(out_name,ifGPU,domains):
         result,time2 = json_out1.copy(),0.0
     else:
         result, time2 = json_out.copy(), 0.0
-    #result, time2 = analysis(prioritized, shared)
-    #result = combineJSON(json_out1, result)
+
+    result, time2 = analysis(prioritized, shared)
+    result = combineJSON(json_out1, result)
 
     minL, startL = config.min_difference, config.start_difference
     startU, maxU = config.start_unstable, config.max_unstable
