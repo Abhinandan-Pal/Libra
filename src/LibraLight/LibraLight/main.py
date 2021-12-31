@@ -181,6 +181,12 @@ def combineJSON(json1,json2):
             jsonD[key]+=(value)
     return jsonD
 
+def compareFesible(p1,p2):
+    for key,value in p1.items():
+        if(len(p2[key]) == p1[key]):
+            if(p2[key] != p1[key]):
+                print(Fore.RED +"\t\tALERT!!!",Style.RESET_ALL)
+
 def do(out_name,ifGPU,domains):
     print(Fore.BLUE + '\n||==================================||')
     print('|| domain: {}'.format(config.domain))
@@ -218,7 +224,7 @@ def do(out_name,ifGPU,domains):
     else:
         prioritized, time1 = preanalysis(shared)
         patterns, partitions, discarded, min_difference, difference, unstable, max_unstable, fair, biased, feasible, explored, json_out, lock = shared
-
+    #compareFesible(prioritized,prioritized1)
 
 
     print(f"Prioritized : {prioritized}\n Time: {time1}")
@@ -263,7 +269,7 @@ def test1(ifGPU,domains):
 
         MIN_ = np.array([0, 40.000, -73.000, -2000.000, 20.018, -45, -2, 0, 0, 0, 0, 0])
         MAX_ = np.array([1, 105.000, 40.000, 15100.000, 219.985, 15.000, 2.000, 1, 1, 1, 1, 1])
-        X_min = [0, 40, -73, -2000, 20.018, -45, 2, bnd[0], bnd[1], bnd[2], bnd[3],
+        X_min = [0, 40, -73, -2000, 20.018, -45, -2, bnd[0], bnd[1], bnd[2], bnd[3],
                  bnd[4]]  # last 5 here 11011/10011/00111/01011/[][][]00    -2
         X_max = [1, 105, 40, 15100, 219.985, 15, 2, bnd[0], bnd[1], bnd[2], bnd[3], bnd[4]]
         c_min = (MAX_ - X_min) / (MAX_ - MIN_)
@@ -277,7 +283,7 @@ def test1(ifGPU,domains):
         else:
             set_sensitive(0)
 
-        config.min_difference = 0.25
+        config.min_difference = 0.5
         config.start_difference = 2
         config.start_unstable = 2
         config.max_unstable = 2
@@ -366,8 +372,9 @@ def toy(ifGPU,domains):
 if __name__ == '__main__':
     set_start_method("fork", force=True)
     ifGPU = True
-    domains = ["DeepPoly","Symbolic","Neurify"]
-    toy(ifGPU,domains)
+    #domains = ["DeepPoly","Symbolic","Neurify"]
+    domains = ["DeepPoly"]
+    #toy(ifGPU,domains)
     #test.toy()
     #test1(False,domains)
     test1(True,domains)

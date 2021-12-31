@@ -6,6 +6,7 @@ from optimized import deeppoly_gpu as dpG
 from optimized import symbolic_gpu as symG
 from optimized import neurify_gpu as neuG
 from optimized import commons
+from colorama import Style, Fore
 
 def oneOutput(d_affine,d_relu_dp,d_relu_neu,d_symb,if_activation,d_l1_lb,d_l1_ub,outNodes,inv_var_index,domains):
     outcomes = [None] * len(d_l1_lb)
@@ -131,7 +132,7 @@ def analyze(netGPU,l1_lbL,l1_ubL,percent,domains):
     s = ""
     for l1_lb in l1_lb_list:
         s += " + " + str(l1_lb.shape[0])
-    print(f"Intial batches: {s}")
+    print(Fore.CYAN+ f"\t\t\t\tIntial batches: {s}",Style.RESET_ALL)
     activatedL, deactivatedL, outcomeL = [], [], []
     for i in range(len(l1_ub_list)):
         if(len(l1_ub_list[i]) == 0):
@@ -139,7 +140,7 @@ def analyze(netGPU,l1_lbL,l1_ubL,percent,domains):
         d_l1_lb = cp.asarray(l1_lb_list[i])
         d_l1_ub = cp.asarray(l1_ub_list[i])
         NO_OF_INITIALS = len(d_l1_lb)
-        print(f"NO_OF_LAYER:{NO_OF_LAYERS}; MAX_NODES_IN_LAYER:{MAX_NODES_IN_LAYER}; NO_OF_INITIALS:{NO_OF_INITIALS}")
+        print(Fore.CYAN + f"\t\tNO_OF_LAYER:{NO_OF_LAYERS}; MAX_NODES_IN_LAYER:{MAX_NODES_IN_LAYER}; NO_OF_INITIALS:{NO_OF_INITIALS}",Style.RESET_ALL)
 
         d_active_pattern = cp.zeros((NO_OF_INITIALS, NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1))
         d_relu_dp,d_symb,d_relu_neu = None,None,None
@@ -163,7 +164,7 @@ def analyze(netGPU,l1_lbL,l1_ubL,percent,domains):
         deactivatedL.append(deactivated)
         outcomeL.append(outcome)
     factor = (len(l1_ub_list) - 1) * len(l1_ub_list[0]) + len(l1_ub_list[-1])
-    print(f"factor:{(factor / len(l1_lbL))}")
+    #print(f"factor:{(factor / len(l1_lbL))}")
     percent = percent / (factor / len(l1_lbL))
     return activatedL, deactivatedL, outcomeL,l1_lb_list, l1_ub_list,percent,inv_var_index
 

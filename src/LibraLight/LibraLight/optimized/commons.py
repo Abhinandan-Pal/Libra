@@ -89,7 +89,8 @@ def convertInitial(bounds,var_index,sensitive):
         col_id += 1
     return l1_lb,l1_ub,sens
 
-def splitInitial2(l1_lbL,l1_ubL,sensitive):
+'''
+def splitInitial2(l1_lbL,l1_ubL,sensitive): #remove
     l1_lb_a, l1_ub_a, l1_lbLN, l1_ubLN = [], [], [], []
     count = 0
     for (l1_lb, l1_ub) in zip(l1_lbL, l1_ubL):
@@ -117,6 +118,7 @@ def splitInitial2(l1_lbL,l1_ubL,sensitive):
     l1_lbLN.append(l1_lb_a)
     l1_ubLN.append(l1_ub_a)
     return l1_lbLN, l1_ubLN
+'''
 
 def splitInitial(l1_lbL,l1_ubL,sensitive):
     bounds = []
@@ -202,7 +204,6 @@ def createNetworkGPU(layers,bounds,activations,sensitive,outputs):
     if_activation = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1)).astype(np.int16)
     dims = np.ones(NO_OF_LAYERS + 1).astype(np.int32)
 
-    var_index = dict()
     l1_lb, l1_ub, sensitive = convertInitial(bounds,var_index,sensitive)
     fillInput(layers, activations, affine, dims, if_activation, var_index, MAX_NODES_IN_LAYER)
     inv_var_index = {v: k for k, v in var_index.items()}
