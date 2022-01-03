@@ -16,7 +16,7 @@ min_difference = None
 start_difference = None
 start_unstable = None
 max_unstable = None
-cpu = 1 #cpu_count()
+cpu = cpu_count()
 splitting = SplittingHeuristic.OUTPUT_POLARITY
 
 """ Neural Network """

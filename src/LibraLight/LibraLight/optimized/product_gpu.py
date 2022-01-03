@@ -122,13 +122,13 @@ def noPrintCondense(d_affine, if_activation,d_if_activation, d_l1_lb,d_l1_ub,dom
     #print(f"SYM:\n{d_active_pattern_symb}")
     #print(f"NEU:\n{d_active_pattern_neu}")
 
-def analyze(netGPU,l1_lbL,l1_ubL,percent,domains):
-    d_affine, if_activation, d_if_activation, var_index, inv_var_index, outNodes, dims, l1_lb, l1_ub, sensitive, NO_OF_LAYERS, MAX_NODES_IN_LAYER = netGPU
+def analyze(netGPU,l1_lbL,l1_ubL,percent,L_min,domains):
+    d_affine,if_activation,d_if_activation,var_index,inv_var_index,outNodes,dims,l1_lb, l1_ub,sensitive,max_diff,NO_OF_LAYERS,MAX_NODES_IN_LAYER = netGPU
     if (l1_lbL == None):
         l1_lbL = l1_lb
         l1_ubL = l1_ub
 
-    l1_lb_list, l1_ub_list = commons.splitInitial(l1_lbL, l1_ubL, sensitive)
+    l1_lb_list, l1_ub_list = commons.splitInitial(l1_lbL, l1_ubL, sensitive,L_min)
     s = ""
     for l1_lb in l1_lb_list:
         s += " + " + str(l1_lb.shape[0])

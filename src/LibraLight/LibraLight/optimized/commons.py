@@ -77,6 +77,7 @@ def get_bounds_single_neurify(l1_layer_lte,l1_layer_gte,node_num:int , l1_lb,l1_
 
 def convertInitial(bounds,var_index,sensitive):
     row_id, col_id, flag = (0, 1, False)
+    max_diff = 0
     l1_lb= np.zeros((1,len(bounds.items()) + 1))
     l1_ub = np.zeros((1,len(bounds.items()) + 1))
     sens = None
@@ -86,8 +87,10 @@ def convertInitial(bounds,var_index,sensitive):
         var_index[str(var)] = (row_id, col_id)
         l1_lb[0][col_id] = bound[0]
         l1_ub[0][col_id] = bound[1]
+        if(bound[1]-bound[0]>max_diff):
+            max_diff = bound[1]-bound[0]
         col_id += 1
-    return l1_lb,l1_ub,sens
+    return l1_lb,l1_ub,sens,max_diff
 
 '''
 def splitInitial2(l1_lbL,l1_ubL,sensitive): #remove
@@ -120,7 +123,7 @@ def splitInitial2(l1_lbL,l1_ubL,sensitive): #remove
     return l1_lbLN, l1_ubLN
 '''
 
-def splitInitial(l1_lbL,l1_ubL,sensitive):
+def splitInitial(l1_lbL,l1_ubL,sensitive,L_min):
     bounds = []
     for (l1_lb, l1_ub) in zip(l1_lbL, l1_ubL):
         bnd = []
@@ -130,6 +133,9 @@ def splitInitial(l1_lbL,l1_ubL,sensitive):
                 gaps.append((l1_lb[index], l1_ub[index]))
             elif math.isclose(l1_lb[index], l1_ub[index]):
                 gaps.append((l1_lb[index], l1_lb[index]))
+            elif (l1_ub[index] - l1_lb[index] <= L_min):
+                #raise NotImplementedError       #implemented but not tested
+                gaps.append((l1_lb[index], l1_ub[index]))
             else:
                 mid = l1_lb[index] + (l1_ub[index]-l1_lb[index])/2
                 gaps.append((l1_lb[index], mid))
@@ -204,7 +210,7 @@ def createNetworkGPU(layers,bounds,activations,sensitive,outputs):
     if_activation = np.zeros((NO_OF_LAYERS + 1, MAX_NODES_IN_LAYER + 1)).astype(np.int16)
     dims = np.ones(NO_OF_LAYERS + 1).astype(np.int32)
 
-    l1_lb, l1_ub, sensitive = convertInitial(bounds,var_index,sensitive)
+    l1_lb, l1_ub, sensitive,max_diff = convertInitial(bounds,var_index,sensitive)
     fillInput(layers, activations, affine, dims, if_activation, var_index, MAX_NODES_IN_LAYER)
     inv_var_index = {v: k for k, v in var_index.items()}
     outNodes = set()
@@ -212,4 +218,4 @@ def createNetworkGPU(layers,bounds,activations,sensitive,outputs):
         outNodes.add(var_index[str(output)][1])
     d_affine = cp.asarray(affine)
     d_if_activation = cp.asarray(if_activation)
-    return d_affine,if_activation,d_if_activation,var_index,inv_var_index,outNodes,dims,l1_lb, l1_ub,sensitive,NO_OF_LAYERS,MAX_NODES_IN_LAYER
+    return d_affine,if_activation,d_if_activation,var_index,inv_var_index,outNodes,dims,l1_lb, l1_ub,sensitive,max_diff,NO_OF_LAYERS,MAX_NODES_IN_LAYER

@@ -246,8 +246,8 @@ def active_convert(active_status,dims,inv_var_index,outcomes):
     deactivated = []
     for init_id in range(len(active_status)):
         node_num = 3
-        act = set()
-        deact = set()
+        act = []
+        deact = []
         if (outcomes[init_id] != None):
             activated.append(act)
             deactivated.append(deact)
@@ -256,12 +256,14 @@ def active_convert(active_status,dims,inv_var_index,outcomes):
             for neuron_index in range(1,dims[layer_index]):
                 if(active_status[init_id,layer_index,neuron_index] == 0):
                     stmt = inv_var_index[(layer_index,neuron_index)]
-                    deact.add(stmt)
+                    deact.append(stmt)
                 elif(active_status[init_id,layer_index,neuron_index] == 1):
                     stmt = inv_var_index[(layer_index,neuron_index)]
-                    act.add(stmt)
+                    act.append(stmt)
                 node_num+=1
             node_num+=1
+        act = tuple(act)
+        deact = tuple(deact)
         activated.append(act)
         deactivated.append(deact)
     return activated,deactivated
@@ -341,13 +343,13 @@ def noPrintCondense(d_affine, d_relu, i, if_activation,d_if_activation,d_active_
             d_lbs_up, d_ubs_up = get_bounds_GPU(d_ineq_gte, d_ineq_gte, d_l1_lb, d_l1_ub)
             relu_compute_GPU(d_lbs_low, d_ubs_low,d_lbs_up, d_ubs_up, d_relu[:,i], d_active_pattern[:,i,:],d_l1_lb,d_l1_ub,d_if_activation[i])
 
-def analyze(netGPU,l1_lbL,l1_ubL,percent):
-    d_affine, if_activation, d_if_activation, var_index, inv_var_index, outNodes, dims, l1_lb, l1_ub, sensitive, NO_OF_LAYERS, MAX_NODES_IN_LAYER = netGPU
+def analyze(netGPU,l1_lbL,l1_ubL,percent,L_min):
+    d_affine,if_activation,d_if_activation,var_index,inv_var_index,outNodes,dims,l1_lb, l1_ub,sensitive,max_diff,NO_OF_LAYERS,MAX_NODES_IN_LAYER = netGPU
     if (l1_lbL == None):
         l1_lbL = l1_lb
         l1_ubL = l1_ub
 
-    l1_lb_list, l1_ub_list = commons.splitInitial(l1_lbL, l1_ubL, sensitive)
+    l1_lb_list, l1_ub_list = commons.splitInitial(l1_lbL, l1_ubL, sensitive,L_min)
     s = ""
     for l1_lb in l1_lb_list:
         s += " + " + str(l1_lb.shape[0])

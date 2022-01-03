@@ -236,8 +236,8 @@ def do(out_name,ifGPU,domains):
     else:
         result, time2 = json_out.copy(), 0.0
 
-    result, time2 = analysis(prioritized, shared)
-    result = combineJSON(json_out1, result)
+    #result, time2 = analysis(prioritized, shared)
+    #result = combineJSON(json_out1, result)
 
     minL, startL = config.min_difference, config.start_difference
     startU, maxU = config.start_unstable, config.max_unstable
@@ -270,8 +270,8 @@ def test1(ifGPU,domains):
 
         MIN_ = np.array([0, 40.000, -73.000, -2000.000, 20.018, -45, -2, 0, 0, 0, 0, 0])
         MAX_ = np.array([1, 105.000, 40.000, 15100.000, 219.985, 15.000, 2.000, 1, 1, 1, 1, 1])
-        X_min = [0, 40, -73, -2000, 20.018, -45, -2, bnd[0], bnd[1], bnd[2], bnd[3],
-                 bnd[4]]  # last 5 here 11011/10011/00111/01011/[][][]00    -2
+        X_min = [0, 40, -73, -2000, 20.018, -45, -2, bnd[0], bnd[1], bnd[2], bnd[3],bnd[4]]
+        # last 5 here 11011/10011/00111/01011/[][][]00    -2
         X_max = [1, 105, 40, 15100, 219.985, 15, 2, bnd[0], bnd[1], bnd[2], bnd[3], bnd[4]]
         c_min = (MAX_ - X_min) / (MAX_ - MIN_)
         c_max = (MAX_ - X_max) / (MAX_ - MIN_)
@@ -325,7 +325,7 @@ def toy(ifGPU,domains):
     else:
         set_sensitive(2)
 
-    config.min_difference = 0.25
+    config.min_difference = 0.0625
     config.start_difference = 1
     config.start_unstable = 2
     config.max_unstable = 2
@@ -372,10 +372,10 @@ def toy(ifGPU,domains):
 
 if __name__ == '__main__':
     set_start_method("fork", force=True)
-    ifGPU = True
+    ifGPU = False
     #domains = ["DeepPoly","Symbolic","Neurify"]
     domains = ["DeepPoly"]
     #toy(ifGPU,domains)
     #test.toy()
     #test1(False,domains)
-    test1(True,domains)
+    test1(ifGPU,domains)

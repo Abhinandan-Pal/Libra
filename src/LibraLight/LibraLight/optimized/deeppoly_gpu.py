@@ -324,13 +324,13 @@ def noPrintCondense(d_affine, d_relu, i, if_activation,d_if_activation, d_active
             d_lbs, d_ubs = get_bounds_GPU(d_ineq_lte, d_ineq_gte, d_l1_lb, d_l1_ub)
             relu_compute_GPU(d_lbs, d_ubs, d_relu[:, i], d_active_pattern[:, i],d_if_activation[i])
 
-def analyze(netGPU,l1_lbL,l1_ubL,percent):
-    d_affine,if_activation,d_if_activation,var_index,inv_var_index,outNodes,dims,l1_lb, l1_ub,sensitive,NO_OF_LAYERS,MAX_NODES_IN_LAYER = netGPU
+def analyze(netGPU,l1_lbL,l1_ubL,percent,L_min):
+    d_affine,if_activation,d_if_activation,var_index,inv_var_index,outNodes,dims,l1_lb, l1_ub,sensitive,max_diff,NO_OF_LAYERS,MAX_NODES_IN_LAYER = netGPU
     if(l1_lbL == None):
         l1_lbL = l1_lb
         l1_ubL = l1_ub
 
-    l1_lb_list, l1_ub_list = commons.splitInitial(l1_lbL,l1_ubL,sensitive)
+    l1_lb_list, l1_ub_list = commons.splitInitial(l1_lbL,l1_ubL,sensitive,L_min)
     s = ""
     for l1_lb in l1_lb_list:
         s += " + " + str(l1_lb.shape[0])
