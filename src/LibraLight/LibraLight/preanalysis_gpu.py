@@ -16,7 +16,7 @@ exploredP = 0
 unbiased = []
 unfeasible = []
 
-def preanalysis(json_out,config,L_start,L_min,U,domains):
+def preanalysis(json_out,config,L_start,L_min,U_start,U_max,domains):
     global feasible,unbiasedP,feasibleP,unfeasibleP,unbiased,unfeasible
     feasible,unbiasedP,feasibleP,unfeasibleP,unbiased,unfeasible = dict(),0,0,0,[],[]
 
@@ -25,8 +25,8 @@ def preanalysis(json_out,config,L_start,L_min,U,domains):
     time_sec = time.time()
     netGPU = comG.createNetworkGPU(config.layers,config.bounds,config.activations,config.sensitive,config.outputs)
     L_start = netGPU[10]
-    print(f"L_start:{L_start}; L_min:{L_min}; U:{U};\nInitials:{config.bounds}")
-    iterPreanalysis(None,None,netGPU,L_start/2,U,L_min,config.sensitive,100.0,domains)
+    print(f"L_start:{L_start}; L_min:{L_min}; U_start:{U_start}; U_max:{U_max}\nInitials:{config.bounds}")
+    iterPreanalysis(None,None,netGPU,L_start/2,U_start,L_min,U_max,config.sensitive,100.0,domains)
     time_sec = time.time() - time_sec
 
     unbiased = compressRange(unbiased)
@@ -40,7 +40,16 @@ def preanalysis(json_out,config,L_start,L_min,U,domains):
     feasiblePe,fairP = (unbiasedP + feasibleP),unbiasedP
     print(f"GPU time: {time_sec}\n\n")
     prioritized = priorityFeasible(compressFeasible(feasible))
+    ppInfo(prioritized)
     return json_out,prioritized,time_sec,feasiblePe,fairP
+
+def ppInfo(prioritized):
+    partitions = len(unbiased) + len(feasible) + len(unfeasible)
+    considered = len(unbiased)+len(feasible)
+    print(Fore.BLUE + '\nFound: {} patterns for {}[{}] partitions'.format(len(prioritized), considered, partitions))
+    for key, pack in prioritized:
+        sset = lambda s: '{{{}}}'.format(', '.join('{}'.format(e) for e in s))
+        print(sset(key[0]), '|', sset(key[1]), '->', len(pack))
 
 def ppRanges(percent, lb, ub,inv_var_index,sensitive):
     s = "Ranges: "
@@ -52,10 +61,14 @@ def ppRanges(percent, lb, ub,inv_var_index,sensitive):
     s += f"| Percent: {percent}"
     return s
 
-def iterPreanalysis(l1_lbL,l1_ubL,netGPU,L,U,L_min,sensitive,percent,domains):
+def iterPreanalysis(l1_lbL,l1_ubL,netGPU,L,U,L_min,U_max,sensitive,percent,domains):
     global unbiasedP,feasibleP,unfeasibleP,exploredP
-    activatedL2, deactivatedL2, outcomeL2, lbL2, ubL2, percent, inv_var_index = prodG.analyze(netGPU,l1_lbL,l1_ubL,percent,L_min,domains)
+    activatedL2, deactivatedL2, outcomeL2, lbL2, ubL2, percent, inv_var_index = dpG.analyze(netGPU,l1_lbL,l1_ubL,percent,L_min)#,domains)
     l1_lbN,l1_ubN = [],[]
+    Umode = True
+    if((U+1)<=U_max):
+        print(f"Upper bound increase from: {U} to: {U + 1}")
+        U = U+1
     for activatedL1, deactivatedL1, outcomeL1, lbL1, ubL1 in zip(activatedL2, deactivatedL2, outcomeL2, lbL2, ubL2):
         for activated, deactivated, outcome, lb, ub in zip(activatedL1, deactivatedL1, outcomeL1, lbL1, ubL1):
             unknown = len(config.activations) - len(activated) - len(deactivated)
@@ -69,7 +82,12 @@ def iterPreanalysis(l1_lbL,l1_ubL,netGPU,L,U,L_min,sensitive,percent,domains):
                 print(Fore.GREEN + f"No Bias (Outcome: {outcome}) in {ppRan}",Style.RESET_ALL)
                 print(Fore.YELLOW + f"Progress : {unbiasedP+feasibleP}% of {exploredP}% ({unbiasedP}% fair)", Style.RESET_ALL)
                 continue
-            if(unknown<=U):
+            '''if(unknown <= U) or (unknown == U+1 and Umode == True and (U+1) <= U_max):
+                if (unknown == U + 1 and Umode == True and (U + 1) <= U_max):
+                    print(f"Too many disjunctions ({unknown})!\nUpper bound increase from: {U} to: {U+1}")
+                    Umode = False
+                    U += 1'''
+            if (unknown <= U):
                 activated = frozenset(activated)
                 deactivated = frozenset(deactivated)
                 feasibleP += percent
@@ -92,7 +110,7 @@ def iterPreanalysis(l1_lbL,l1_ubL,netGPU,L,U,L_min,sensitive,percent,domains):
                 print(Fore.RED + f"Unchecked Bias in {ppRan}", Style.RESET_ALL)
                 print(Fore.YELLOW + f"Progress : {unbiasedP + feasibleP}% of {exploredP}% ({unbiasedP}% fair)", Style.RESET_ALL)
     if(len(l1_lbN) != 0):
-        iterPreanalysis(l1_lbN,l1_ubN,netGPU,L/2,U,L_min,sensitive,percent,domains)
+        iterPreanalysis(l1_lbN,l1_ubN,netGPU,L/2,U,L_min,U_max,sensitive,percent,domains)
 
 def boundDict1(lbL,ubL,inv_var_index,sensitive):
     jsonDict = dict()

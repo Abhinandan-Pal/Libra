@@ -48,21 +48,24 @@ def set_sensitive_GPU(sensitive):
     config.values = ((lower, middle), (middle, upper))
     config.continuous.remove(config.sensitive)
 
-def print_result(result, time1, time2,ifGPU,config,XMAX):
+def print_result(result, time1, time2,ifGPU,config,XMAX,prioritized_len):
     _, _, _, _, _, _, _, fair, biased, feasible, _, _, _ = result
+    print(f"\n\nTHRESHOLD: {config.threshold} XMAX: {XMAX[7:]}\n")
     print('Analyzed Input Domain Percentage: {}%'.format(feasible.value))
     print('Certified Fair Percentage: {}%'.format(fair.value))
     print('Potentially Biased Percentage: {}%'.format(biased.value))
     print('Uncertified Input Domain Percentage: {}%'.format(100 - feasible.value))
+    print('No of Prioritized Patterns: {}%'.format(prioritized_len))
     print('Pre-Analysis Time: {}s'.format(time1))
     print('Analysis Time: {}s'.format(time2))
-    file1 = open(f'jsonFiles/{ifGPU}.txt', 'a')
+    file1 = open(f'jsonFiles/{ifGPU}L{config.min_difference}U{config.max_unstable}.txt', 'a')
 
     file1.write(f"\n\nTHRESHOLD: {config.threshold} XMAX: {XMAX[7:]}\n")
     file1.write('Analyzed Input Domain Percentage: {}% \n'.format(feasible.value))
     file1.write('Certified Fair Percentage: {}% \n'.format(fair.value))
     file1.write('Potentially Biased Percentage: {}% \n'.format(biased.value))
     file1.write('Uncertified Input Domain Percentage: {}% \n'.format(100 - feasible.value))
+    file1.write('No of Prioritized Patterns: {}\n'.format(prioritized_len))
     file1.write('Pre-Analysis Time: {}s \n'.format(time1))
     file1.write('Analysis Time: {}s \n'.format(time2))
 
@@ -104,7 +107,6 @@ def preanalysis(shared):
         sset = lambda s: '{{{}}}'.format(', '.join('{}'.format(e) for e in s))
         print(sset(key[0]), '|', sset(key[1]), '->', len(pack))
     #
-    print(f"{patterns}")
     compressed = dict()
     for key1, pack1 in sorted(patterns.items(), key=lambda v: len(v[1]), reverse=False):
         unmerged = True
@@ -217,7 +219,7 @@ def do(out_name,ifGPU,domains):
     print('||==============||\n', Style.RESET_ALL)
 
     if(ifGPU):
-        json_out1,prioritized, time1,feasible,fair = preAG(json_out1,config, config.start_difference, config.min_difference, config.max_unstable,domains)
+        json_out1,prioritized, time1,feasible,fair = preAG(json_out1,config, config.start_difference, config.min_difference, config.start_unstable, config.max_unstable,domains)
         fair = Value('d', fair)  # percentage that is fair
         feasible = Value('d', feasible)  # percentage that could be analyzed
         shared = (patterns, partitions, discarded, config.min_difference, difference, unstable, config.max_unstable, fair,biased,feasible, explored, json_out, Lock())
@@ -227,7 +229,7 @@ def do(out_name,ifGPU,domains):
     #compareFesible(prioritized,prioritized1)
 
 
-    print(f"Prioritized : {prioritized}\n Time: {time1}")
+    #print(f"Prioritized : {prioritized}\n Time: {time1}")
 
     print('||==========||\n', Style.RESET_ALL)
 
@@ -244,11 +246,11 @@ def do(out_name,ifGPU,domains):
     out_file = 'jsonFiles/result-{}_{}_{}-{}_{}-{}-{}.json'.format(out_name, config.threshold, minL, startL, startU, maxU,ifGPU)
     with open(out_file, 'w', encoding='utf8') as f:
         json.dump(result, f, indent=4, separators=(',', ':'), ensure_ascii=False)
-    return shared, time1, time2
+    return shared, time1, time2,len(prioritized)
 
 
 def test1(ifGPU,domains):
-    def perfom(t,bnds):
+    def perform(t,bnds):
         bnd = []
         for i in range(0, len(bnds)):
             bnd.append(int(bnds[i]))
@@ -284,18 +286,20 @@ def test1(ifGPU,domains):
         else:
             set_sensitive(0)
 
-        config.min_difference = 0.5
+        config.min_difference = 0.0625
         config.start_difference = 2
-        config.start_unstable = 2
-        config.max_unstable = 2
+        config.start_unstable = 3
+        config.max_unstable = 3
 
-        result, time1, time2 = do('test1', ifGPU,domains)
-        print_result(result, time1, time2, ifGPU, config, X_max)
+        result, time1, time2,prioritized_len = do('test1', ifGPU,domains)
+        print_result(result, time1, time2, ifGPU, config, X_max,prioritized_len)
 
-    '''for t in range(2540,2560):
-        for bnds in ("11011","10011","00111","01011","11000","10000","00100","01000"):
-                perfom(t,bnds)'''
-    perfom(2550, "00011")
+    '''for t in range(2560,2570,5):
+        for bnds in ("10011","00111","01011","10000","00100","01000"):
+                perform(t,bnds)'''
+    #"01011"
+    #perform(2541,"10000")
+    perform(2555, "10011")
 
 
 
@@ -372,7 +376,7 @@ def toy(ifGPU,domains):
 
 if __name__ == '__main__':
     set_start_method("fork", force=True)
-    ifGPU = False
+    ifGPU = True
     #domains = ["DeepPoly","Symbolic","Neurify"]
     domains = ["DeepPoly"]
     #toy(ifGPU,domains)

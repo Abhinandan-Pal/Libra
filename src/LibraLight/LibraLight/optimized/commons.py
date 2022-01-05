@@ -84,44 +84,14 @@ def convertInitial(bounds,var_index,sensitive):
     for var, bound in bounds.items():
         if(str(var) == str(sensitive)):
             sens = col_id
+        elif(bound[1]-bound[0]>max_diff):
+            max_diff = bound[1]-bound[0]
         var_index[str(var)] = (row_id, col_id)
         l1_lb[0][col_id] = bound[0]
         l1_ub[0][col_id] = bound[1]
-        if(bound[1]-bound[0]>max_diff):
-            max_diff = bound[1]-bound[0]
         col_id += 1
     return l1_lb,l1_ub,sens,max_diff
 
-'''
-def splitInitial2(l1_lbL,l1_ubL,sensitive): #remove
-    l1_lb_a, l1_ub_a, l1_lbLN, l1_ubLN = [], [], [], []
-    count = 0
-    for (l1_lb, l1_ub) in zip(l1_lbL, l1_ubL):
-
-        for index in range(len(l1_lb)):
-            #print(f"c = {count}")
-            if(index == sensitive) or math.isclose(l1_lb[index], l1_ub[index]):
-                continue
-            lb1,ub1,lb2,ub2 = l1_lb.copy(), l1_ub.copy(),l1_lb.copy(),l1_ub.copy()
-            mid = l1_lb[index] + (l1_ub[index]-l1_lb[index])/2
-            ub1[index] = mid
-            lb2[index] = mid
-            l1_lb_a.append(lb1)
-            l1_lb_a.append(lb2)
-            l1_ub_a.append(ub1)
-            l1_ub_a.append(ub2)
-            count += 2
-            if (count == (2 ** 16)):
-                l1_lb_a, l1_ub_a = np.array(l1_lb_a), np.array(l1_ub_a)
-                l1_lbLN.append(l1_lb_a)
-                l1_ubLN.append(l1_ub_a)
-                l1_lb_a, l1_ub_a = [], []
-                count = 0
-    l1_lb_a, l1_ub_a = np.array(l1_lb_a), np.array(l1_ub_a)
-    l1_lbLN.append(l1_lb_a)
-    l1_ubLN.append(l1_ub_a)
-    return l1_lbLN, l1_ubLN
-'''
 
 def splitInitial(l1_lbL,l1_ubL,sensitive,L_min):
     bounds = []
