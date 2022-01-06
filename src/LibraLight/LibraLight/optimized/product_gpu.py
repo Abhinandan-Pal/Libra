@@ -8,7 +8,7 @@ from optimized import neurify_gpu as neuG
 from optimized import commons
 from colorama import Style, Fore
 
-def oneOutput(d_affine,d_relu_dp,d_relu_neu,d_symb,if_activation,d_l1_lb,d_l1_ub,outNodes,inv_var_index,domains):
+def oneOutput(d_affine,d_relu_dp,d_relu_neu,d_symb,if_activation,d_l1_lb,d_l1_ub,outNodes,inv_var_index,domains,sensitive,print_mode):
     outcomes = [None] * len(d_l1_lb)
     for out1 in outNodes:
         ln_shape = (len(d_l1_lb),) + d_affine[0].shape
@@ -51,13 +51,20 @@ def oneOutput(d_affine,d_relu_dp,d_relu_neu,d_symb,if_activation,d_l1_lb,d_l1_ub
                 if (flag == True):
                     stmt = inv_var_index[(len(d_affine) - 1, out1)]
                     outcomes[init_id] = stmt
+    if (print_mode == 1 or print_mode == 2):
+        for init_id in range(len(outcomes)):
+            # if (init_id not in [5348,5349,5364,5365]):
+            #    continue
+            print(
+                f"init_id-> {init_id}; Ranges -> {commons.convertBound(d_l1_lb[init_id], d_l1_ub[init_id], inv_var_index, sensitive)}\nOut-> {outcomes[init_id]}")
+
     return outcomes
 
-def miniPrintCondense(d_affine, if_activation,d_if_activation, d_l1_lb,d_l1_ub,domains,d_relu_dp,d_symb,d_relu_neu,d_active_pattern,NO_OF_INITIALS):
+def miniPrintCondense(d_affine, if_activation,d_if_activation, d_l1_lb,d_l1_ub,domains,d_relu_dp,d_symb,d_relu_neu,d_active_pattern,NO_OF_INITIALS,inv_var_index,sensitive,dims):
     d_lbsL = cp.zeros((len(domains), NO_OF_INITIALS, len(d_affine[0])))
     d_ubsL = cp.zeros((len(domains), NO_OF_INITIALS, len(d_affine[0])))
-    init_id = 0
-    print(f"init_id-> {init_id}; lbs -> {d_l1_lb[init_id]}; ubs -> {d_l1_ub[init_id]}")
+    #init_id = 0
+    #print(f"init_id-> {init_id}; lbs -> {d_l1_lb[init_id]}; ubs -> {d_l1_ub[init_id]}")
     for i in range(1, len(d_affine)):
         j = 0
         if ("DeepPoly" in domains):
@@ -82,8 +89,10 @@ def miniPrintCondense(d_affine, if_activation,d_if_activation, d_l1_lb,d_l1_ub,d
                 symG.relu_compute_GPU(d_lbs, d_ubs, d_symb[:, i], d_active_pattern[:, i], d_l1_lb, d_l1_ub,d_if_activation[i])
             if ("Neurify" in domains):
                 neuG.relu_compute_GPU(d_lbs, d_ubs_low, d_lbs_up, d_ubs, d_relu_neu[:, i], d_active_pattern[:, i, :],d_l1_lb, d_l1_ub,d_if_activation[i])
-        for j in range(1, len(d_affine[0])):
-            print(f"Affine {i}:{j} eq (LB,UB): ({d_lbs[init_id][j]}, {d_ubs[init_id][j]})")
+        for init_id in range(len(d_lbs)):
+            print(f"init_id-> {init_id}; Ranges -> {commons.convertBound(d_l1_lb[init_id], d_l1_ub[init_id], inv_var_index, sensitive)}")
+            for j in range(1, dims[i]):
+                print(f"Affine {inv_var_index[(i,j)]} eq (LB,UB): ({d_lbs[init_id][j]}, {d_ubs[init_id][j]})")
 
 def mergeBounds(d_lbsL,d_ubsL):
     d_lbs = cp.amax(d_lbsL, axis=0)
@@ -122,13 +131,13 @@ def noPrintCondense(d_affine, if_activation,d_if_activation, d_l1_lb,d_l1_ub,dom
     #print(f"SYM:\n{d_active_pattern_symb}")
     #print(f"NEU:\n{d_active_pattern_neu}")
 
-def analyze(netGPU,l1_lbL,l1_ubL,percent,L_min,domains):
+def analyze(netGPU,l1_lbL,l1_ubL,percent,L,print_mode,domains):
     d_affine,if_activation,d_if_activation,var_index,inv_var_index,outNodes,dims,l1_lb, l1_ub,sensitive,max_diff,NO_OF_LAYERS,MAX_NODES_IN_LAYER = netGPU
     if (l1_lbL == None):
         l1_lbL = l1_lb
         l1_ubL = l1_ub
 
-    l1_lb_list, l1_ub_list = commons.splitInitial(l1_lbL, l1_ubL, sensitive,L_min)
+    l1_lb_list, l1_ub_list = commons.splitInitial(l1_lbL, l1_ubL, sensitive,L)
     s = ""
     for l1_lb in l1_lb_list:
         s += " + " + str(l1_lb.shape[0])
@@ -153,11 +162,15 @@ def analyze(netGPU,l1_lbL,l1_ubL,percent,L_min,domains):
 
         # Removes NumbaPerformanceWarning and others but slow down everything significantly.
         warnings.filterwarnings("ignore")
-        #miniPrintCondense(d_affine, if_activation,d_if_activation, d_l1_lb,d_l1_ub,domains,d_relu_dp,d_symb,d_relu_neu,d_active_pattern,NO_OF_INITIALS)
-        noPrintCondense(d_affine, if_activation,d_if_activation, d_l1_lb,d_l1_ub,domains,d_relu_dp,d_symb,d_relu_neu,d_active_pattern,NO_OF_INITIALS)
-
+        if (print_mode == 1):
+            raise NotImplementedError
+        elif (print_mode == 2):
+            miniPrintCondense(d_affine, if_activation,d_if_activation, d_l1_lb,d_l1_ub,domains,d_relu_dp,d_symb,d_relu_neu,d_active_pattern,NO_OF_INITIALS,inv_var_index,sensitive,dims)
+        elif (print_mode == 3):
+            noPrintCondense(d_affine, if_activation,d_if_activation, d_l1_lb,d_l1_ub,domains,d_relu_dp,d_symb,d_relu_neu,d_active_pattern,NO_OF_INITIALS)
+            
         #print(f"activation->{d_active_pattern}")
-        outcome = oneOutput(d_affine,d_relu_dp,d_relu_neu,d_symb,if_activation,d_l1_lb,d_l1_ub,outNodes,inv_var_index,domains)
+        outcome = oneOutput(d_affine,d_relu_dp,d_relu_neu,d_symb,if_activation,d_l1_lb,d_l1_ub,outNodes,inv_var_index,domains,sensitive,print_mode)
         active_pattern = cp.asnumpy(d_active_pattern)
         activated, deactivated = dpG.active_convert(active_pattern, dims, inv_var_index,outcome)
         activatedL.append(activated)

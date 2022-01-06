@@ -55,10 +55,10 @@ def print_result(result, time1, time2,ifGPU,config,XMAX,prioritized_len):
     print('Certified Fair Percentage: {}%'.format(fair.value))
     print('Potentially Biased Percentage: {}%'.format(biased.value))
     print('Uncertified Input Domain Percentage: {}%'.format(100 - feasible.value))
-    print('No of Prioritized Patterns: {}%'.format(prioritized_len))
+    print('No of Prioritized Patterns: {}'.format(prioritized_len))
     print('Pre-Analysis Time: {}s'.format(time1))
     print('Analysis Time: {}s'.format(time2))
-    file1 = open(f'jsonFiles/{ifGPU}L{config.min_difference}U{config.max_unstable}.txt', 'a')
+    file1 = open(f'jsonFiles/{ifGPU}2L{config.min_difference}U{config.max_unstable}.txt', 'a')
 
     file1.write(f"\n\nTHRESHOLD: {config.threshold} XMAX: {XMAX[7:]}\n")
     file1.write('Analyzed Input Domain Percentage: {}% \n'.format(feasible.value))
@@ -281,11 +281,21 @@ def test1(ifGPU,domains):
         x_max = -c_max + (1 - c_max)
         set_domain(x_min, x_max)
 
+        '''
         config.bounds = {'x00': (-1.0, 1.0), 'x01': (0.25, 0.5), 'x02': (0.5, 0.75), 'x03': (0.5, 0.75),
                          'x04': (0.75, 1.0),
                          'x05': (0.75, 1.0), 'x06': (-0.75, -0.5), 'x07': (-1.0, -1.0), 'x08': (-1.0, -1.0),
                          'x09': (1.0, 1.0),
                          'x010': (1.0, 1.0), 'x011': (1.0, 1.0)}
+        '''
+
+
+        config.bounds = {'x00': (-1.0, 1.0), 'x01': (0.25, 0.5), 'x02': (0.5, 1.0), 'x03': (0.5, 0.75),
+                         'x04': (0.75, 1.0),
+                         'x05': (0.5, 1.0), 'x06': (-1.0, -0.5), 'x07': (-1.0, -1.0), 'x08': (-1.0, -1.0),
+                         'x09': (1.0, 1.0),
+                         'x010': (1.0, 1.0), 'x011': (1.0, 1.0)}
+
 
         if (ifGPU):
             set_sensitive_GPU(0)
@@ -294,7 +304,7 @@ def test1(ifGPU,domains):
 
         config.min_difference = 0.25
         config.start_difference = 1
-        config.start_unstable = 3
+        config.start_unstable = 1
         config.max_unstable = 3
 
 
@@ -302,12 +312,13 @@ def test1(ifGPU,domains):
         result, time1, time2,prioritized_len = do('test1', ifGPU,domains)
         print_result(result, time1, time2, ifGPU, config, X_max,prioritized_len)
 
-    '''for t in range(2545,2550,5):
+    '''for t in range(2540,2560,5):
         for bnds in ("10011","00111","01011","10000","00100","01000"):
-                perform(t,bnds)'''
+                perform(t,bnds)
+    '''
     #"01011"
-    #perform(2540,"01000")
-    perform(2545, "00111")
+    perform(2540,"01000")
+    #perform(2545, "00111")
 
 
 
@@ -384,10 +395,10 @@ def toy(ifGPU,domains):
 
 if __name__ == '__main__':
     set_start_method("fork", force=True)
-    ifGPU = False
+    ifGPU = True
 
-    #domains = ["DeepPoly","Symbolic","Neurify"]
-    domains = ["DeepPoly"]
+    domains = ["DeepPoly","Symbolic","Neurify"]
+    #domains = ["Neurify"]
     #toy(ifGPU,domains)
     #test.toy()
     #test1(False,domains)

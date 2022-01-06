@@ -115,10 +115,9 @@ def splitInitial(l1_lbL,l1_ubL,sensitive,L):
             elif math.isclose(l1_lb[index], l1_ub[index]):
                 gaps.append((l1_lb[index], l1_lb[index]))
             elif ((l1_ub[index] - l1_lb[index]) < L*2):
-                #raise NotImplementedError       #implemented but not tested
                 gaps.append((l1_lb[index], l1_ub[index]))
             else:
-                print(f"L: {index}: {l1_ub[index] - l1_lb[index]}>={L}")
+                #print(f"L: {index}: {l1_ub[index] - l1_lb[index]}>={L}")
                 mid = l1_lb[index] + (l1_ub[index]-l1_lb[index])/2
                 gaps.append((l1_lb[index], mid))
                 gaps.append((mid, l1_ub[index]))

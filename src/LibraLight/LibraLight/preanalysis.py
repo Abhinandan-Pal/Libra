@@ -26,7 +26,7 @@ def worker1(id, color, queue1, nnet, spec, shared):
             queue1.put((None, None, None, None, None))
             break
         #
-        isSuperRegion(ranges)
+        #isSuperRegion(ranges)
         r_ranges = 'Ranges: {}'.format('; '.join('{} ∈ [{}, {}]'.format(i, l, u) for i, (l, u) in ranges if l != u))
         level, start = 0, percent
         while start < 100:

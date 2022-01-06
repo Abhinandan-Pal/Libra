@@ -67,14 +67,17 @@ def ppRanges(percent, lb, ub,inv_var_index,sensitive):
 
 def iterPreanalysis(l1_lbL,l1_ubL,netGPU,L,U,L_min,U_max,sensitive,percent,domains):
     global unbiasedP,feasibleP,unfeasibleP,exploredP
-    if(L<L_min):
+    if ((U + 1) <= U_max):
+        print(Fore.LIGHTGREEN_EX +f"Upper bound increase from: {U} to: {U + 1}",Style.RESET_ALL)
+        U = U + 1
+    if(L<=L_min):
         # For edge case where all range differences are L_min from first iter
+        print(Fore.LIGHTGREEN_EX +f"Upper bound increase from: {U} to: {U_max} which is max",Style.RESET_ALL)
         L = L_min
-    activatedL2, deactivatedL2, outcomeL2, lbL2, ubL2, percent, inv_var_index = dpG.analyze(netGPU,l1_lbL,l1_ubL,percent,L)#,domains)
+        U = U_max
+    print(Fore.LIGHTGREEN_EX +f"Autotuned: L: {L}; U: {U}",Style.RESET_ALL)
+    activatedL2, deactivatedL2, outcomeL2, lbL2, ubL2, percent, inv_var_index = prodG.analyze(netGPU,l1_lbL,l1_ubL,percent,L,2,domains)
     l1_lbN,l1_ubN = [],[]
-    if((U+1)<=U_max):
-        print(f"Upper bound increase from: {U} to: {U + 1}")
-        U = U+1
     for activatedL1, deactivatedL1, outcomeL1, lbL1, ubL1 in zip(activatedL2, deactivatedL2, outcomeL2, lbL2, ubL2):
         for activated, deactivated, outcome, lb, ub in zip(activatedL1, deactivatedL1, outcomeL1, lbL1, ubL1):
             unknown = len(config.activations) - len(activated) - len(deactivated)
