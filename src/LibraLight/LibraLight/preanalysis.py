@@ -5,6 +5,16 @@ from abstract_domain import init, analyze
 import config
 from libra2others import chunk2json
 
+def isSuperRegion(ranges):
+    narrows = {'x01': (0.25, 0.5), 'x02': (0.5, 0.75), 'x03': (0.5, 0.75),
+               'x04': (0.75, 1.0),'x05': (0.75, 1.0), 'x06': (-0.75, -0.5)}
+    region = dict()
+    for range in ranges:
+        region[range[0]]=range[1]
+    for var,range in narrows.items():
+        if(region[var][0]>range[0]) or (region[var][1]<range[1]):
+            return
+    print(f"-----Found SuperRegion------")
 
 def worker1(id, color, queue1, nnet, spec, shared):
     inputs, num_relus, layers, outputs = nnet
@@ -16,6 +26,7 @@ def worker1(id, color, queue1, nnet, spec, shared):
             queue1.put((None, None, None, None, None))
             break
         #
+        isSuperRegion(ranges)
         r_ranges = 'Ranges: {}'.format('; '.join('{} ∈ [{}, {}]'.format(i, l, u) for i, (l, u) in ranges if l != u))
         level, start = 0, percent
         while start < 100:
@@ -63,7 +74,7 @@ def worker1(id, color, queue1, nnet, spec, shared):
                 curr.add(value)
                 patterns[key] = curr
                 lock.release()
-                found = '‼ Possible Bias in {}'.format(r_partition)
+                found = '‼ ({}) Possible Bias in {}'.format(disjunctions,r_partition)
                 print(Fore.LIGHTYELLOW_EX + found, Style.RESET_ALL)
                 progress = 'Progress for #{}: {}% of {}% ({}% fair)'.format(id, feasible.value, explored.value, fair.value)
                 print(Fore.YELLOW + progress, Style.RESET_ALL)

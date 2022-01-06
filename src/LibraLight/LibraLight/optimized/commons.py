@@ -92,8 +92,19 @@ def convertInitial(bounds,var_index,sensitive):
         col_id += 1
     return l1_lb,l1_ub,sens,max_diff
 
+def convertBound(lbL,ubL,inv_var_index,sensitive):
+    bound = dict()
+    lbL = list(lbL)
+    ubL = list(ubL)
+    for i in range(1,len(lbL)):
+        var = inv_var_index[(0,i)]
+        if(i != sensitive) and (lbL[i] != ubL[i]):
+            bound[var] = (float(lbL[i]),float(ubL[i]))
+    bound = [(k, v) for k, v in bound.items()]
+    bound = tuple(bound)
+    return bound #frozenset(bound)
 
-def splitInitial(l1_lbL,l1_ubL,sensitive,L_min):
+def splitInitial(l1_lbL,l1_ubL,sensitive,L):
     bounds = []
     for (l1_lb, l1_ub) in zip(l1_lbL, l1_ubL):
         bnd = []
@@ -103,10 +114,11 @@ def splitInitial(l1_lbL,l1_ubL,sensitive,L_min):
                 gaps.append((l1_lb[index], l1_ub[index]))
             elif math.isclose(l1_lb[index], l1_ub[index]):
                 gaps.append((l1_lb[index], l1_lb[index]))
-            elif (l1_ub[index] - l1_lb[index] <= L_min):
+            elif ((l1_ub[index] - l1_lb[index]) < L*2):
                 #raise NotImplementedError       #implemented but not tested
                 gaps.append((l1_lb[index], l1_ub[index]))
             else:
+                print(f"L: {index}: {l1_ub[index] - l1_lb[index]}>={L}")
                 mid = l1_lb[index] + (l1_ub[index]-l1_lb[index])/2
                 gaps.append((l1_lb[index], mid))
                 gaps.append((mid, l1_ub[index]))

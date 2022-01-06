@@ -16,7 +16,11 @@ exploredP = 0
 unbiased = []
 unfeasible = []
 
-def preanalysis(json_out,config,L_start,L_min,U_start,U_max,domains):
+def preanalysis(json_out,config,domains):
+    L_min = config.min_difference
+    U_start = config.start_unstable
+    U_max = config.max_unstable
+
     global feasible,unbiasedP,feasibleP,unfeasibleP,unbiased,unfeasible
     feasible,unbiasedP,feasibleP,unfeasibleP,unbiased,unfeasible = dict(),0,0,0,[],[]
 
@@ -36,7 +40,7 @@ def preanalysis(json_out,config,L_start,L_min,U_start,U_max,domains):
     inv_var_index = netGPU[4]
     feasible = convertFeasible(feasible, inv_var_index, config.sensitive)
     updateJSON(json_out, inv_var_index, config.sensitive, unbiased, unfeasible)
-    print(f"fair % = {unbiasedP}; feasible % = {unbiasedP + feasibleP}; Unfeasible % = {unfeasibleP}")
+    print(f"No Bias % = {unbiasedP}; Possible Bias % = {feasibleP}; Unfeasible % = {unfeasibleP}; Total % = {feasibleP+unfeasibleP+unbiasedP}")
     feasiblePe,fairP = (unbiasedP + feasibleP),unbiasedP
     print(f"GPU time: {time_sec}\n\n")
     prioritized = priorityFeasible(compressFeasible(feasible))
@@ -57,15 +61,17 @@ def ppRanges(percent, lb, ub,inv_var_index,sensitive):
         var = inv_var_index[(0, i)]
         if (var == sensitive) or (lb[i] == ub[i]):
             continue
-        s += f"{var} ∈ [{lb[i]},{ub[i]}]; "
+        s += f"{var} ∈ [{lb[i]}, {ub[i]}]; "
     s += f"| Percent: {percent}"
     return s
 
 def iterPreanalysis(l1_lbL,l1_ubL,netGPU,L,U,L_min,U_max,sensitive,percent,domains):
     global unbiasedP,feasibleP,unfeasibleP,exploredP
-    activatedL2, deactivatedL2, outcomeL2, lbL2, ubL2, percent, inv_var_index = dpG.analyze(netGPU,l1_lbL,l1_ubL,percent,L_min)#,domains)
+    if(L<L_min):
+        # For edge case where all range differences are L_min from first iter
+        L = L_min
+    activatedL2, deactivatedL2, outcomeL2, lbL2, ubL2, percent, inv_var_index = dpG.analyze(netGPU,l1_lbL,l1_ubL,percent,L)#,domains)
     l1_lbN,l1_ubN = [],[]
-    Umode = True
     if((U+1)<=U_max):
         print(f"Upper bound increase from: {U} to: {U + 1}")
         U = U+1
@@ -82,23 +88,19 @@ def iterPreanalysis(l1_lbL,l1_ubL,netGPU,L,U,L_min,U_max,sensitive,percent,domai
                 print(Fore.GREEN + f"No Bias (Outcome: {outcome}) in {ppRan}",Style.RESET_ALL)
                 print(Fore.YELLOW + f"Progress : {unbiasedP+feasibleP}% of {exploredP}% ({unbiasedP}% fair)", Style.RESET_ALL)
                 continue
-            '''if(unknown <= U) or (unknown == U+1 and Umode == True and (U+1) <= U_max):
-                if (unknown == U + 1 and Umode == True and (U + 1) <= U_max):
-                    print(f"Too many disjunctions ({unknown})!\nUpper bound increase from: {U} to: {U+1}")
-                    Umode = False
-                    U += 1'''
             if (unknown <= U):
                 activated = frozenset(activated)
                 deactivated = frozenset(deactivated)
                 feasibleP += percent
                 exploredP += percent
-                print(Fore.LIGHTYELLOW_EX + f"Possible Bias in {ppRan}",Style.RESET_ALL)
+                print(Fore.LIGHTYELLOW_EX + f"!! ({unknown}) Possible Bias in {ppRan}",Style.RESET_ALL)
                 print(Fore.YELLOW + f"Progress : {unbiasedP + feasibleP}% of {exploredP}% ({unbiasedP}% fair)",Style.RESET_ALL)
                 if ((activated, deactivated) in feasible.keys()):
                     feasible[(activated, deactivated)].append([lb,ub,percent,outcome])
                 else:
                     feasible[(activated, deactivated)] = [[lb,ub,percent,outcome]]
             elif(L/2 >= L_min):
+                print(f"LB: {L/2}>={L_min}")
                 print(f"Too many disjunctions ({unknown})!\nRange can be further split!")
                 l1_lbN.append(lb)
                 l1_ubN.append(ub)

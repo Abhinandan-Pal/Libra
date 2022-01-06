@@ -219,7 +219,7 @@ def do(out_name,ifGPU,domains):
     print('||==============||\n', Style.RESET_ALL)
 
     if(ifGPU):
-        json_out1,prioritized, time1,feasible,fair = preAG(json_out1,config, config.start_difference, config.min_difference, config.start_unstable, config.max_unstable,domains)
+        json_out1,prioritized, time1,feasible,fair = preAG(json_out1,config,domains)
         fair = Value('d', fair)  # percentage that is fair
         feasible = Value('d', feasible)  # percentage that could be analyzed
         shared = (patterns, partitions, discarded, config.min_difference, difference, unstable, config.max_unstable, fair,biased,feasible, explored, json_out, Lock())
@@ -281,25 +281,33 @@ def test1(ifGPU,domains):
         x_max = -c_max + (1 - c_max)
         set_domain(x_min, x_max)
 
+        config.bounds = {'x00': (-1.0, 1.0), 'x01': (0.25, 0.5), 'x02': (0.5, 0.75), 'x03': (0.5, 0.75),
+                         'x04': (0.75, 1.0),
+                         'x05': (0.75, 1.0), 'x06': (-0.75, -0.5), 'x07': (-1.0, -1.0), 'x08': (-1.0, -1.0),
+                         'x09': (1.0, 1.0),
+                         'x010': (1.0, 1.0), 'x011': (1.0, 1.0)}
+
         if (ifGPU):
             set_sensitive_GPU(0)
         else:
             set_sensitive(0)
 
-        config.min_difference = 0.0625
-        config.start_difference = 2
+        config.min_difference = 0.25
+        config.start_difference = 1
         config.start_unstable = 3
         config.max_unstable = 3
+
+
 
         result, time1, time2,prioritized_len = do('test1', ifGPU,domains)
         print_result(result, time1, time2, ifGPU, config, X_max,prioritized_len)
 
-    '''for t in range(2560,2570,5):
+    '''for t in range(2545,2550,5):
         for bnds in ("10011","00111","01011","10000","00100","01000"):
                 perform(t,bnds)'''
     #"01011"
-    #perform(2541,"10000")
-    perform(2555, "10011")
+    #perform(2540,"01000")
+    perform(2545, "00111")
 
 
 
@@ -330,7 +338,7 @@ def toy(ifGPU,domains):
         set_sensitive(2)
 
     config.min_difference = 0.0625
-    config.start_difference = 1
+    config.start_difference = 2
     config.start_unstable = 2
     config.max_unstable = 2
 
@@ -376,7 +384,8 @@ def toy(ifGPU,domains):
 
 if __name__ == '__main__':
     set_start_method("fork", force=True)
-    ifGPU = True
+    ifGPU = False
+
     #domains = ["DeepPoly","Symbolic","Neurify"]
     domains = ["DeepPoly"]
     #toy(ifGPU,domains)
