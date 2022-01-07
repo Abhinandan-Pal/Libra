@@ -17,11 +17,12 @@ unbiased = []
 unfeasible = []
 
 def preanalysis(json_out,config,domains):
+    global feasible, unbiasedP, feasibleP, unfeasibleP, unbiased, unfeasible
     L_min = config.min_difference
     U_start = config.start_unstable
     U_max = config.max_unstable
 
-    global feasible,unbiasedP,feasibleP,unfeasibleP,unbiased,unfeasible
+
     feasible,unbiasedP,feasibleP,unfeasibleP,unbiased,unfeasible = dict(),0,0,0,[],[]
 
     json_out["fair"] = []
@@ -76,7 +77,7 @@ def iterPreanalysis(l1_lbL,l1_ubL,netGPU,L,U,L_min,U_max,sensitive,percent,domai
         L = L_min
         U = U_max
     print(Fore.LIGHTGREEN_EX +f"Autotuned: L: {L}; U: {U}",Style.RESET_ALL)
-    activatedL2, deactivatedL2, outcomeL2, lbL2, ubL2, percent, inv_var_index = prodG.analyze(netGPU,l1_lbL,l1_ubL,percent,L,2,domains)
+    activatedL2, deactivatedL2, outcomeL2, lbL2, ubL2, percent, inv_var_index = dpG.analyze(netGPU,l1_lbL,l1_ubL,percent,L,3)#,domains)
     l1_lbN,l1_ubN = [],[]
     for activatedL1, deactivatedL1, outcomeL1, lbL1, ubL1 in zip(activatedL2, deactivatedL2, outcomeL2, lbL2, ubL2):
         for activated, deactivated, outcome, lb, ub in zip(activatedL1, deactivatedL1, outcomeL1, lbL1, ubL1):

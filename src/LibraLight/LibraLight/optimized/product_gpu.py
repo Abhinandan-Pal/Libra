@@ -168,7 +168,7 @@ def analyze(netGPU,l1_lbL,l1_ubL,percent,L,print_mode,domains):
             miniPrintCondense(d_affine, if_activation,d_if_activation, d_l1_lb,d_l1_ub,domains,d_relu_dp,d_symb,d_relu_neu,d_active_pattern,NO_OF_INITIALS,inv_var_index,sensitive,dims)
         elif (print_mode == 3):
             noPrintCondense(d_affine, if_activation,d_if_activation, d_l1_lb,d_l1_ub,domains,d_relu_dp,d_symb,d_relu_neu,d_active_pattern,NO_OF_INITIALS)
-            
+
         #print(f"activation->{d_active_pattern}")
         outcome = oneOutput(d_affine,d_relu_dp,d_relu_neu,d_symb,if_activation,d_l1_lb,d_l1_ub,outNodes,inv_var_index,domains,sensitive,print_mode)
         active_pattern = cp.asnumpy(d_active_pattern)

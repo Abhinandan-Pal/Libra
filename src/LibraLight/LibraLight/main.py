@@ -178,7 +178,7 @@ def combineJSON(json1,json2):
     from collections import defaultdict
     jsonD = defaultdict(list)
 
-    for js in (json1,json2):  # you can list as many input dicts as you want here
+    for js in (json1,json2):
         for key, value in js.items():
             jsonD[key]+=(value)
     return jsonD
@@ -289,13 +289,11 @@ def test1(ifGPU,domains):
                          'x010': (1.0, 1.0), 'x011': (1.0, 1.0)}
         '''
 
-
         config.bounds = {'x00': (-1.0, 1.0), 'x01': (0.25, 0.5), 'x02': (0.5, 1.0), 'x03': (0.5, 0.75),
                          'x04': (0.75, 1.0),
                          'x05': (0.5, 1.0), 'x06': (-1.0, -0.5), 'x07': (-1.0, -1.0), 'x08': (-1.0, -1.0),
                          'x09': (1.0, 1.0),
                          'x010': (1.0, 1.0), 'x011': (1.0, 1.0)}
-
 
         if (ifGPU):
             set_sensitive_GPU(0)
@@ -304,7 +302,7 @@ def test1(ifGPU,domains):
 
         config.min_difference = 0.25
         config.start_difference = 1
-        config.start_unstable = 1
+        config.start_unstable = 3
         config.max_unstable = 3
 
 
@@ -397,8 +395,8 @@ if __name__ == '__main__':
     set_start_method("fork", force=True)
     ifGPU = True
 
-    domains = ["DeepPoly","Symbolic","Neurify"]
-    #domains = ["Neurify"]
+    #domains = ["DeepPoly","Symbolic","Neurify"]
+    domains = ["DeepPoly"]
     #toy(ifGPU,domains)
     #test.toy()
     #test1(False,domains)

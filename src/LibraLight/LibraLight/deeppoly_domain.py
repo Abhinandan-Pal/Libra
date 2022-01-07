@@ -207,9 +207,9 @@ def analyze_deeppoly(deeppoly, inputs, layers, outputs):
     activated = {lhs for lhs, flag in flags.items() if flag == 1}
     deactivated = {lhs for lhs, flag in flags.items() if flag == -1}
     found, (polarity, expression) = outcome(final, inputs, outputs)
-    #print(f"\tBounds-> x50: {bounds['x50']} x51: {bounds['x51']}")
+    print(f"\tBounds-> x50: {bounds['x50']} x51: {bounds['x51']}")
     #print(f"\tBounds-> {bounds}")
-    #print(f"\tOutcome-> {found}")
+    print(f"\tOutcome-> {found}")
     import config
     if config.splitting == config.SplittingHeuristic.RELU_POLARITY:
         polarity = min(polarities) if polarities else None
