@@ -238,8 +238,8 @@ def do(out_name,ifGPU,domains):
     else:
         result, time2 = json_out.copy(), 0.0
 
-    #result, time2 = analysis(prioritized, shared)
-    #result = combineJSON(json_out1, result)
+    result, time2 = analysis(prioritized, shared)
+    result = combineJSON(json_out1, result)
 
     minL, startL = config.min_difference, config.start_difference
     startU, maxU = config.start_unstable, config.max_unstable
@@ -289,11 +289,14 @@ def test1(ifGPU,domains):
                          'x010': (1.0, 1.0), 'x011': (1.0, 1.0)}
         '''
 
+
+        '''
         config.bounds = {'x00': (-1.0, 1.0), 'x01': (0.25, 0.5), 'x02': (0.5, 1.0), 'x03': (0.5, 0.75),
                          'x04': (0.75, 1.0),
                          'x05': (0.5, 1.0), 'x06': (-1.0, -0.5), 'x07': (-1.0, -1.0), 'x08': (-1.0, -1.0),
                          'x09': (1.0, 1.0),
                          'x010': (1.0, 1.0), 'x011': (1.0, 1.0)}
+        '''
 
         if (ifGPU):
             set_sensitive_GPU(0)
@@ -302,7 +305,7 @@ def test1(ifGPU,domains):
 
         config.min_difference = 0.25
         config.start_difference = 1
-        config.start_unstable = 3
+        config.start_unstable = 1
         config.max_unstable = 3
 
 
@@ -314,7 +317,6 @@ def test1(ifGPU,domains):
         for bnds in ("10011","00111","01011","10000","00100","01000"):
                 perform(t,bnds)
     '''
-    #"01011"
     perform(2540,"01000")
     #perform(2545, "00111")
 
@@ -397,7 +399,4 @@ if __name__ == '__main__':
 
     #domains = ["DeepPoly","Symbolic","Neurify"]
     domains = ["DeepPoly"]
-    #toy(ifGPU,domains)
-    #test.toy()
-    #test1(False,domains)
     test1(ifGPU,domains)

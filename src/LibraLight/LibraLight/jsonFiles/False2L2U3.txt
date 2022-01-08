@@ -1,0 +1,20 @@
+
+
+THRESHOLD: 2540 XMAX: [0, 1, 0, 0, 0]
+Analyzed Input Domain Percentage: 0.0% 
+Certified Fair Percentage: 0.0% 
+Potentially Biased Percentage: 0.0% 
+Uncertified Input Domain Percentage: 100.0% 
+No of Prioritized Patterns: 0
+Pre-Analysis Time: 0.2846667766571045s 
+Analysis Time: 0.010225057601928711s 
+
+
+THRESHOLD: 2540 XMAX: [0, 1, 0, 0, 0]
+Analyzed Input Domain Percentage: 0.0% 
+Certified Fair Percentage: 0.0% 
+Potentially Biased Percentage: 0.0% 
+Uncertified Input Domain Percentage: 100.0% 
+No of Prioritized Patterns: 0
+Pre-Analysis Time: 0.16184282302856445s 
+Analysis Time: 0.009076118469238281s 

@@ -1,0 +1,270 @@
+
+
+THRESHOLD: 2550 XMAX: [1, 0, 0, 1, 1]
+Analyzed Input Domain Percentage: 100.0% 
+Certified Fair Percentage: 99.89326596260071% 
+Potentially Biased Percentage: 0.0% 
+Uncertified Input Domain Percentage: 0.0% 
+No of Prioritized Patterns: 5
+Pre-Analysis Time: 18.10191583633423s 
+Analysis Time: 0.0s 
+
+
+THRESHOLD: 2550 XMAX: [0, 0, 1, 1, 1]
+Analyzed Input Domain Percentage: 100.0% 
+Certified Fair Percentage: 99.64178157970309% 
+Potentially Biased Percentage: 0.0% 
+Uncertified Input Domain Percentage: 0.0% 
+No of Prioritized Patterns: 8
+Pre-Analysis Time: 15.605926990509033s 
+Analysis Time: 0.0s 
+
+
+THRESHOLD: 2550 XMAX: [0, 1, 0, 1, 1]
+Analyzed Input Domain Percentage: 100.0% 
+Certified Fair Percentage: 99.98292922973633% 
+Potentially Biased Percentage: 0.0% 
+Uncertified Input Domain Percentage: 0.0% 
+No of Prioritized Patterns: 3
+Pre-Analysis Time: 10.664128303527832s 
+Analysis Time: 0.0s 
+
+
+THRESHOLD: 2550 XMAX: [1, 0, 0, 0, 0]
+Analyzed Input Domain Percentage: 100.0% 
+Certified Fair Percentage: 99.98130798339844% 
+Potentially Biased Percentage: 0.0% 
+Uncertified Input Domain Percentage: 0.0% 
+No of Prioritized Patterns: 2
+Pre-Analysis Time: 7.9417884349823s 
+Analysis Time: 0.0s 
+
+
+THRESHOLD: 2550 XMAX: [0, 0, 1, 0, 0]
+Analyzed Input Domain Percentage: 100.0% 
+Certified Fair Percentage: 99.83482360839844% 
+Potentially Biased Percentage: 0.0% 
+Uncertified Input Domain Percentage: 0.0% 
+No of Prioritized Patterns: 2
+Pre-Analysis Time: 8.046526908874512s 
+Analysis Time: 0.0s 
+
+
+THRESHOLD: 2550 XMAX: [0, 1, 0, 0, 0]
+Analyzed Input Domain Percentage: 100.0% 
+Certified Fair Percentage: 99.67918395996094% 
+Potentially Biased Percentage: 0.0% 
+Uncertified Input Domain Percentage: 0.0% 
+No of Prioritized Patterns: 3
+Pre-Analysis Time: 8.526488304138184s 
+Analysis Time: 0.0s 
+
+
+THRESHOLD: 2555 XMAX: [1, 0, 0, 1, 1]
+Analyzed Input Domain Percentage: 100.0% 
+Certified Fair Percentage: 99.89987015724182% 
+Potentially Biased Percentage: 0.0% 
+Uncertified Input Domain Percentage: 0.0% 
+No of Prioritized Patterns: 5
+Pre-Analysis Time: 12.268535137176514s 
+Analysis Time: 0.0s 
+
+
+THRESHOLD: 2555 XMAX: [0, 0, 1, 1, 1]
+Analyzed Input Domain Percentage: 100.0% 
+Certified Fair Percentage: 99.6565518900752% 
+Potentially Biased Percentage: 0.0% 
+Uncertified Input Domain Percentage: 0.0% 
+No of Prioritized Patterns: 8
+Pre-Analysis Time: 15.284494638442993s 
+Analysis Time: 0.0s 
+
+
+THRESHOLD: 2555 XMAX: [0, 1, 0, 1, 1]
+Analyzed Input Domain Percentage: 100.0% 
+Certified Fair Percentage: 99.98348951339722% 
+Potentially Biased Percentage: 0.0% 
+Uncertified Input Domain Percentage: 0.0% 
+No of Prioritized Patterns: 3
+Pre-Analysis Time: 12.115927934646606s 
+Analysis Time: 0.0s 
+
+
+THRESHOLD: 2555 XMAX: [1, 0, 0, 0, 0]
+Analyzed Input Domain Percentage: 100.0% 
+Certified Fair Percentage: 99.98321533203125% 
+Potentially Biased Percentage: 0.0% 
+Uncertified Input Domain Percentage: 0.0% 
+No of Prioritized Patterns: 2
+Pre-Analysis Time: 7.878558158874512s 
+Analysis Time: 0.0s 
+
+
+THRESHOLD: 2555 XMAX: [0, 0, 1, 0, 0]
+Analyzed Input Domain Percentage: 100.0% 
+Certified Fair Percentage: 99.84321594238281% 
+Potentially Biased Percentage: 0.0% 
+Uncertified Input Domain Percentage: 0.0% 
+No of Prioritized Patterns: 2
+Pre-Analysis Time: 8.72419548034668s 
+Analysis Time: 0.0s 
+
+
+THRESHOLD: 2555 XMAX: [0, 1, 0, 0, 0]
+Analyzed Input Domain Percentage: 100.0% 
+Certified Fair Percentage: 99.71122741699219% 
+Potentially Biased Percentage: 0.0% 
+Uncertified Input Domain Percentage: 0.0% 
+No of Prioritized Patterns: 3
+Pre-Analysis Time: 8.928651094436646s 
+Analysis Time: 0.0s 
+
+
+THRESHOLD: 2560 XMAX: [1, 0, 0, 1, 1]
+Analyzed Input Domain Percentage: 100.0% 
+Certified Fair Percentage: 99.90612864494324% 
+Potentially Biased Percentage: 0.0% 
+Uncertified Input Domain Percentage: 0.0% 
+No of Prioritized Patterns: 5
+Pre-Analysis Time: 12.48352861404419s 
+Analysis Time: 0.0s 
+
+
+THRESHOLD: 2560 XMAX: [0, 0, 1, 1, 1]
+Analyzed Input Domain Percentage: 100.0% 
+Certified Fair Percentage: 99.67100014910102% 
+Potentially Biased Percentage: 0.0% 
+Uncertified Input Domain Percentage: 0.0% 
+No of Prioritized Patterns: 8
+Pre-Analysis Time: 16.32241439819336s 
+Analysis Time: 0.0s 
+
+
+THRESHOLD: 2560 XMAX: [0, 1, 0, 1, 1]
+Analyzed Input Domain Percentage: 100.0% 
+Certified Fair Percentage: 99.98517632484436% 
+Potentially Biased Percentage: 0.0% 
+Uncertified Input Domain Percentage: 0.0% 
+No of Prioritized Patterns: 2
+Pre-Analysis Time: 12.056347370147705s 
+Analysis Time: 0.0s 
+
+
+THRESHOLD: 2560 XMAX: [1, 0, 0, 0, 0]
+Analyzed Input Domain Percentage: 100.0% 
+Certified Fair Percentage: 99.98512268066406% 
+Potentially Biased Percentage: 0.0% 
+Uncertified Input Domain Percentage: 0.0% 
+No of Prioritized Patterns: 2
+Pre-Analysis Time: 10.525933742523193s 
+Analysis Time: 0.0s 
+
+
+THRESHOLD: 2560 XMAX: [0, 0, 1, 0, 0]
+Analyzed Input Domain Percentage: 100.0% 
+Certified Fair Percentage: 99.85122680664062% 
+Potentially Biased Percentage: 0.0% 
+Uncertified Input Domain Percentage: 0.0% 
+No of Prioritized Patterns: 2
+Pre-Analysis Time: 10.778514623641968s 
+Analysis Time: 0.0s 
+
+
+THRESHOLD: 2560 XMAX: [0, 1, 0, 0, 0]
+Analyzed Input Domain Percentage: 100.0% 
+Certified Fair Percentage: 99.74174499511719% 
+Potentially Biased Percentage: 0.0% 
+Uncertified Input Domain Percentage: 0.0% 
+No of Prioritized Patterns: 3
+Pre-Analysis Time: 10.927475929260254s 
+Analysis Time: 0.0s 
+
+
+THRESHOLD: 2565 XMAX: [1, 0, 0, 1, 1]
+Analyzed Input Domain Percentage: 100.0% 
+Certified Fair Percentage: 99.91157054901123% 
+Potentially Biased Percentage: 0.0% 
+Uncertified Input Domain Percentage: 0.0% 
+No of Prioritized Patterns: 5
+Pre-Analysis Time: 13.037278890609741s 
+Analysis Time: 0.0s 
+
+
+THRESHOLD: 2565 XMAX: [0, 0, 1, 1, 1]
+Analyzed Input Domain Percentage: 100.0% 
+Certified Fair Percentage: 99.68690872192383% 
+Potentially Biased Percentage: 0.0% 
+Uncertified Input Domain Percentage: 0.0% 
+No of Prioritized Patterns: 8
+Pre-Analysis Time: 17.5694317817688s 
+Analysis Time: 0.0s 
+
+
+THRESHOLD: 2565 XMAX: [0, 1, 0, 1, 1]
+Analyzed Input Domain Percentage: 100.0% 
+Certified Fair Percentage: 99.98679161071777% 
+Potentially Biased Percentage: 0.0% 
+Uncertified Input Domain Percentage: 0.0% 
+No of Prioritized Patterns: 1
+Pre-Analysis Time: 16.24616241455078s 
+Analysis Time: 0.0s 
+
+
+THRESHOLD: 2565 XMAX: [1, 0, 0, 0, 0]
+Analyzed Input Domain Percentage: 100.0% 
+Certified Fair Percentage: 99.98664855957031% 
+Potentially Biased Percentage: 0.0% 
+Uncertified Input Domain Percentage: 0.0% 
+No of Prioritized Patterns: 2
+Pre-Analysis Time: 11.234951734542847s 
+Analysis Time: 0.0s 
+
+
+THRESHOLD: 2565 XMAX: [0, 0, 1, 0, 0]
+Analyzed Input Domain Percentage: 100.0% 
+Certified Fair Percentage: 99.86000061035156% 
+Potentially Biased Percentage: 0.0% 
+Uncertified Input Domain Percentage: 0.0% 
+No of Prioritized Patterns: 2
+Pre-Analysis Time: 10.925255537033081s 
+Analysis Time: 0.0s 
+
+
+THRESHOLD: 2565 XMAX: [0, 1, 0, 0, 0]
+Analyzed Input Domain Percentage: 100.0% 
+Certified Fair Percentage: 99.77149963378906% 
+Potentially Biased Percentage: 0.0% 
+Uncertified Input Domain Percentage: 0.0% 
+No of Prioritized Patterns: 3
+Pre-Analysis Time: 10.983802080154419s 
+Analysis Time: 0.0s 
+
+
+THRESHOLD: 2555 XMAX: [1, 0, 0, 1, 1]
+Analyzed Input Domain Percentage: 100.0% 
+Certified Fair Percentage: 99.89987015724182% 
+Potentially Biased Percentage: 0.0% 
+Uncertified Input Domain Percentage: 0.0% 
+No of Prioritized Patterns: 5
+Pre-Analysis Time: 20.615713834762573s 
+Analysis Time: 0.0s 
+
+
+THRESHOLD: 2555 XMAX: [1, 0, 0, 1, 1]
+Analyzed Input Domain Percentage: 100.0% 
+Certified Fair Percentage: 99.89987015724182% 
+Potentially Biased Percentage: 0.0% 
+Uncertified Input Domain Percentage: 0.0% 
+No of Prioritized Patterns: 5
+Pre-Analysis Time: 12.432746410369873s 
+Analysis Time: 0.0s 
+
+
+THRESHOLD: 2555 XMAX: [1, 0, 0, 1, 1]
+Analyzed Input Domain Percentage: 100.0% 
+Certified Fair Percentage: 99.89987015724182% 
+Potentially Biased Percentage: 0.0% 
+Uncertified Input Domain Percentage: 0.0% 
+No of Prioritized Patterns: 5
+Pre-Analysis Time: 13.26600694656372s 
+Analysis Time: 0.0s 

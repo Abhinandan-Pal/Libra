@@ -77,6 +77,7 @@ def iterPreanalysis(l1_lbL,l1_ubL,netGPU,L,U,L_min,U_max,sensitive,percent,domai
         L = L_min
         U = U_max
     print(Fore.LIGHTGREEN_EX +f"Autotuned: L: {L}; U: {U}",Style.RESET_ALL)
+    # change dpG to symG or neuG to use the other abstract domains. For prodG add domain as the last argument
     activatedL2, deactivatedL2, outcomeL2, lbL2, ubL2, percent, inv_var_index = dpG.analyze(netGPU,l1_lbL,l1_ubL,percent,L,3)#,domains)
     l1_lbN,l1_ubN = [],[]
     for activatedL1, deactivatedL1, outcomeL1, lbL1, ubL1 in zip(activatedL2, deactivatedL2, outcomeL2, lbL2, ubL2):
